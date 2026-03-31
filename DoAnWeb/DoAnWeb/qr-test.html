@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Payment Test</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <style>
+        body {
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .test-button {
+            margin: 10px;
+            min-width: 200px;
+            height: 60px;
+            font-size: 18px;
+        }
+        .status-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+            margin: 20px 0;
+        }
+        .status-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-flask text-primary"></i>
+            QR Payment Test Tool
+        </h1>
+        
+        <div class="alert alert-info">
+            <strong><i class="fas fa-info-circle"></i> M?c ?ích:</strong>
+            Test xem QR Payment module có ho?t ??ng không
+        </div>
+        
+        <!-- System Check -->
+        <div class="status-box">
+            <h4><i class="fas fa-check-circle text-success"></i> System Check</h4>
+            <div id="systemCheck"></div>
+        </div>
+        
+        <!-- Test Buttons -->
+        <h3 class="mb-3"><i class="fas fa-play-circle"></i> Test QR Modals</h3>
+        <div class="text-center">
+            <button onclick="testQR('2')" class="btn btn-primary test-button">
+                <i class="fas fa-university"></i><br>
+                <strong>Test Bank</strong>
+            </button>
+            
+            <button onclick="testQR('3')" class="btn btn-danger test-button">
+                <i class="fas fa-mobile-alt"></i><br>
+                <strong>Test MoMo</strong>
+            </button>
+            
+            <button onclick="testQR('4')" class="btn btn-info test-button">
+                <i class="fas fa-qrcode"></i><br>
+                <strong>Test ZaloPay</strong>
+            </button>
+        </div>
+        
+        <hr>
+        
+        <!-- Manual Tests -->
+        <h3 class="mb-3"><i class="fas fa-terminal"></i> Manual Tests</h3>
+        
+        <div class="mb-3">
+            <button onclick="checkDependencies()" class="btn btn-secondary btn-block">
+                <i class="fas fa-tools"></i> Check Dependencies
+            </button>
+        </div>
+        
+        <div class="mb-3">
+            <button onclick="checkFiles()" class="btn btn-secondary btn-block">
+                <i class="fas fa-file-image"></i> Check QR Images
+            </button>
+        </div>
+        
+        <div class="mb-3">
+            <button onclick="showConsoleCommands()" class="btn btn-secondary btn-block">
+                <i class="fas fa-code"></i> Show Console Commands
+            </button>
+        </div>
+        
+        <!-- Results -->
+        <div id="results" class="mt-4"></div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- QR Payment Script -->
+    <script src="/Scripts/qr-payment.js"></script>
+    
+    <script>
+        // System check on page load
+        $(document).ready(function() {
+            performSystemCheck();
+        });
+        
+        function performSystemCheck() {
+            var html = '';
+            var allOk = true;
+            
+            // jQuery
+            if (typeof $ === 'function') {
+                html += '<div class="status-item status-ok"><i class="fas fa-check"></i> jQuery: OK (v' + $.fn.jquery + ')</div>';
+            } else {
+                html += '<div class="status-item status-error"><i class="fas fa-times"></i> jQuery: NOT FOUND</div>';
+                allOk = false;
+            }
+            
+            // Bootstrap Modal
+            if (typeof $.fn.modal === 'function') {
+                html += '<div class="status-item status-ok"><i class="fas fa-check"></i> Bootstrap Modal: OK</div>';
+            } else {
+                html += '<div class="status-item status-error"><i class="fas fa-times"></i> Bootstrap Modal: NOT FOUND</div>';
+                allOk = false;
+            }
+            
+            // SweetAlert2
+            if (typeof Swal === 'object') {
+                html += '<div class="status-item status-ok"><i class="fas fa-check"></i> SweetAlert2: OK</div>';
+            } else {
+                html += '<div class="status-item status-error"><i class="fas fa-times"></i> SweetAlert2: NOT FOUND</div>';
+                allOk = false;
+            }
+            
+            // qr-payment.js
+            if (typeof showQRCodeModal === 'function') {
+                html += '<div class="status-item status-ok"><i class="fas fa-check"></i> qr-payment.js: OK</div>';
+            } else {
+                html += '<div class="status-item status-error"><i class="fas fa-times"></i> qr-payment.js: NOT FOUND</div>';
+                allOk = false;
+            }
+            
+            // Functions
+            var functions = ['showQRCodeModal', 'getPaymentMethodName', 'getQRImagePath', 'formatCurrency'];
+            var foundFunctions = 0;
+            functions.forEach(function(func) {
+                if (typeof window[func] === 'function') {
+                    foundFunctions++;
+                }
+            });
+            
+            if (foundFunctions === functions.length) {
+                html += '<div class="status-item status-ok"><i class="fas fa-check"></i> All Functions: OK (' + foundFunctions + '/' + functions.length + ')</div>';
+            } else {
+                html += '<div class="status-item status-error"><i class="fas fa-times"></i> Functions: MISSING (' + foundFunctions + '/' + functions.length + ')</div>';
+                allOk = false;
+            }
+            
+            $('#systemCheck').html(html);
+            
+            if (!allOk) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'System Check Failed!',
+                    html: 'Some dependencies are missing. Check the status above.',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+        
+        function testQR(paymentMethod) {
+            console.log('Testing payment method:', paymentMethod);
+            
+            if (typeof showQRCodeModal !== 'function') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'showQRCodeModal function not found! qr-payment.js not loaded.',
+                    footer: 'Check the file path: /Scripts/qr-payment.js'
+                });
+                return;
+            }
+            
+            try {
+                showQRCodeModal(paymentMethod, null);
+                
+                $('#results').html(`
+                    <div class="alert alert-success">
+                        <strong><i class="fas fa-check-circle"></i> Success!</strong><br>
+                        QR modal opened for payment method: <strong>${getPaymentMethodName(paymentMethod)}</strong>
+                    </div>
+                `);
+            } catch(error) {
+                console.error('Error:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'JavaScript Error!',
+                    html: `
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <pre>${error.stack}</pre>
+                    `,
+                    width: '600px'
+                });
+                
+                $('#results').html(`
+                    <div class="alert alert-danger">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Error!</strong><br>
+                        ${error.message}
+                    </div>
+                `);
+            }
+        }
+        
+        function checkDependencies() {
+            var results = {
+                jQuery: typeof $ === 'function',
+                jQueryVersion: typeof $ === 'function' ? $.fn.jquery : 'N/A',
+                BootstrapModal: typeof $.fn.modal === 'function',
+                SweetAlert2: typeof Swal === 'object',
+                qrPayment: typeof showQRCodeModal === 'function',
+                functions: {
+                    showQRCodeModal: typeof showQRCodeModal === 'function',
+                    getPaymentMethodName: typeof getPaymentMethodName === 'function',
+                    getQRImagePath: typeof getQRImagePath === 'function',
+                    formatCurrency: typeof formatCurrency === 'function'
+                }
+            };
+            
+            Swal.fire({
+                title: 'Dependencies Check',
+                html: '<pre style="text-align: left;">' + JSON.stringify(results, null, 2) + '</pre>',
+                width: '600px',
+                confirmButtonText: 'OK'
+            });
+        }
+        
+        function checkFiles() {
+            var files = [
+                { name: 'Bank QR', url: '/Content/Images/bank.jpg' },
+                { name: 'MoMo QR', url: '/Content/Images/momo.jpg' },
+                { name: 'ZaloPay QR', url: '/Content/Images/zalopay.jpg' }
+            ];
+            
+            var html = '<div style="text-align: left;">';
+            
+            files.forEach(function(file) {
+                html += '<p><strong>' + file.name + ':</strong> Checking...</p>';
+            });
+            
+            html += '</div>';
+            
+            Swal.fire({
+                title: 'Checking QR Images...',
+                html: html,
+                showConfirmButton: false,
+                allowOutsideClick: false
+            });
+            
+            var checkPromises = files.map(function(file) {
+                return new Promise(function(resolve) {
+                    var img = new Image();
+                    img.onload = function() {
+                        resolve({ file: file.name, status: 'OK', url: file.url });
+                    };
+                    img.onerror = function() {
+                        resolve({ file: file.name, status: 'NOT FOUND', url: file.url });
+                    };
+                    img.src = file.url;
+                });
+            });
+            
+            Promise.all(checkPromises).then(function(results) {
+                var resultHtml = '<div style="text-align: left;">';
+                
+                results.forEach(function(result) {
+                    var icon = result.status === 'OK' ? '?' : '?';
+                    resultHtml += '<p>' + icon + ' <strong>' + result.file + ':</strong> ' + result.status + '</p>';
+                });
+                
+                resultHtml += '</div>';
+                
+                Swal.fire({
+                    title: 'QR Images Check',
+                    html: resultHtml,
+                    confirmButtonText: 'OK'
+                });
+            });
+        }
+        
+        function showConsoleCommands() {
+            Swal.fire({
+                title: 'Console Commands',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>Run these in browser Console (F12):</strong></p>
+                        <pre>
+// Check jQuery
+typeof $ === 'function'
+
+// Check Bootstrap
+typeof $.fn.modal === 'function'
+
+// Check SweetAlert2
+typeof Swal === 'object'
+
+// Check qr-payment.js
+typeof showQRCodeModal === 'function'
+
+// Test QR modal manually
+showQRCodeModal('3', null)
+
+// Check payment method value
+$('input[name="PaymentMethod"]:checked').val()
+                        </pre>
+                    </div>
+                `,
+                width: '700px',
+                confirmButtonText: 'Got it!'
+            });
+        }
+    </script>
+</body>
+</html>

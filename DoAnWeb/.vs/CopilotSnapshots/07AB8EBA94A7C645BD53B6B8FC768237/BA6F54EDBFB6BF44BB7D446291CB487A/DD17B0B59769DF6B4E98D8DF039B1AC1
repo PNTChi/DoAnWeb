@@ -1,0 +1,400 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller x? lý trang tài kho?n ng??i dùng
+    /// </summary>
+    public class TaiKhoanController : BaseController
+    {
+        /// <summary>
+        /// GET: Thông tin tài kho?n
+        /// </summary>
+        public ActionResult Index()
+        {
+    if (!IsAuthenticated)
+ {
+              return RedirectToAction("Login", "Account");
+  }
+
+       var taiKhoan = db.tb_TaiKhoan.Find(CurrentUser.Id);
+            if (taiKhoan == null)
+     {
+        return RedirectToAction("Logout", "Account");
+     }
+
+return View(taiKhoan);
+        }
+
+        /// <summary>
+   /// POST: C?p nh?t thông tin tài kho?n
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+    public ActionResult CapNhat(string hoTen, string email, string soDienThoai)
+        {
+  if (!IsAuthenticated)
+  {
+         return Json(new { success = false, message = "Vui lòng ??ng nh?p" });
+   }
+
+     // Validate
+if (string.IsNullOrWhiteSpace(hoTen) || string.IsNullOrWhiteSpace(email))
+{
+   TempData["ErrorMessage"] = "Vui lòng ?i?n ??y ?? thông tin b?t bu?c";
+            return RedirectToAction("Index");
+        }
+
+  try
+   {
+    var taiKhoan = db.tb_TaiKhoan.Find(CurrentUser.Id);
+          if (taiKhoan == null)
+      {
+TempData["ErrorMessage"] = "Không tìm th?y tài kho?n";
+  return RedirectToAction("Index");
+     }
+
+        // C?p nh?t thông tin
+   taiKhoan.HoTen = hoTen.Trim();
+     taiKhoan.Email = email.Trim();
+         taiKhoan.SoDienThoai = soDienThoai?.Trim();
+
+db.SaveChanges();
+
+  // C?p nh?t session
+       var userSession = new UserSessionViewModel
+     {
+ Id = taiKhoan.Id,
+      HoTen = taiKhoan.HoTen,
+       Email = taiKhoan.Email,
+      LaQuanTri = taiKhoan.LaQuanTri ?? false
+         };
+   Session["CurrentUser"] = userSession;
+
+                TempData["SuccessMessage"] = "C?p nh?t thông tin thành công";
+    return RedirectToAction("Index");
+            }
+     catch (Exception ex)
+     {
+         TempData["ErrorMessage"] = "Có l?i x?y ra. Vui lòng th? l?i sau.";
+        return RedirectToAction("Index");
+  }
+        }
+
+        /// <summary>
+        /// GET: Trang ??i m?t kh?u
+   /// </summary>
+        public ActionResult DoiMatKhau()
+        {
+            if (!IsAuthenticated)
+          {
+     return RedirectToAction("Login", "Account");
+          }
+
+    return View();
+        }
+
+        /// <summary>
+   /// POST: ??i m?t kh?u
+        /// </summary>
+     [HttpPost]
+        [ValidateAntiForgeryToken]
+      public ActionResult DoiMatKhau(string matKhauCu, string matKhauMoi, string xacNhanMatKhau)
+{
+  if (!IsAuthenticated)
+  {
+    return RedirectToAction("Login", "Account");
+     }
+
+     // Validate
+ if (string.IsNullOrWhiteSpace(matKhauCu) || 
+  string.IsNullOrWhiteSpace(matKhauMoi) || 
+ string.IsNullOrWhiteSpace(xacNhanMatKhau))
+  {
+      TempData["ErrorMessage"] = "Vui lòng ?i?n ??y ?? thông tin";
+      return View();
+}
+
+      if (matKhauMoi != xacNhanMatKhau)
+     {
+      TempData["ErrorMessage"] = "M?t kh?u xác nh?n không kh?p";
+    return View();
+    }
+
+            if (matKhauMoi.Length < 6)
+    {
+   TempData["ErrorMessage"] = "M?t kh?u m?i ph?i có ít nh?t 6 ký t?";
+        return View();
+ }
+
+      try
+{
+         var taiKhoan = db.tb_TaiKhoan.Find(CurrentUser.Id);
+      if (taiKhoan == null)
+       {
+       TempData["ErrorMessage"] = "Không tìm th?y tài kho?n";
+  return View();
+    }
+
+      // Ki?m tra m?t kh?u c? (PLAIN TEXT - vì DB l?u plain text)
+       // NOTE: Trong th?c t? nên dùng hash ?? b?o m?t!
+       if (taiKhoan.MatKhau != matKhauCu)
+   {
+TempData["ErrorMessage"] = "M?t kh?u c? không ?úng";
+   return View();
+      }
+
+   // C?p nh?t m?t kh?u m?i (PLAIN TEXT)
+      taiKhoan.MatKhau = matKhauMoi;
+
+db.SaveChanges();
+
+      TempData["SuccessMessage"] = "??i m?t kh?u thành công";
+     return RedirectToAction("Index");
+            }
+         catch (Exception ex)
+   {
+      TempData["ErrorMessage"] = "Có l?i x?y ra. Vui lòng th? l?i sau.";
+return View();
+   }
+  }
+
+        /// <summary>
+        /// GET: Danh sách ??n hàng
+        /// </summary>
+        public ActionResult DonHang(int page = 1, int pageSize = 10)
+        {
+   if (!IsAuthenticated)
+          {
+        return RedirectToAction("Login", "Account");
+        }
+
+            var query = db.tb_DonHang
+                .Where(dh => dh.TaiKhoanId == CurrentUser.Id)
+    .OrderByDescending(dh => dh.NgayTao);
+
+       // Pagination
+            var totalOrders = query.Count();
+      var totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+            ViewBag.CurrentPage = page;
+    ViewBag.TotalPages = totalPages;
+  ViewBag.TotalOrders = totalOrders;
+
+   var orders = query
+         .Skip((page - 1) * pageSize)
+         .Take(pageSize)
+   .ToList();
+
+   return View(orders);
+      }
+
+        /// <summary>
+        /// GET: Chi tiết đơn hàng
+        /// </summary>
+        public ActionResult ChiTietDonHang(int id)
+        {
+            if (!IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var donHang = db.tb_DonHang
+                .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+            if (donHang == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng";
+                return RedirectToAction("DonHang");
+            }
+
+            try
+            {
+                // Lấy chi tiết đơn hàng kèm thông tin sản phẩm với JOIN thủ công
+                var chiTiet = (from ct in db.tb_ChiTietDonHang
+                               join sp in db.tb_SanPham on ct.SanPhamId equals sp.Id
+                               where ct.DonHangId == id
+                               select new ChiTietDonHangViewModel
+                               {
+                                   SanPhamId = ct.SanPhamId,
+                                   TenSanPham = sp.TenSanPham ?? "Không có tên",
+                                   HinhAnh = sp.HinhAnh ?? "",
+                                   SoLuong = ct.SoLuong,
+                                   Gia = ct.Gia,
+                                   ThanhTien = ct.SoLuong * ct.Gia
+                               }).ToList();
+
+                ViewBag.ChiTiet = chiTiet;
+                
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"Order ID: {id}, Chi tiet count: {chiTiet.Count}");
+                foreach (var item in chiTiet)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Product: {item.TenSanPham}, Qty: {item.SoLuong}, Price: {item.Gia}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                System.Diagnostics.Debug.WriteLine($"Error loading order details: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                ViewBag.ChiTiet = new List<ChiTietDonHangViewModel>();
+                TempData["ErrorMessage"] = "Có lỗi khi tải chi tiết đơn hàng: " + ex.Message;
+            }
+
+            return View(donHang);
+        }
+
+        /// <summary>
+        /// POST: Hủy đơn hàng
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult HuyDonHang(int id)
+        {
+            if (!IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+            }
+
+            try
+            {
+                var donHang = db.tb_DonHang
+                    .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+                if (donHang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
+                }
+
+                // Chỉ cho phép hủy đơn hàng ở trạng thái "Chờ xác nhận" hoặc "Đã xác nhận"
+                if (donHang.TrangThai > 2)
+                {
+                    return Json(new { success = false, message = "Không thể hủy đơn hàng này" });
+                }
+
+                // Cập nhật trạng thái
+                donHang.TrangThai = 5; // 5 = Đã hủy
+                donHang.NgayCapNhat = DateTime.Now;
+
+                // Hoàn lại số lượng sản phẩm
+                var chiTiet = db.tb_ChiTietDonHang.Where(ct => ct.DonHangId == id).ToList();
+                foreach (var item in chiTiet)
+                {
+                    var sanPham = db.tb_SanPham.Find(item.SanPhamId);
+                    if (sanPham != null && sanPham.SoLuong.HasValue)
+                    {
+                        sanPham.SoLuong += item.SoLuong;
+                    }
+                }
+
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Hủy đơn hàng thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại sau." });
+            }
+        }
+
+        /// <summary>
+        /// POST: Xác nhận đã nhận hàng
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult XacNhanDaNhan(int id)
+        {
+            if (!IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+            }
+
+            try
+            {
+                var donHang = db.tb_DonHang
+                    .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+                if (donHang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
+                }
+
+                // Chỉ cho phép xác nhận khi đơn hàng đang ở trạng thái "Đang giao" (3)
+                if (donHang.TrangThai != 3)
+                {
+                    return Json(new { success = false, message = "Không thể xác nhận đơn hàng này" });
+                }
+
+                // Cập nhật trạng thái
+                donHang.TrangThai = 4; // 4 = Đã giao hàng (Hoàn thành)
+                donHang.NgayCapNhat = DateTime.Now;
+
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Cảm ơn bạn đã xác nhận! Đơn hàng đã hoàn thành." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại sau." });
+            }
+        }
+
+        /// <summary>
+        /// POST: Yêu cầu trả hàng
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult YeuCauTraHang(int id, string lyDo)
+        {
+            if (!IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+            }
+
+            try
+            {
+                var donHang = db.tb_DonHang
+                    .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+                if (donHang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
+                }
+
+                // Chỉ cho phép trả hàng khi đơn hàng đang ở trạng thái "Đang giao" (3)
+                if (donHang.TrangThai != 3)
+                {
+                    return Json(new { success = false, message = "Không thể yêu cầu trả hàng cho đơn hàng này" });
+                }
+
+                // Validate lý do
+                if (string.IsNullOrWhiteSpace(lyDo) || lyDo.Length < 10)
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập lý do trả hàng (tối thiểu 10 ký tự)" });
+                }
+
+                // Cập nhật trạng thái sang 6 (Yêu cầu trả hàng)
+                // Hoặc có thể tạo bảng riêng để lưu yêu cầu trả hàng
+                // Tạm thời set TrangThai = 6 để admin xử lý
+                donHang.TrangThai = 6; // 6 = Yêu cầu trả hàng
+                donHang.NgayCapNhat = DateTime.Now;
+                // Note: Có thể thêm field GhiChu để lưu lý do trả hàng
+                // donHang.GhiChu = lyDo;
+
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Đã gửi yêu cầu trả hàng. Chúng tôi sẽ liên hệ với bạn sớm nhất." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại sau." });
+            }
+        }
+    }
+}

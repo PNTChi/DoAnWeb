@@ -1,0 +1,241 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller xử lý các chức năng liên quan đến sản phẩm
+    /// </summary>
+    public class SanPhamController : BaseController
+    {
+        private const int PAGE_SIZE = 12; // Số sản phẩm trên mỗi trang
+
+        /// <summary>
+        /// GET: Hiển thị danh sách sản phẩm với filter và pagination
+        /// </summary>
+        /// <param name="danhMucId">ID danh mục (optional)</param>
+        /// <param name="thuongHieuId">ID thương hiệu (optional)</param>
+        /// <param name="giaMin">Giá tối thiểu (optional)</param>
+        /// <param name="giaMax">Giá tối đa (optional)</param>
+        /// <param name="loc">Bộ lọc: moi, banchay, khuyenmai (optional)</param>
+        /// <param name="search">Từ khóa tìm kiếm (optional)</param>
+        /// <param name="page">Số trang hiện tại (optional, default = 1)</param>
+        public ActionResult Index(int? danhMucId, int? thuongHieuId, decimal? giaMin, decimal? giaMax,
+          string loc, string search, int? page)
+        {
+    // Query cơ bản: Lấy sản phẩm đang hiển thị
+         var query = db.tb_SanPham.Where(sp => sp.HienThi == true);
+
+     // Biến lưu tên category để hiển thị
+    string categoryName = "Tất cả sản phẩm";
+
+    // Filter theo danh mục
+            if (danhMucId.HasValue)
+            {
+      query = query.Where(sp => sp.DanhMucId == danhMucId.Value);
+          
+ // Lấy tên danh mục để hiển thị
+   var danhMuc = db.tb_DanhMuc.Find(danhMucId.Value);
+              if (danhMuc != null)
+    {
+      categoryName = danhMuc.TenDanhMuc;
+      }
+      }
+
+            // Filter theo thương hiệu
+    if (thuongHieuId.HasValue)
+  {
+          query = query.Where(sp => sp.ThuongHieuId == thuongHieuId.Value);
+                
+        // Lấy tên thương hiệu để hiển thị
+         var thuongHieu = db.tb_ThuongHieu.Find(thuongHieuId.Value);
+       if (thuongHieu != null)
+     {
+       categoryName = danhMucId.HasValue 
+          ? $"{categoryName} - {thuongHieu.TenThuongHieu}" 
+: thuongHieu.TenThuongHieu;
+                }
+     }
+
+  // Filter theo giá
+        if (giaMin.HasValue)
+      {
+          query = query.Where(sp => sp.Gia >= giaMin.Value || 
+        (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai >= giaMin.Value));
+    }
+
+          if (giaMax.HasValue)
+          {
+    query = query.Where(sp => sp.Gia <= giaMax.Value || 
+             (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai <= giaMax.Value));
+            }
+
+  // Filter theo loại đặc biệt
+            if (!string.IsNullOrEmpty(loc))
+    {
+   switch (loc.ToLower())
+   {
+     case "moi":
+            query = query.Where(sp => sp.LaSanPhamMoi == true);
+          categoryName = "Sản phẩm mới";
+      break;
+        case "banchay":
+       query = query.Where(sp => sp.LaSanPhamBanChay == true);
+         categoryName = "Sản phẩm bán chạy";
+   break;
+      case "khuyenmai":
+   query = query.Where(sp => sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia);
+       categoryName = "Sản phẩm khuyến mãi";
+ break;
+ }
+     }
+
+     // Search theo tên sản phẩm
+     if (!string.IsNullOrEmpty(search))
+            {
+      query = query.Where(sp => sp.TenSanPham.Contains(search) || 
+     (sp.MoTa != null && sp.MoTa.Contains(search)));
+   categoryName = $"Kết quả tìm kiếm: \"{search}\"";
+   }
+
+  // Sắp xếp
+            if (!string.IsNullOrEmpty(loc))
+   {
+    switch (loc.ToLower())
+       {
+        case "moi":
+     query = query.OrderByDescending(sp => sp.NgayTao);
+       break;
+  case "banchay":
+     query = query.OrderByDescending(sp => sp.LuotXem);
+        break;
+  default:
+      query = query.OrderByDescending(sp => sp.NgayTao);
+           break;
+    }
+  }
+ else
+   {
+                // Sắp xếp mặc định: Sản phẩm mới nhất
+      query = query.OrderByDescending(sp => sp.NgayTao);
+         }
+
+   // Đếm tổng số sản phẩm trước khi phân trang
+            int totalProducts = query.Count();
+
+            // Tính toán phân trang
+       int currentPage = page ?? 1;
+            int totalPages = (int)Math.Ceiling((double)totalProducts / PAGE_SIZE);
+            
+     // Đảm bảo currentPage hợp lệ
+            if (currentPage < 1) currentPage = 1;
+ if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+            // Lấy dữ liệu theo trang
+            var products = query
+     .Skip((currentPage - 1) * PAGE_SIZE)
+    .Take(PAGE_SIZE)
+        .ToList();
+
+            // Tạo ViewModel
+            var viewModel = new ProductListViewModel
+          {
+                Products = products,
+      CurrentCategoryName = categoryName,
+       CurrentPage = currentPage,
+                TotalPages = totalPages,
+         TotalProducts = totalProducts,
+PageSize = PAGE_SIZE,
+  DanhMucId = danhMucId,
+       ThuongHieuId = thuongHieuId,
+                SearchKeyword = search,
+ FilterType = loc
+         };
+
+     // Lưu thông tin vào ViewBag cho breadcrumb
+   ViewBag.DanhMucId = danhMucId;
+    ViewBag.ThuongHieuId = thuongHieuId;
+            
+            if (danhMucId.HasValue)
+     {
+                var danhMuc = db.tb_DanhMuc.Find(danhMucId.Value);
+         ViewBag.TenDanhMuc = danhMuc?.TenDanhMuc;
+}
+
+    return View(viewModel);
+     }
+
+        /// <summary>
+/// GET: Chi tiết sản phẩm
+        /// </summary>
+        /// <param name="id">ID sản phẩm</param>
+        [HttpGet]
+    public ActionResult ChiTietSP(int id)
+        {
+       // Tìm sản phẩm theo ID
+            var sanPham = db.tb_SanPham.Find(id);
+
+            // Nếu không tìm thấy hoặc sản phẩm không hiển thị
+    if (sanPham == null || sanPham.HienThi == false)
+          {
+   return HttpNotFound("Sản phẩm không tồn tại hoặc đã bị ẩn");
+            }
+
+   // Tăng lượt xem
+            sanPham.LuotXem = (sanPham.LuotXem ?? 0) + 1;
+   db.SaveChanges();
+
+        // Lấy sản phẩm liên quan (cùng danh mục, trừ sản phẩm hiện tại)
+          var sanPhamLienQuan = db.tb_SanPham
+     .Where(sp => sp.DanhMucId == sanPham.DanhMucId 
+       && sp.Id != sanPham.Id 
+          && sp.HienThi == true)
+         .OrderByDescending(sp => sp.LuotXem)
+        .Take(4)
+       .ToList();
+
+      // Tạo ViewModel
+            var viewModel = new ProductDetailViewModel
+            {
+       SanPham = sanPham,
+  SanPhamLienQuan = sanPhamLienQuan
+          };
+
+      // Nếu có bảng tb_AnhSanPham, lấy danh sách ảnh
+            viewModel.DanhSachAnh = db.tb_AnhSanPham
+           .Where(a => a.SanPhamId == id)
+     .OrderByDescending(a => a.LaAnhMacDinh)
+           .ToList();
+
+ // Nếu có bảng tb_DanhGia, lấy đánh giá và tính điểm trung bình
+    // var danhGia = db.tb_DanhGia.Where(dg => dg.SanPhamId == id).ToList();
+         // viewModel.DanhSachDanhGia = danhGia;
+            // viewModel.TongSoDanhGia = danhGia.Count;
+     // viewModel.DiemTrungBinh = danhGia.Any() ? danhGia.Average(dg => dg.Diem) : 0;
+
+      // Lưu thông tin cho breadcrumb
+ ViewBag.TenDanhMuc = sanPham.tb_DanhMuc?.TenDanhMuc;
+       ViewBag.DanhMucId = sanPham.DanhMucId;
+
+         return View(viewModel);
+        }
+
+        /// <summary>
+        /// POST: Thêm sản phẩm vào giỏ hàng
+        /// </summary>
+        [HttpPost]
+        public ActionResult ThemVaoGioHang(int sanPhamId, int soLuong = 1)
+   {
+        // TODO: Implement giỏ hàng
+      // Tạm thời redirect về chi tiết sản phẩm
+   TempData["SuccessMessage"] = "Đã thêm sản phẩm vào giỏ hàng!";
+    return RedirectToAction("ChiTietSP", new { id = sanPhamId });
+    }
+    }
+}
+
+

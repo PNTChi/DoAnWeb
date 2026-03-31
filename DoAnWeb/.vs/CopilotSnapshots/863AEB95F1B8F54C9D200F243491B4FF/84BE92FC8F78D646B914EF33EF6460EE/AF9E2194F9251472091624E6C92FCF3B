@@ -1,0 +1,47 @@
+﻿@model DoAnWeb.tb_DanhMuc
+
+@* Partial View: Menu Tablet - Có thể tùy chỉnh riêng cho danh mục này *@
+
+<!-- Danh mục Tablet -->
+<a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })" class="toggle-category">
+<i class="fas fa-tablet-alt"></i> @Model.TenDanhMuc
+</a>
+
+<ul class="category-list">
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })">
+    Tất cả tablet
+  </a>
+  </li>
+    @* Submenu riêng cho tablet - theo thương hiệu *@
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Samsung" })">
+         Samsung
+        </a>
+    </li>
+<li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Apple" })">
+       Apple iPad
+  </a>
+    </li>
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Xiaomi" })">
+   Xiaomi
+      </a>
+    </li>
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, kichThuoc = "10inch" })">
+      Tablet 10 inch
+    </a>
+ </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, giaMax = 10000000 })">
+ Dưới 10 triệu
+   </a>
+    </li>
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loc = "moi" })">
+ Sản phẩm mới
+ </a>
+    </li>
+</ul>

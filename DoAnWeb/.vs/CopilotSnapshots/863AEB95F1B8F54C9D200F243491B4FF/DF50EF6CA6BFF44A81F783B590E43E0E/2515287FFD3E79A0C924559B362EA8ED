@@ -1,0 +1,463 @@
+﻿@model DoAnWeb.Models.HomeViewModel
+@{
+    ViewBag.Title = "Trang Chủ";
+}
+
+<!-- Banner Slider -->
+<div class="relative mb-8 rounded-xl overflow-hidden">
+    <div id="bannerContainer" class="relative h-96 bg-gray-200 overflow-hidden">
+        <div class="flex transition-transform duration-700 ease-in-out" id="bannerSlides">
+       <img src="https://placehold.co/1200x500" class="w-full h-full object-cover flex-shrink-0" alt="Banner 1">
+            <img src="https://placehold.co/1200x500" class="w-full h-full object-cover flex-shrink-0" alt="Banner 2">
+     <img src="https://placehold.co/1200x500" class="w-full h-full object-cover flex-shrink-0" alt="Banner 3">
+            <img src="https://placehold.co/1200x500" class="w-full h-full object-cover flex-shrink-0" alt="Banner 4">
+   </div>
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white">
+         <h2 class="text-3xl font-bold">Ưu đãi mùa hè 2024</h2>
+     <p class="text-xl">Giảm giá lên đến 50% - Trả góp 0%</p>
+            <button class="mt-4 px-6 py-2 bg-red-600 rounded-lg font-medium hover:bg-red-700 transition">Xem ngay</button>
+        </div>
+    </div>
+    <div class="flex justify-center mt-4 space-x-2">
+        <button class="w-3 h-3 rounded-full bg-blue-600" data-index="0"></button>
+ <button class="w-3 h-3 rounded-full bg-gray-300" data-index="1"></button>
+        <button class="w-3 h-3 rounded-full bg-gray-300" data-index="2"></button>
+  <button class="w-3 h-3 rounded-full bg-gray-300" data-index="3"></button>
+    </div>
+</div>
+
+<!-- Danh mục sản phẩm dưới Banner -->
+@if (Model.DanhMuc != null && Model.DanhMuc.Any())
+{
+    <div class="mb-10">
+    <h2 class="text-2xl font-bold mb-6 flex items-center">
+       <i class="fas fa-list-alt text-blue-600 mr-3"></i> Danh mục sản phẩm
+   </h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      @foreach (var danhMuc in Model.DanhMuc)
+     {
+      <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id })" class="category-card bg-white rounded-lg shadow p-4 text-center transition duration-300 hover:shadow-2xl hover:bg-blue-50 transform hover:-translate-y-1">
+  <div class="w-16 h-16 mx-auto mb-2">
+   @if (!string.IsNullOrEmpty(danhMuc.Icon))
+    {
+      <i class="@danhMuc.Icon text-4xl text-blue-600"></i>
+      }
+else
+         {
+ <img src="https://placehold.co/80x80" alt="@danhMuc.TenDanhMuc" class="w-full h-full object-contain">
+   }
+</div>
+   <p class="font-medium text-gray-800">@danhMuc.TenDanhMuc</p>
+   </a>
+        }
+        </div>
+    </div>
+}
+
+<!-- Sản phẩm nổi bật (Sản phẩm mới) -->
+@if (Model.SanPhamMoi != null && Model.SanPhamMoi.Any())
+{
+    <div class="mb-10">
+        <div class="flex justify-between items-center mb-6">
+ <h2 class="text-2xl font-bold flex items-center">
+   <i class="fas fa-star text-yellow-500 mr-3"></i> Sản phẩm nổi bật
+       </h2>
+   <a href="#" class="text-blue-600 hover:underline">Xem tất cả</a>
+     </div>
+     <!-- Phần slider cho sản phẩm nổi bật -->
+        <div class="product-slider">
+            <button class="slider-btn prev-btn"><i class="fas fa-angle-left"></i></button>
+            <div class="product-slides gap-4">
+     @foreach (var sanPham in Model.SanPhamMoi)
+          {
+    <a href="@Url.Action("ChiTietSP", "SanPham", new { id = sanPham.Id })" class="product-card bg-white rounded-lg shadow overflow-hidden transition duration-300 hover:shadow-2xl transform hover:-translate-y-1 block">
+         <div class="relative">
+             @if (!string.IsNullOrEmpty(sanPham.HinhAnh))
+     {
+      <img src="@Url.Content("~/Content/Images/" + sanPham.HinhAnh)" 
+  alt="@sanPham.TenSanPham" 
+    class="w-full h-48 object-contain bg-gray-100 p-4">
+     }
+         else
+{
+    <img src="https://placehold.co/800x600" 
+   alt="Không có hình ảnh" 
+   class="w-full h-48 object-contain bg-gray-100 p-4">
+ }
+    
+  @if (sanPham.GiaKhuyenMai.HasValue && sanPham.GiaKhuyenMai.Value > 0)
+      {
+        var giaGoc = sanPham.Gia ?? 0;
+        var giamGia = ((giaGoc - sanPham.GiaKhuyenMai.Value) / giaGoc * 100);
+               <div class="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+    -@string.Format("{0:0}%", giamGia)
+   </div>
+       }
+          else if (sanPham.LaSanPhamMoi == true)
+        {
+    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">Mới</div>
+ }
+   
+     <div class="absolute top-2 right-2">
+  <button onclick="event.preventDefault(); event.stopPropagation(); addToWishlist(@sanPham.Id);" class="text-gray-400 hover:text-red-500">
+             <i class="far fa-heart"></i>
+     </button>
+ </div>
+          </div>
+   <div class="p-4">
+      <div class="flex items-center mb-1">
+       <div class="flex text-yellow-400">
+      <i class="fas fa-star"></i>
+ <i class="fas fa-star"></i>
+       <i class="fas fa-star"></i>
+   <i class="fas fa-star"></i>
+     <i class="fas fa-star-half-alt"></i>
+        </div>
+ <span class="text-xs text-gray-500 ml-1">(24)</span>
+   </div>
+  <h3 class="font-semibold text-gray-800 line-clamp-2">@sanPham.TenSanPham</h3>
+ <div class="mt-2">
+   @if (sanPham.GiaKhuyenMai.HasValue && sanPham.GiaKhuyenMai.Value > 0)
+        {
+     <span class="text-red-600 font-bold text-lg">@string.Format("{0:N0}₫", sanPham.GiaKhuyenMai)</span>
+     <span class="text-gray-500 text-sm line-through ml-2">@string.Format("{0:N0}₫", sanPham.Gia)</span>
+       }
+          else
+        {
+  <span class="text-red-600 font-bold text-lg">@string.Format("{0:N0}₫", sanPham.Gia ?? 0)</span>
+}
+        </div>
+           <div class="mt-3 flex justify-between items-center">
+  @if (sanPham.SoLuong.HasValue)
+     {
+    <span class="text-xs text-gray-500">Còn @sanPham.SoLuong sản phẩm</span>
+          }
+     else
+ {
+      <span class="text-xs text-gray-500">Trả góp 0%</span>
+      }
+     <button onclick="event.preventDefault(); event.stopPropagation(); addToCart(@sanPham.Id, '@sanPham.TenSanPham', @((sanPham.GiaKhuyenMai ?? sanPham.Gia) ?? 0), '@Url.Content("~/Content/Images/" + sanPham.HinhAnh)');" class="text-white bg-blue-600 hover:bg-blue-700 rounded px-3 py-1 text-sm transition btn-add-to-cart">
+       <i class="fas fa-shopping-cart mr-1"></i> Thêm
+           </button>
+           </div>
+       </div>
+               </a>
+        }
+  </div>
+            <button class="slider-btn next-btn"><i class="fas fa-angle-right"></i></button>
+        </div>
+    </div>
+}
+
+<!-- Banner quảng cáo -->
+<div class="mb-10 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white">
+    <div class="flex flex-col md:flex-row items-center justify-between">
+        <div class="md:w-1/2 mb-4 md:mb-0">
+            <h2 class="text-2xl font-bold mb-2">Mua sắm ngay hôm nay!</h2>
+            <p class="mb-4">Nhập mã <span class="font-bold">DMX500K</span> để được giảm thêm 500.000₫ cho đơn hàng từ 10 triệu</p>
+          <button class="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg font-bold hover:bg-yellow-300 transition">Mua ngay</button>
+        </div>
+        <div class="md:w-1/2">
+            <img src="https://placehold.co/600x300" alt="Banner khuyến mãi" class="w-full rounded-lg">
+        </div>
+    </div>
+</div>
+
+<!-- Sản phẩm bán chạy -->
+@if (Model.SanPhamBanChay != null && Model.SanPhamBanChay.Any())
+{
+    <div class="mb-10">
+      <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold flex items-center">
+     <i class="fas fa-bolt text-red-500 mr-3"></i> Sản phẩm bán chạy
+        </h2>
+        <div class="flex space-x-2">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-l-lg">Mới nhất</button>
+                <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300">Giá cao</button>
+                <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-r-lg">Giá thấp</button>
+            </div>
+        </div>
+
+    <!-- Phần slider cho sản phẩm bán chạy -->
+        <div class="product-slider">
+      <button class="slider-btn prev-btn"><i class="fas fa-angle-left"></i></button>
+         <div class="product-slides gap-4">
+      @foreach (var sanPham in Model.SanPhamBanChay)
+         {
+     <a href="@Url.Action("ChiTietSP", "SanPham", new { id = sanPham.Id })" class="product-card bg-white rounded-lg shadow overflow-hidden transition duration-300 hover:shadow-2xl transform hover:-translate-y-1 block">
+      <div class="relative">
+  @if (!string.IsNullOrEmpty(sanPham.HinhAnh))
+       {
+<img src="@Url.Content("~/Content/Images/" + sanPham.HinhAnh)" 
+alt="@sanPham.TenSanPham" 
+      class="w-full h-48 object-contain bg-gray-100 p-4">
+          }
+          else
+     {
+         <img src="https://placehold.co/800x600" 
+   alt="Không có hình ảnh" 
+          class="w-full h-48 object-contain bg-gray-100 p-4">
+  }
+            
+  @if (sanPham.GiaKhuyenMai.HasValue && sanPham.GiaKhuyenMai.Value > 0)
+           {
+     var giaGoc = sanPham.Gia ?? 0;
+         var giamGia = ((giaGoc - sanPham.GiaKhuyenMai.Value) / giaGoc);
+     <div class="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">
+              Giảm @string.Format("{0:N0}₫", giaGoc - sanPham.GiaKhuyenMai.Value)
+             </div>
+  }
+  else if (sanPham.LaSanPhamBanChay == true)
+       {
+     <div class="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">TOP</div>
+       }
+        
+             @if (sanPham.LuotXem.HasValue)
+             {
+   <span class="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+  <i class="fas fa-eye mr-1"></i>@sanPham.LuotXem.Value
+  </span>
+        }
+   </div>
+ <div class="p-4">
+          <div class="flex items-center mb-1">
+           <div class="flex text-yellow-400">
+              <i class="fas fa-star"></i>
+                 <i class="fas fa-star"></i>
+    <i class="fas fa-star"></i>
+    <i class="fas fa-star"></i>
+    <i class="fas fa-star"></i>
+         </div>
+ <span class="text-xs text-gray-500 ml-1">(156)</span>
+         </div>
+               <h3 class="font-semibold text-gray-800 line-clamp-2">@sanPham.TenSanPham</h3>
+        <div class="mt-2">
+            @if (sanPham.GiaKhuyenMai.HasValue && sanPham.GiaKhuyenMai.Value > 0)
+        {
+ <span class="text-red-600 font-bold text-lg">@string.Format("{0:N0}₫", sanPham.GiaKhuyenMai)</span>
+ <span class="text-gray-500 text-sm line-through ml-2">@string.Format("{0:N0}₫", sanPham.Gia)</span>
+     }
+       else
+          {
+         <span class="text-red-600 font-bold text-lg">@string.Format("{0:N0}₫", sanPham.Gia ?? 0)</span>
+        }
+   </div>
+           <div class="mt-3 flex justify-between items-center">
+               <span class="text-xs text-gray-500">Bảo hành 12 tháng</span>
+    <button class="text-white bg-blue-600 hover:bg-blue-700 rounded px-3 py-1 text-sm transition btn-add-to-cart">
+          <i class="fas fa-shopping-cart mr-1"></i> Thêm
+  </button>
+           </div>
+      </div>
+      </div>
+   </a>
+    }
+            </div>
+     <button class="slider-btn next-btn"><i class="fas fa-angle-right"></i></button>
+        </div>
+    </div>
+}
+
+<!-- Thương hiệu nổi bật -->
+<div class="mb-10">
+    <h2 class="text-2xl font-bold mb-6 flex items-center">
+        <i class="fas fa-medal text-yellow-500 mr-3"></i> Thương hiệu nổi bật
+    </h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div class="bg-white rounded-lg shadow p-4 flex items-center justify-center hover:shadow-lg transition">
+  <img src="https://placehold.co/120x60" alt="Thương hiệu" class="h-10">
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 flex items-center justify-center hover:shadow-lg transition">
+         <img src="https://placehold.co/120x60" alt="Thương hiệu" class="h-10">
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 flex items-center justify-center hover:shadow-lg transition">
+<img src="https://placehold.co/120x60" alt="Thương hiệu" class="h-10">
+   </div>
+        <div class="bg-white rounded-lg shadow p-4 flex items-center justify-center hover:shadow-lg transition">
+            <img src="https://placehold.co/120x60" alt="Thương hiệu" class="h-10">
+  </div>
+        <div class="bg-white rounded-lg shadow p-4 flex items-center justify-center hover:shadow-lg transition">
+  <img src="https://placehold.co/120x60" alt="Thương hiệu" class="h-10">
+ </div>
+   <div class="bg-white rounded-lg shadow p-4 flex items-center justify-center hover:shadow-lg transition">
+            <img src="https://placehold.co/120x60" alt="Thương hiệu" class="h-10">
+    </div>
+    </div>
+</div>
+
+<!-- Dịch vụ & Ưu đãi -->
+<div class="mb-10 bg-gray-100 rounded-xl p-6">
+    <h2 class="text-2xl font-bold mb-6 flex items-center">
+        <i class="fas fa-hand-holding-heart text-red-500 mr-3"></i> Dịch vụ & Ưu đãi
+    </h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow p-4 flex items-start hover:shadow-lg transition">
+          <div class="bg-blue-100 text-blue-600 p-3 rounded-full mr-4">
+        <i class="fas fa-truck text-xl"></i>
+     </div>
+         <div>
+ <h3 class="font-semibold text-gray-800">Giao hàng nhanh</h3>
+       <p class="text-sm text-gray-600">Nhận hàng trong 2-4 giờ tại Hà Nội & TP.HCM</p>
+      </div>
+   </div>
+ <div class="bg-white rounded-lg shadow p-4 flex items-start hover:shadow-lg transition">
+            <div class="bg-green-100 text-green-600 p-3 rounded-full mr-4">
+            <i class="fas fa-percentage text-xl"></i>
+    </div>
+     <div>
+ <h3 class="font-semibold text-gray-800">Trả góp 0%</h3>
+      <p class="text-sm text-gray-600">Trả góp thẻ tín dụng với lãi suất 0%</p>
+ </div>
+        </div>
+     <div class="bg-white rounded-lg shadow p-4 flex items-start hover:shadow-lg transition">
+ <div class="bg-purple-100 text-purple-600 p-3 rounded-full mr-4">
+    <i class="fas fa-shield-alt text-xl"></i>
+  </div>
+   <div>
+  <h3 class="font-semibold text-gray-800">Bảo hành chính hãng</h3>
+    <p class="text-sm text-gray-600">Bảo hành dài hạn từ 12-24 tháng</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 flex items-start hover:shadow-lg transition">
+            <div class="bg-yellow-100 text-yellow-600 p-3 rounded-full mr-4">
+                <i class="fas fa-undo text-xl"></i>
+    </div>
+ <div>
+      <h3 class="font-semibold text-gray-800">Đổi trả dễ dàng</h3>
+                <p class="text-sm text-gray-600">Đổi trả trong vòng 30 ngày nếu không hài lòng</p>
+ </div>
+ </div>
+    </div>
+</div>
+
+<!-- Tin tức & Mẹo hay -->
+@if (Model.TinTuc != null && Model.TinTuc.Any())
+{
+    <div class="mb-10">
+  <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold flex items-center">
+<i class="fas fa-newspaper text-blue-500 mr-3"></i> Tin tức & Mẹo hay
+  </h2>
+      <a href="@Url.Action("Index", "TinTuc")" class="text-blue-600 hover:underline">Xem tất cả</a>
+        </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @foreach (var tin in Model.TinTuc)
+   {
+       <a href="@Url.Action("ChiTiet", "TinTuc", new { id = tin.Id })" class="bg-white rounded-lg shadow overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1 block">
+      @if (!string.IsNullOrEmpty(tin.HinhAnh))
+            {
+<img src="@Url.Content("~/Content/Images/" + tin.HinhAnh)" alt="@tin.TieuDe" class="w-full h-48 object-cover">
+    }
+  else
+            {
+       <img src="https://placehold.co/800x450" alt="@tin.TieuDe" class="w-full h-48 object-cover">
+       }
+   <div class="p-4">
+     @if (tin.tb_DanhMucTin != null)
+ {
+        <span class="text-sm text-blue-600">@tin.tb_DanhMucTin.TenDanhMuc</span>
+  }
+         else
+  {
+      <span class="text-sm text-blue-600">Tin tức</span>
+              }
+    <h3 class="font-bold text-lg text-gray-800 mt-1 mb-2 line-clamp-2">@tin.TieuDe</h3>
+      @if (!string.IsNullOrEmpty(tin.MoTa))
+      {
+ <p class="text-gray-600 text-sm line-clamp-2">@tin.MoTa</p>
+ }
+   <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
+    <span>
+      <i class="far fa-calendar mr-1"></i>
+  @(tin.NgayTao?.ToString("dd/MM/yyyy") ?? "N/A")
+    </span>
+        <span class="text-blue-600 hover:underline">Xem thêm →</span>
+</div>
+   </div>
+       </a>
+     }
+ </div>
+    </div>
+}
+else
+{
+    <!-- Fallback content nếu không có tin tức -->
+    <div class="mb-10">
+   <h2 class="text-2xl font-bold mb-6 flex items-center">
+        <i class="fas fa-newspaper text-blue-500 mr-3"></i> Tin tức & Mẹo hay
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+ <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-xl transition">
+       <img src="https://placehold.co/800x450" alt="Bài viết" class="w-full h-48 object-cover">
+     <div class="p-4">
+     <span class="text-sm text-blue-600">Tư vấn mua sắm</span>
+    <h3 class="font-bold text-lg text-gray-800 mt-1 mb-2">Top 10 điện thoại đáng mua nhất 2024</h3>
+<p class="text-gray-600 text-sm line-clamp-2">Khám phá những chiếc điện thoại hot nhất với cấu hình mạnh mẽ...</p>
+        <a href="#" class="inline-block text-blue-600 text-sm mt-3 hover:underline">Xem thêm</a>
+   </div>
+ </div>
+        <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-xl transition">
+  <img src="https://placehold.co/800x450" alt="Bài viết" class="w-full h-48 object-cover">
+<div class="p-4">
+      <span class="text-sm text-blue-600">Mẹo hay</span>
+         <h3 class="font-bold text-lg text-gray-800 mt-1 mb-2">Cách chọn laptop phù hợp với nhu cầu</h3>
+   <p class="text-gray-600 text-sm line-clamp-2">Hướng dẫn chi tiết giúp bạn chọn được chiếc laptop ưng ý...</p>
+  <a href="#" class="inline-block text-blue-600 text-sm mt-3 hover:underline">Xem thêm</a>
+     </div>
+    </div>
+   <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-xl transition">
+     <img src="https://placehold.co/800x450" alt="Bài viết" class="w-full h-48 object-cover">
+    <div class="p-4">
+     <span class="text-sm text-blue-600">Công nghệ</span>
+     <h3 class="font-bold text-lg text-gray-800 mt-1 mb-2">Xu hướng công nghệ 2024</h3>
+     <p class="text-gray-600 text-sm line-clamp-2">Những công nghệ mới sẽ làm thay đổi cuộc sống của chúng ta...</p>
+     <a href="#" class="inline-block text-blue-600 text-sm mt-3 hover:underline">Xem thêm</a>
+  </div>
+ </div>
+    </div>
+    </div>
+}
+
+</div>
+
+@section scripts {
+<script>
+    // Add to wishlist function
+    function addToWishlist(productId) {
+    $.ajax({
+            url: '@Url.Action("ThemYeuThich", "SanPham")',
+            type: 'POST',
+  data: {
+           sanPhamId: productId,
+ __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(response) {
+     if (response.success) {
+          Swal.fire({
+            icon: 'success',
+           title: 'Thêm vào yêu thích!',
+ text: response.message,
+     timer: 2000,
+      showConfirmButton: false
+           });
+    } else {
+    Swal.fire({
+  icon: 'error',
+     title: 'Lỗi!',
+        text: response.message,
+         timer: 2000
+      });
+     }
+  },
+      error: function() {
+         Swal.fire({
+           icon: 'error',
+      title: 'Lỗi!',
+        text: 'Có lỗi xảy ra. Vui lòng thử lại sau.',
+                    timer: 2000
+                });
+            }
+    });
+    }
+</script>
+}

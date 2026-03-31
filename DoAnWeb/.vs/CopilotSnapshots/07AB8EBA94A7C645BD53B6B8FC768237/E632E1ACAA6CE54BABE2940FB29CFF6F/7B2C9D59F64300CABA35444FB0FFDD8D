@@ -1,0 +1,911 @@
+﻿@model DoAnWeb.Models.ProductDetailViewModel
+
+@{
+ ViewBag.Title = Model.SanPham.TenSanPham;
+}
+
+@* Success Message *@
+@if (TempData["SuccessMessage"] != null)
+{
+ <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 animate-fade-in" role="alert">
+      <strong class="font-bold">Thành công!</strong>
+     <span class="block sm:inline">@TempData["SuccessMessage"]</span>
+        <button type="button" class="absolute top-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+   <i class="fas fa-times"></i>
+</button>
+    </div>
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+     <li class="inline-flex items-center">
+<a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+      <i class="fas fa-home mr-2"></i>
+   Trang ch?
+   </a>
+        </li>
+        @if (ViewBag.TenDanhMuc != null)
+        {
+         <li>
+   <div class="flex items-center">
+     <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+      <a href="@Url.Action("Index", "SanPham", new { danhMucId = ViewBag.DanhMucId })" class="text-sm font-medium text-gray-700 hover:text-blue-600">
+  @ViewBag.TenDanhMuc
+ </a>
+       </div>
+     </li>
+        }
+        <li aria-current="page">
+   <div class="flex items-center">
+   <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+     <span class="text-sm font-medium text-gray-500">@Model.SanPham.TenSanPham</span>
+       </div>
+      </li>
+    </ol>
+</nav>
+
+<!-- Product Detail Section -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+        <!-- Left: Product Image Gallery -->
+   <div class="space-y-4">
+      <!-- Main Image -->
+<div class="aspect-square overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50 relative group">
+        @if (!string.IsNullOrEmpty(Model.SanPham.HinhAnh))
+  {
+        <img id="mainImage" 
+ src="@Url.Content("~/Content/Images/" + Model.SanPham.HinhAnh)" 
+  alt="@Model.SanPham.TenSanPham" 
+  class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110" />
+    }
+    else
+       {
+     <img id="mainImage" 
+  src="@Url.Content("~/Content/Images/no-image.png")" 
+        alt="No Image" 
+   class="w-full h-full object-contain" />
+      }
+    
+   <!-- Zoom Icon -->
+      <div class="absolute top-4 right-4 bg-white bg-opacity-90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+  <i class="fas fa-search-plus text-gray-600"></i>
+     </div>
+     </div>
+
+            <!-- Thumbnails Gallery -->
+          @if (Model.DanhSachAnh != null && Model.DanhSachAnh.Any())
+          {
+    <div class="grid grid-cols-4 gap-3">
+        @foreach (var anh in Model.DanhSachAnh.Take(4))
+   {
+   <div class="aspect-square overflow-hidden rounded-lg border-2 border-gray-200 cursor-pointer hover:border-blue-500 transition-all duration-200 thumbnail-image" 
+        data-image="@Url.Content("~/Content/Images/" + anh.HinhAnh)">
+        <img src="@Url.Content("~/Content/Images/" + anh.HinhAnh)" 
+       alt="@Model.SanPham.TenSanPham" 
+     class="w-full h-full object-cover hover:scale-110 transition-transform duration-200" />
+           </div>
+    }
+     </div>
+      }
+       
+      <!-- Product Badges -->
+      <div class="flex gap-2 flex-wrap">
+     @if (Model.SanPham.LaSanPhamMoi == true)
+       {
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+         <i class="fas fa-star mr-1"></i> S?n ph?m m?i
+               </span>
+    }
+      @if (Model.SanPham.LaSanPhamBanChay == true)
+        {
+ <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+ <i class="fas fa-fire mr-1"></i> Bán ch?y
+    </span>
+  }
+  @if (Model.SanPham.GiaKhuyenMai.HasValue && Model.SanPham.GiaKhuyenMai < Model.SanPham.Gia)
+   {
+ <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+    <i class="fas fa-tag mr-1"></i> Khuy?n mãi
+      </span>
+     }
+  </div>
+        </div>
+   
+   <!-- Right: Product Info -->
+        <div class="space-y-6">
+     <!-- Product Name -->
+        <div>
+         <h1 class="text-3xl font-bold text-gray-900 mb-2">@Model.SanPham.TenSanPham</h1>
+      @if (Model.SanPham.tb_ThuongHieu != null)
+        {
+      <p class="text-sm text-gray-600">
+Th??ng hi?u: <a href="@Url.Action("Index", "SanPham", new { thuongHieuId = Model.SanPham.ThuongHieuId })" class="text-blue-600 hover:underline font-semibold">@Model.SanPham.tb_ThuongHieu.TenThuongHieu</a>
+ </p>
+   }
+            </div>
+         
+   <!-- Rating & Views -->
+    <div class="flex items-center space-x-6 py-3 border-y border-gray-200">
+    @if (Model.TongSoDanhGia > 0)
+   {
+    <div class="flex items-center">
+      @for (int i = 1; i <= 5; i++)
+         {
+     if (i <= Model.DiemTrungBinh)
+ {
+    <i class="fas fa-star text-yellow-400 text-lg"></i>
+   }
+       else
+          {
+        <i class="far fa-star text-gray-300 text-lg"></i>
+    }
+     }
+               <span class="ml-2 text-sm font-medium text-gray-700">(@Model.TongSoDanhGia ?ánh giá)</span>
+</div>
+        }
+      <div class="text-sm text-gray-600">
+     <i class="fas fa-eye mr-1"></i>
+      <span class="font-medium">@(Model.SanPham.LuotXem ?? 0)</span> l??t xem
+           </div>
+     </div>
+
+      <!-- Price -->
+  <div class="bg-gray-50 rounded-lg p-4">
+ @if (Model.SanPham.GiaKhuyenMai.HasValue && Model.SanPham.GiaKhuyenMai < Model.SanPham.Gia)
+     {
+          <div class="space-y-2">
+     <div class="flex items-center space-x-3">
+    <span class="text-4xl font-bold text-red-600">@String.Format("{0:0,0}", Model.SanPham.GiaKhuyenMai.Value) ?</span>
+      <span class="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+     -@Math.Round((decimal)(1 - (Model.SanPham.GiaKhuyenMai.Value / Model.SanPham.Gia.Value)) * 100)%
+  </span>
+       </div>
+                   <div class="text-xl text-gray-500 line-through">@String.Format("{0:0,0}", Model.SanPham.Gia.Value) ?</div>
+         </div>
+           }
+     else
+{
+            <span class="text-4xl font-bold text-blue-600">@String.Format("{0:0,0}", Model.SanPham.Gia ?? 0) ?</span>
+   }
+    </div>
+
+ <!-- Color Selection -->
+<div>
+    <h3 class="text-sm font-semibold text-gray-900 mb-3">Ch?n màu s?c:</h3>
+        <div class="flex gap-3">
+    <label class="relative cursor-pointer group">
+    <input type="radio" name="color" value="gray" checked class="peer sr-only" />
+    <div class="w-12 h-12 rounded-full bg-gray-400 border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-200 hover:scale-110 transition-transform flex items-center justify-center">
+    <i class="fas fa-check text-white opacity-0 peer-checked:opacity-100"></i>
+      </div>
+    <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Xám</span>
+   </label>
+     
+   <label class="relative cursor-pointer group">
+  <input type="radio" name="color" value="silver" class="peer sr-only" />
+        <div class="w-12 h-12 rounded-full bg-gray-200 border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-200 hover:scale-110 transition-transform flex items-center justify-center">
+      <i class="fas fa-check text-gray-600 opacity-0 peer-checked:opacity-100"></i>
+   </div>
+ <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">B?c</span>
+      </label>
+ 
+<label class="relative cursor-pointer group">
+         <input type="radio" name="color" value="black" class="peer sr-only" />
+        <div class="w-12 h-12 rounded-full bg-gray-900 border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-200 hover:scale-110 transition-transform flex items-center justify-center">
+      <i class="fas fa-check text-white opacity-0 peer-checked:opacity-100"></i>
+     </div>
+             <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">?en</span>
+     </label>
+  
+  <label class="relative cursor-pointer group">
+    <input type="radio" name="color" value="gold" class="peer sr-only" />
+    <div class="w-12 h-12 rounded-full bg-yellow-400 border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-200 hover:scale-110 transition-transform flex items-center justify-center">
+ <i class="fas fa-check text-white opacity-0 peer-checked:opacity-100"></i>
+          </div>
+    <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Vàng</span>
+  </label>
+       
+             <label class="relative cursor-pointer group">
+    <input type="radio" name="color" value="blue" class="peer sr-only" />
+  <div class="w-12 h-12 rounded-full bg-blue-600 border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-200 hover:scale-110 transition-transform flex items-center justify-center">
+      <i class="fas fa-check text-white opacity-0 peer-checked:opacity-100"></i>
+       </div>
+           <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Xanh</span>
+  </label>
+        </div>
+        </div>
+
+    <!-- Short Description -->
+      @if (!string.IsNullOrEmpty(Model.SanPham.MoTa))
+   {
+  <div class="prose prose-sm">
+      <h3 class="text-sm font-semibold text-gray-900 mb-2">Mô t? ng?n:</h3>
+         <p class="text-gray-700 text-sm leading-relaxed">@Model.SanPham.MoTa</p>
+   </div>
+      }
+
+       <!-- Stock Status -->
+            <div class="flex items-center space-x-2">
+         @if (Model.SanPham.SoLuong.HasValue && Model.SanPham.SoLuong > 0)
+    {
+         <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+      <i class="fas fa-check-circle mr-2"></i>
+           Còn hàng (@Model.SanPham.SoLuong s?n ph?m)
+          </span>
+            }
+  else
+    {
+  <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800">
+    <i class="fas fa-times-circle mr-2"></i>
+ H?t hàng
+</span>
+    }
+  </div>
+
+          <!-- Add to Cart Form -->
+ @using (Html.BeginForm("ThemVaoGioHang", "SanPham", FormMethod.Post))
+            {
+      @Html.AntiForgeryToken()
+  <input type="hidden" name="sanPhamId" value="@Model.SanPham.Id" />
+     <input type="hidden" name="color" id="selectedColor" value="gray" />
+
+ <div class="space-y-4">
+          <!-- Quantity -->
+  <div>
+         <label class="text-sm font-semibold text-gray-900 block mb-2">S? l??ng:</label>
+       <div class="flex items-center space-x-4">
+     <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+         <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors" onclick="decrementQty()">
+        <i class="fas fa-minus text-gray-600"></i>
+    </button>
+  <input type="number" 
+   name="soLuong" 
+ id="quantity" 
+     value="1" 
+   min="1" 
+   max="@(Model.SanPham.SoLuong ?? 1)" 
+       class="w-20 text-center border-x-2 border-gray-300 py-3 font-semibold text-gray-900 focus:outline-none" 
+         readonly />
+         <button type="button" class="px-4 py-3 hover:bg-gray-100 transition-colors" onclick="incrementQty()">
+   <i class="fas fa-plus text-gray-600"></i>
+     </button>
+   </div>
+     
+   @if (Model.SanPham.SoLuong.HasValue && Model.SanPham.SoLuong > 0)
+  {
+    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+       <i class="fas fa-shopping-cart mr-2"></i>
+        Thêm vào gi? hàng
+    </button>
+           }
+      else
+    {
+<button type="button" disabled class="flex-1 bg-gray-400 text-white font-bold py-3 px-6 rounded-lg cursor-not-allowed">
+      <i class="fas fa-ban mr-2"></i>
+      H?t hàng
+     </button>
+}
+   </div>
+    </div>
+
+      <!-- Action Buttons -->
+   <div class="grid grid-cols-2 gap-3">
+    <button type="button" onclick="buyNow()" class="flex items-center justify-center px-6 py-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-lg transition-all duration-200">
+    <i class="fas fa-bolt mr-2"></i>
+       Mua ngay
+       </button>
+        <button type="button" class="flex items-center justify-center px-6 py-3 border-2 border-gray-300 hover:border-red-500 hover:text-red-500 hover:bg-red-50 font-semibold rounded-lg transition-all duration-200">
+ <i class="far fa-heart mr-2"></i>
+         Yêu thích
+</button>
+ </div>
+         </div>
+ }
+
+            <!-- Product Meta -->
+      <div class="border-t pt-4 space-y-2 text-sm">
+       <div class="flex items-center">
+    <span class="font-semibold text-gray-700 w-32">Danh m?c:</span>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.SanPham.DanhMucId })" class="text-blue-600 hover:underline">
+ @Model.SanPham.tb_DanhMuc.TenDanhMuc
+            </a>
+         </div>
+     @if (Model.SanPham.tb_ThuongHieu != null)
+      {
+         <div class="flex items-center">
+            <span class="font-semibold text-gray-700 w-32">Th??ng hi?u:</span>
+  <a href="@Url.Action("Index", "SanPham", new { thuongHieuId = Model.SanPham.ThuongHieuId })" class="text-blue-600 hover:underline">
+   @Model.SanPham.tb_ThuongHieu.TenThuongHieu
+      </a>
+   </div>
+          }
+  <div class="flex items-center">
+      <span class="font-semibold text-gray-700 w-32">Mã s?n ph?m:</span>
+            <span class="text-gray-600 font-mono">@Model.SanPham.MaSanPham</span>
+    </div>
+            </div>
+      </div>
+    </div>
+</div>
+
+<!-- Product Details Tabs -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <div class="border-b border-gray-200">
+<nav class="-mb-px flex space-x-8">
+       <button class="tab-button active border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600 transition-colors" data-tab="details">
+      <i class="fas fa-info-circle mr-2"></i>Chi ti?t s?n ph?m
+         </button>
+   <button class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors" data-tab="specs">
+             <i class="fas fa-clipboard-list mr-2"></i>Thông s? k? thu?t
+       </button>
+  <button class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors" data-tab="reviews">
+   <i class="fas fa-star mr-2"></i>Đánh giá (@ViewBag.SoLuotDanhGia)
+      </button>
+     </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="mt-6">
+      <!-- Details Tab -->
+        <div id="details-tab" class="tab-content">
+   @if (!string.IsNullOrEmpty(Model.SanPham.ChiTiet))
+      {
+           <div class="prose max-w-none">
+     @Html.Raw(Model.SanPham.ChiTiet)
+        </div>
+      }
+          else
+   {
+       <p class="text-gray-500 italic text-center py-8">Ch?a có thông tin chi ti?t</p>
+        }
+        </div>
+
+        <!-- Specs Tab -->
+      <div id="specs-tab" class="tab-content hidden">
+            @if (Model.SanPham.tb_ThongSo != null && Model.SanPham.tb_ThongSo.Any())
+            {
+         <!-- Specifications Table -->
+     <div class="overflow-hidden rounded-lg border border-gray-200">
+      <table class="min-w-full divide-y divide-gray-200">
+       <thead class="bg-gradient-to-r from-blue-600 to-blue-700">
+                    <tr>
+   <th scope="col" class="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider w-1/3">
+      <i class="fas fa-cog mr-2"></i>Thông s?
+         </th>
+          <th scope="col" class="px-6 py-4 text-left text-sm font-bold text-white uppercase tracking-wider">
+     <i class="fas fa-info-circle mr-2"></i>Giá tr?
+      </th>
+              </tr>
+</thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var thongSo in Model.SanPham.tb_ThongSo.OrderBy(t => t.Id))
+       {
+        <tr class="hover:bg-blue-50 transition-colors odd:bg-gray-50">
+     <td class="px-6 py-4 whitespace-nowrap">
+             <div class="flex items-center">
+            <i class="fas fa-check-circle text-blue-600 mr-3"></i>
+     <span class="text-sm font-semibold text-gray-900">@thongSo.TenThongSo</span>
+         </div>
+    </td>
+          <td class="px-6 py-4">
+     <span class="text-sm text-gray-700">@thongSo.GiaTri</span>
+  </td>
+             </tr>
+    }
+        </tbody>
+         </table>
+        </div>
+
+    <!-- Specifications Summary Card -->
+           <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+           <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+  <div class="flex items-center justify-between">
+          <div>
+              <p class="text-sm text-blue-600 font-medium">T?ng s? thông s?</p>
+             <p class="text-2xl font-bold text-blue-900">@Model.SanPham.tb_ThongSo.Count()</p>
+          </div>
+       <i class="fas fa-list-ul text-3xl text-blue-400"></i>
+   </div>
+    </div>
+            
+ <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+          <div class="flex items-center justify-between">
+       <div>
+        <p class="text-sm text-green-600 font-medium">?ã xác th?c</p>
+             <p class="text-2xl font-bold text-green-900">100%</p>
+     </div>
+           <i class="fas fa-shield-alt text-3xl text-green-400"></i>
+         </div>
+           </div>
+         
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+  <div class="flex items-center justify-between">
+      <div>
+    <p class="text-sm text-purple-600 font-medium">Chính hãng</p>
+       <p class="text-2xl font-bold text-purple-900">?</p>
+                </div>
+       <i class="fas fa-certificate text-3xl text-purple-400"></i>
+             </div>
+      </div>
+      </div>
+        }
+         else
+   {
+          <!-- Empty State -->
+        <div class="text-center py-12">
+     <i class="fas fa-clipboard-list text-gray-300 text-6xl mb-4"></i>
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">Ch?a có thông s? k? thu?t</h3>
+  <p class="text-gray-500">Thông tin chi ti?t s? ???c c?p nh?t s?m</p>
+   </div>
+    }
+        </div>
+
+        <!-- Reviews Tab -->
+     <div id="reviews-tab" class="tab-content hidden">
+        <!-- Reviews Summary -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-8">
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Overall Rating -->
+     <div class="text-center md:border-r border-gray-300">
+     <div class="text-5xl font-bold text-blue-600 mb-2">@ViewBag.SaoTrungBinh</div>
+    <div class="flex justify-center mb-2">
+  @{
+   var avgRating = (double)ViewBag.SaoTrungBinh;
+     for (int i = 1; i <= 5; i++)
+              {
+     if (i <= Math.Floor(avgRating))
+             {
+                 <i class="fas fa-star text-yellow-400 text-2xl"></i>
+                }
+           else if (i == Math.Ceiling(avgRating) && avgRating % 1 != 0)
+      {
+   <i class="fas fa-star-half-alt text-yellow-400 text-2xl"></i>
+      }
+        else
+    {
+             <i class="far fa-star text-gray-300 text-2xl"></i>
+       }
+            }
+        }
+   </div>
+   <p class="text-gray-600">@ViewBag.SoLuotDanhGia đánh giá</p>
+  </div>
+
+            <!-- Write Review Button -->
+     <div class="flex items-center justify-center">
+          <button onclick="toggleReviewForm()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+        <i class="fas fa-pen mr-2"></i>
+        Viết đánh giá
+     </button>
+    </div>
+    </div>
+       </div>
+
+     <!-- Review Form (Hidden by default) -->
+            <div id="reviewForm" class="bg-white border-2 border-blue-200 rounded-lg p-6 mb-8 hidden">
+ <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  <i class="fas fa-star text-yellow-500 mr-2"></i>
+  Đánh giá sản phẩm
+    </h3>
+
+        <form id="submitReviewForm">
+      @Html.AntiForgeryToken()
+         <input type="hidden" name="sanPhamId" value="@Model.SanPham.Id" />
+
+         <!-- Star Rating -->
+        <div class="mb-6">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">
+          Đánh giá của bạn <span class="text-red-500">*</span>
+             </label>
+ <div class="flex items-center space-x-2">
+ <div class="flex space-x-1" id="starRating">
+  <i class="far fa-star text-4xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors star-icon" data-rating="1"></i>
+          <i class="far fa-star text-4xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors star-icon" data-rating="2"></i>
+         <i class="far fa-star text-4xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors star-icon" data-rating="3"></i>
+             <i class="far fa-star text-4xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors star-icon" data-rating="4"></i>
+         <i class="far fa-star text-4xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors star-icon" data-rating="5"></i>
+      </div>
+            <span class="text-lg font-semibold text-gray-700" id="ratingText">Chọn số sao</span>
+ </div>
+   <input type="hidden" name="sao" id="ratingValue" value="0" required />
+   </div>
+
+            <!-- Name -->
+         <div class="mb-4">
+    <label class="block text-sm font-semibold text-gray-700 mb-2">
+          Họ tên <span class="text-red-500">*</span>
+        </label>
+        <input type="text" name="tenNguoiGui" required
+       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+ placeholder="Nhập họ tên của bạn" />
+      </div>
+
+          <!-- Email (Optional) -->
+       <div class="mb-4">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">
+  Email (không bắt buộc)
+                </label>
+   <input type="email" name="email"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+        placeholder="email@example.com" />
+</div>
+
+             <!-- Review Content -->
+        <div class="mb-6">
+     <label class="block text-sm font-semibold text-gray-700 mb-2">
+      Nội dung đánh giá <span class="text-red-500">*</span>
+         </label>
+    <textarea name="noiDung" rows="4" required
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
+      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+         </div>
+
+              <!-- Buttons -->
+      <div class="flex items-center space-x-3">
+        <button type="submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+         <i class="fas fa-paper-plane mr-2"></i>
+   Gửi đánh giá
+   </button>
+        <button type="button" onclick="toggleReviewForm()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg transition-colors">
+           <i class="fas fa-times mr-2"></i>
+         Hủy
+          </button>
+    </div>
+      </form>
+         </div>
+
+            <!-- Reviews List (SERVER-SIDE RENDERED) -->
+            <div id="reviewsList">
+      @if (ViewBag.ListDanhGia != null && ((IEnumerable<dynamic>)ViewBag.ListDanhGia).Any())
+     {
+ <div class="space-y-6">
+      @foreach (var review in (IEnumerable<dynamic>)ViewBag.ListDanhGia)
+            {
+  <div class="border-b border-gray-200 pb-6 last:border-b-0">
+  <div class="flex items-start">
+   <!-- Avatar -->
+  <div class="flex-shrink-0">
+   <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+         @(review.TenNguoiGui.Substring(0, 1).ToUpper())
+          </div>
+        </div>
+
+       <!-- Review Content -->
+     <div class="ml-4 flex-1">
+      <div class="flex items-center mb-2">
+   <span class="font-semibold text-gray-900 mr-3">@review.TenNguoiGui</span>
+  
+    <!-- Stars -->
+    <div class="flex mr-3">
+             @for (int i = 1; i <= 5; i++)
+     {
+         if (i <= (review.Sao ?? 0))
+   {
+      <i class="fas fa-star text-yellow-400"></i>
+            }
+        else
+   {
+    <i class="far fa-star text-gray-300"></i>
+   }
+    }
+   </div>
+     
+  <!-- Date -->
+ <span class="text-sm text-gray-500">
+        @(review.NgayTao != null ? ((DateTime)review.NgayTao).ToString("dd/MM/yyyy HH:mm") : "")
+     </span>
+         </div>
+     
+      <!-- Review Text -->
+ <p class="text-gray-700 leading-relaxed">@review.NoiDung</p>
+       </div>
+   </div>
+   </div>
+            }
+       </div>
+   }
+    else
+ {
+       <!-- Empty State -->
+      <div class="text-center py-12">
+   <i class="fas fa-comment-slash text-gray-300 text-5xl mb-4"></i>
+           <p class="text-gray-500 italic">Chưa có đánh giá nào</p>
+         <p class="text-sm text-gray-400 mt-2">Hãy là người đầu tiên đánh giá sản phẩm này</p>
+                </div>
+     }
+   </div>
+        </div>
+
+<div class="mt-8">
+    <hr class="border-gray-200" />
+</div>
+
+<!-- Related Products Section -->
+@if (Model.SanPhamLienQuan != null && Model.SanPhamLienQuan.Any())
+{
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+         <i class="fas fa-box-open mr-3 text-blue-600"></i>
+        Sản phẩm liên quan
+        </h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    @foreach (var sp in Model.SanPhamLienQuan)
+            {
+           <div class="bg-white rounded-lg border border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      <a href="@Url.Action("ChiTietSP", "SanPham", new { id = sp.Id })" class="block">
+    <!-- Product Image -->
+         <div class="aspect-square overflow-hidden bg-gray-50 relative">
+  @if (!string.IsNullOrEmpty(sp.HinhAnh))
+         {
+          <img src="@Url.Content("~/Content/Images/" + sp.HinhAnh)" 
+     alt="@sp.TenSanPham" 
+   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+            }
+            else
+ {
+        <img src="@Url.Content("~/Content/Images/no-image.png")" 
+      alt="No Image" 
+   class="w-full h-full object-contain" />
+       }
+                   
+          <!-- Badges -->
+  @if (sp.LaSanPhamMoi == true)
+      {
+   <span class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">MỚI</span>
+            }
+         @if (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia)
+     {
+            <span class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+      -@Math.Round((decimal)(1 - (sp.GiaKhuyenMai.Value / sp.Gia.Value)) * 100)%
+         </span>
+        }
+            </div>
+             
+      <!-- Product Info -->
+            <div class="p-4">
+    <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[40px]">
+       @sp.TenSanPham
+     </h3>
+                
+ <!-- Price -->
+         <div class="mb-3">
+             @if (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia)
+           {
+        <div class="flex items-center space-x-2">
+        <span class="text-lg font-bold text-red-600">@String.Format("{0:0,0}", sp.GiaKhuyenMai.Value)đ</span>
+     <span class="text-sm text-gray-500 line-through">@String.Format("{0:0,0}", sp.Gia.Value)đ</span>
+   </div>
+        }
+              else
+         {
+     <span class="text-lg font-bold text-blue-600">@String.Format("{0:0,0}", sp.Gia ?? 0)đ</span>
+           }
+       </div>
+    
+         <!-- Views -->
+ <div class="text-xs text-gray-500">
+                <i class="fas fa-eye mr-1"></i>
+                     @(sp.LuotXem ?? 0) lượt xem
+        </div>
+       </div>
+        </a>
+      </div>
+          }
+        </div>
+    </div>
+}
+
+<script>
+    // ========== TAB SWITCHING FUNCTIONALITY ==========
+    $(document).ready(function() {
+        // Tab switching
+        $('.tab-button').on('click', function() {
+  var tabName = $(this).data('tab');
+        
+            // Remove active class from all tabs
+          $('.tab-button').removeClass('active border-blue-600 text-blue-600')
+     .addClass('border-transparent text-gray-500');
+            
+    // Add active class to clicked tab
+      $(this).removeClass('border-transparent text-gray-500')
+        .addClass('active border-blue-600 text-blue-600');
+         
+       // Hide all tab contents
+ $('.tab-content').addClass('hidden');
+       
+   // Show selected tab content
+ $('#' + tabName + '-tab').removeClass('hidden');
+        
+          // Smooth scroll to tabs
+            $('html, body').animate({
+            scrollTop: $('.tab-button').offset().top - 100
+            }, 300);
+        });
+    });
+
+    // ========== IMAGE GALLERY FUNCTIONALITY ==========
+    $(document).ready(function() {
+        // Thumbnail click to change main image
+        $('.thumbnail-image').on('click', function() {
+            var newImageSrc = $(this).data('image');
+    $('#mainImage').attr('src', newImageSrc);
+            
+     // Update active thumbnail
+            $('.thumbnail-image').removeClass('border-blue-500').addClass('border-gray-200');
+      $(this).removeClass('border-gray-200').addClass('border-blue-500');
+        });
+    });
+
+    // ========== QUANTITY CONTROLS ==========
+    function incrementQty() {
+        var input = document.getElementById('quantity');
+        var currentValue = parseInt(input.value);
+        var maxValue = parseInt(input.max);
+     
+        if (currentValue < maxValue) {
+  input.value = currentValue + 1;
+        }
+    }
+
+    function decrementQty() {
+    var input = document.getElementById('quantity');
+        var currentValue = parseInt(input.value);
+        var minValue = parseInt(input.min);
+        
+        if (currentValue > minValue) {
+      input.value = currentValue - 1;
+        }
+    }
+
+    // ========== COLOR SELECTION ==========
+    $(document).ready(function() {
+$('input[name="color"]').on('change', function() {
+       $('#selectedColor').val($(this).val());
+      });
+    });
+
+    // ========== BUY NOW FUNCTIONALITY ==========
+    function buyNow() {
+ // Submit form and redirect to checkout
+var form = $('form[action*="ThemVaoGioHang"]');
+        var formData = form.serialize();
+        
+   $.ajax({
+    url: form.attr('action'),
+type: 'POST',
+            data: formData,
+    success: function(response) {
+     // Redirect to cart/checkout page
+     window.location.href = '@Url.Action("Index", "GioHang")';
+  },
+            error: function() {
+   Swal.fire({
+        icon: 'error',
+         title: 'Lỗi!',
+  text: 'Có lỗi xảy ra. Vui lòng thử lại.',
+         timer: 2000
+  });
+            }
+        });
+    }
+
+    // ========== REVIEWS FUNCTIONALITY ==========
+
+    // Toggle review form
+    function toggleReviewForm() {
+        $('#reviewForm').slideToggle(300);
+        // Reset form if hiding
+        if ($('#reviewForm').is(':visible')) {
+        $('html, body').animate({
+           scrollTop: $('#reviewForm').offset().top - 100
+            }, 500);
+        } else {
+            $('#submitReviewForm')[0].reset();
+         resetStars();
+        }
+    }
+
+    // Star rating interaction
+    var selectedRating = 0;
+    var ratingTexts = ['', 'Rất tệ', 'Tệ', 'Trung bình', 'Tốt', 'Rất tốt'];
+
+    $('.star-icon').hover(
+        function() {
+var rating = $(this).data('rating');
+            highlightStars(rating);
+     $('#ratingText').text(ratingTexts[rating]);
+    },
+        function() {
+            highlightStars(selectedRating);
+            $('#ratingText').text(selectedRating > 0 ? ratingTexts[selectedRating] : 'Chọn số sao');
+}
+    );
+
+    $('.star-icon').click(function() {
+        selectedRating = $(this).data('rating');
+        $('#ratingValue').val(selectedRating);
+        highlightStars(selectedRating);
+        $('#ratingText').text(ratingTexts[selectedRating]);
+    });
+
+    function highlightStars(rating) {
+        $('.star-icon').each(function(index) {
+            if (index < rating) {
+         $(this).removeClass('far text-gray-300').addClass('fas text-yellow-400');
+  } else {
+                $(this).removeClass('fas text-yellow-400').addClass('far text-gray-300');
+            }
+        });
+  }
+
+    function resetStars() {
+        selectedRating = 0;
+        $('#ratingValue').val(0);
+        highlightStars(0);
+ $('#ratingText').text('Chọn số sao');
+    }
+
+    // Submit review via AJAX
+    $('#submitReviewForm').on('submit', function(e) {
+   e.preventDefault();
+      
+        console.log('Submitting review...');
+
+        // Validate rating
+        if (parseInt($('#ratingValue').val()) < 1) {
+         Swal.fire({
+   icon: 'warning',
+                title: 'Vui lòng chọn số sao',
+    timer: 2000
+            });
+        return;
+        }
+        
+        var formData = $(this).serialize();
+   console.log('Form data:', formData);
+        
+        $.ajax({
+  url: '@Url.Action("ThemDanhGia", "SanPham")',
+            type: 'POST',
+   data: formData,
+            beforeSend: function() {
+        console.log('Sending AJAX request...');
+    },
+            success: function(response) {
+      console.log('AJAX response:', response);
+                if (response.success) {
+       Swal.fire({
+            icon: 'success',
+              title: 'Thành công!',
+     text: response.message,
+      timer: 2000,
+         showConfirmButton: false
+             }).then(function() {
+            // Reload page to show new review (server-side rendering)
+             location.reload();
+   });
+    } else {
+        Swal.fire({
+              icon: 'error',
+     title: 'Lỗi!',
+    text: response.message,
+       timer: 2000
+         });
+     }
+            },
+            error: function(xhr, status, error) {
+  console.error('AJAX error:', error);
+             console.error('Status:', status);
+        console.error('Response:', xhr.responseText);
+      Swal.fire({
+           icon: 'error',
+      title: 'Lỗi!',
+        text: 'Có lỗi xảy ra. Vui lòng thử lại sau.',
+         timer: 2000
+    });
+            }
+    });
+    });
+</script>

@@ -1,0 +1,193 @@
+﻿@model List<DoAnWeb.Models.QLSP>
+
+@{
+    ViewBag.Title = "QLSP";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<style>
+    /* Thu gọn cột Mô tả và Mô tả chi tiết */
+    .truncate-text {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+    }
+    
+    .truncate-text-short {
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+    }
+    
+    /* Tooltip khi hover để xem full text */
+    .truncate-text:hover,
+    .truncate-text-short:hover {
+        position: relative;
+        overflow: visible;
+        white-space: normal;
+        background: #fff;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        padding: 8px;
+        border-radius: 4px;
+    }
+</style>
+
+<!-- Quản lý sản phẩm -->
+<div id="products" class="tab-content active">
+    <h1 class="mb-4">Quản lý sản phẩm</h1>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimKiemSP" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timsp" name="timsp" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary" onclick="document.getElementById('csvImportInput').click()">
+                    <i class="fas fa-file-import"></i> Import CSV
+                </button>
+                <input type="file" id="csvImportInput" accept=".csv" style="display: none;">
+                <button class="btn btn-success" id="exportCsvBtn">
+                    <i class="fas fa-file-excel"></i> Export CSV
+                </button>
+                <a href="@Url.Action("formThemSP", "Admin")" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Thêm sản phẩm
+                </a>
+            </div>
+        </div>
+        <table class="table table-bordered table-hover" id="productTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Hình ảnh</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Mã sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Giá khuyến mãi</th>
+                    <th>Số lượng</th>
+                    <th>Danh mục</th>
+                    <th>Thương hiệu</th>
+                    @* Technical Specification Columns - Hidden for cleaner table *@
+                    @*<th>Bộ nhớ ram</th>*@
+                    @*<th>Bộ nhớ trong</th>*@
+                    @*<th>Màn hình</th>*@
+                    @*<th>Pin</th>*@
+                    @*<th>Camera</th>*@
+                    @*<th>Hệ điều hành</th>*@
+                    @*<th>Cổng kết nối</th>*@
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            
+
+            @foreach (var item in Model)
+            {
+                <tbody id="productTableBody">
+                    <tr id="product-@item.Id">
+                        <td>@item.Id</td>
+                        <td><img src="~/Content/Images/@item.HinhAnh" alt="@item.TenSanPham" class="lazyload" style="width: 80px; height: 80px; object-fit: cover; border: 1px solid #eee; border-radius: 4px;" /></td>
+                        <td>
+                            <strong>@item.TenSanPham</strong>
+                            @if (!string.IsNullOrEmpty(item.MoTa))
+                            {
+                                <br /><small class="text-muted">@item.MoTa</small>
+                            }
+                        </td>
+                        <td><span class="badge bg-secondary">@item.MaSanPham</span></td>
+                        <td><strong class="text-success">@String.Format("{0:N0}", item.Gia) ₫</strong></td>
+                        <td>
+                            @if (item.GiaKhuyenMai.HasValue && item.GiaKhuyenMai.Value > 0)
+                            {
+                                <strong class="text-danger">@String.Format("{0:N0}", item.GiaKhuyenMai) ₫</strong>
+                            }
+                            else
+                            {
+                                <span class="text-muted">---</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.SoLuong > 10)
+                            {
+                                <span class="badge bg-success">@item.SoLuong</span>
+                            }
+                            else if (item.SoLuong > 0)
+                            {
+                                <span class="badge bg-warning">@item.SoLuong</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Hết hàng</span>
+                            }
+                        </td>
+                        <td>@item.TenDanhMuc</td>
+                        <td>@item.TenThuongHieu</td>
+                        @* Technical Specification Columns - Hidden for cleaner table *@
+                        @*<td>@item.BoNhoRAM</td>*@
+                        @*<td>@item.BoNhoTrong</td>*@
+                        @*<td>@item.ManHinh</td>*@
+                        @*<td>@item.DungLuongPin</td>*@
+                        @*<td>@item.Camera</td>*@
+                        @*<td>@item.HeDieuHanh</td>*@
+                        @*<td>@item.CongKetNoi</td>*@
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("formSuaSP", "Admin", new { id = item.Id })" class="btn btn-sm btn-warning" title="Sửa sản phẩm">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="@Url.Action("XoaSP", "Admin", new { id = item.Id })" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');" title="Xóa sản phẩm">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            }
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "QLSP" : "TimKiemSP",
+                    new { timsp = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "QLSP" : "TimKiemSP",
+                        new { timsp = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "QLSP" : "TimKiemSP",
+                    new { timsp = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

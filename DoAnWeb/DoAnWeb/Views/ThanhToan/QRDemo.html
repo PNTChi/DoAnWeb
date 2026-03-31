@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Payment Demo</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        body {
+            padding: 50px;
+            background: #f5f5f5;
+        }
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn-demo {
+            margin: 10px;
+            min-width: 200px;
+        }
+        .demo-section {
+            margin-bottom: 30px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-qrcode text-primary"></i>
+            QR Payment Demo
+        </h1>
+        
+        <div class="demo-section">
+            <h3><i class="fas fa-play-circle text-success"></i> Test QR Modals</h3>
+            <p class="text-muted">Click vào các nút bên d??i ?? xem QR code modal:</p>
+            
+            <div class="text-center">
+                <button onclick="testQR('2')" class="btn btn-primary btn-demo">
+                    <i class="fas fa-university"></i> Ngân hàng
+                </button>
+                
+                <button onclick="testQR('3')" class="btn btn-danger btn-demo">
+                    <i class="fas fa-mobile-alt"></i> MoMo
+                </button>
+                
+                <button onclick="testQR('4')" class="btn btn-info btn-demo">
+                    <i class="fas fa-qrcode"></i> ZaloPay
+                </button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3><i class="fas fa-info-circle text-info"></i> Setup Instructions</h3>
+            
+            <h5>1. Thêm QR Images:</h5>
+            <pre>DoAnWeb\Content\Images\bank.jpg
+DoAnWeb\Content\Images\momo.jpg
+DoAnWeb\Content\Images\zalopay.jpg</pre>
+            
+            <h5>2. Kích th??c khuy?n ngh?:</h5>
+            <ul>
+                <li>Dimensions: 400x400px ??n 800x800px (square)</li>
+                <li>Format: JPG ho?c PNG</li>
+                <li>File size: D??i 100KB (optimized)</li>
+                <li>Quality: 70-80% compression</li>
+            </ul>
+            
+            <h5>3. Test Checklist:</h5>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check1">
+                <label class="form-check-label" for="check1">
+                    QR modal hi?n th? ?úng cho t?ng ph??ng th?c
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check2">
+                <label class="form-check-label" for="check2">
+                    S? ti?n hi?n th? ?úng và rõ ràng
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check3">
+                <label class="form-check-label" for="check3">
+                    H??ng d?n thanh toán d? hi?u
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check4">
+                <label class="form-check-label" for="check4">
+                    Nút "?ã chuy?n kho?n" ho?t ??ng
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="check5">
+                <label class="form-check-label" for="check5">
+                    Responsive trên mobile
+                </label>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3><i class="fas fa-code text-warning"></i> Sample QR Code Generation</h3>
+            <p>B?n có th? t?o QR code t?i:</p>
+            <ul>
+                <li><a href="https://www.qr-code-generator.com/" target="_blank">QR Code Generator</a></li>
+                <li><a href="https://www.qrstuff.com/" target="_blank">QRStuff</a></li>
+                <li><a href="https://www.qrcode-monkey.com/" target="_blank">QR Code Monkey</a></li>
+            </ul>
+            
+            <h5>N?i dung QR cho Bank:</h5>
+            <pre>Bank: Vietcombank
+Account: 1234567890
+Name: CONG TY ABC
+Amount: [Dynamic from order]
+Content: DH[OrderCode]</pre>
+        </div>
+        
+        <div class="demo-section">
+            <h3><i class="fas fa-chart-line text-success"></i> Payment Flow</h3>
+            <div class="alert alert-info">
+                <h6>Lu?ng thanh toán chuy?n kho?n:</h6>
+                <ol class="mb-0">
+                    <li>User ch?n ph??ng th?c chuy?n kho?n</li>
+                    <li>Click "??t hàng" ? QR modal hi?n th?</li>
+                    <li>User quét QR và chuy?n ti?n</li>
+                    <li>Click "?ã chuy?n kho?n" ? Order confirmation</li>
+                    <li>??n hàng t?o v?i tr?ng thái "Ch? x? lý"</li>
+                    <li>Admin xác minh thanh toán (5-30 phút)</li>
+                    <li>??n hàng chuy?n sang "?ã xác nh?n"</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="Index" class="btn btn-success btn-lg">
+                <i class="fas fa-shopping-cart"></i> Go to Checkout
+            </a>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- QR Payment Script -->
+    <script>
+        // Helper functions
+        function getPaymentMethodName(paymentMethod) {
+            switch(paymentMethod) {
+                case '2': return 'Ngân hàng';
+                case '3': return 'MoMo';
+                case '4': return 'ZaloPay';
+                default: return '';
+            }
+        }
+        
+        function getQRImagePath(paymentMethod) {
+            switch(paymentMethod) {
+                case '2': return '/Content/Images/bank.jpg';
+                case '3': return '/Content/Images/momo.jpg';
+                case '4': return '/Content/Images/zalopay.jpg';
+                default: return '';
+            }
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+        
+        // Test function
+        function testQR(paymentMethod) {
+            var methodName = getPaymentMethodName(paymentMethod);
+            var qrImagePath = getQRImagePath(paymentMethod);
+            var finalTotal = 1500000; // Demo amount
+            
+            // Create modal HTML
+            var modalHTML = `
+                <div class="modal fade" id="qrPaymentModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-qrcode"></i> Thanh toán qua ${methodName}
+                                </h5>
+                                <button type="button" class="close text-white" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>S? ti?n c?n thanh toán:</strong>
+                                    <h3 class="text-danger mb-0">${formatCurrency(finalTotal)}</h3>
+                                </div>
+                                
+                                <div class="qr-code-container mb-3">
+                                    <img src="${qrImagePath}" 
+                                         alt="QR Code ${methodName}" 
+                                         class="img-fluid rounded shadow"
+                                         style="max-width: 400px; max-height: 400px;"
+                                         onerror="this.src='https://via.placeholder.com/400x400/cccccc/666666?text=QR+Code+Demo'; this.alt='QR Code Demo';">
+                                </div>
+                                
+                                <div class="payment-instructions">
+                                    <h6 class="text-primary">
+                                        <i class="fas fa-hand-point-right"></i> H??ng d?n thanh toán:
+                                    </h6>
+                                    <ol class="text-left">
+                                        <li>M? ?ng d?ng <strong>${methodName}</strong> trên ?i?n tho?i</li>
+                                        <li>Quét mã QR bên trên</li>
+                                        <li>Ki?m tra s? ti?n: <strong class="text-danger">${formatCurrency(finalTotal)}</strong></li>
+                                        <li>Xác nh?n thanh toán</li>
+                                        <li>Ch?p màn hình giao d?ch thành công (?? ??i chi?u n?u c?n)</li>
+                                    </ol>
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <small>
+                                        ??n hàng s? ???c x? lý sau khi chúng tôi xác nh?n thanh toán c?a b?n.
+                                        Th?i gian x? lý: <strong>5-30 phút</strong>
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    <i class="fas fa-times"></i> ?óng
+                                </button>
+                                <button type="button" class="btn btn-success" id="btnConfirmPayment">
+                                    <i class="fas fa-check"></i> ?ã chuy?n kho?n
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove old modal
+            $('#qrPaymentModal').remove();
+            
+            // Add new modal
+            $('body').append(modalHTML);
+            
+            // Show modal
+            $('#qrPaymentModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+            
+            // Handle confirm button
+            $('#btnConfirmPayment').on('click', function() {
+                $('#qrPaymentModal').modal('hide');
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    html: `
+                        <p>C?m ?n b?n ?ã xác nh?n thanh toán qua <strong>${methodName}</strong></p>
+                        <p>??n hàng c?a b?n s? ???c x? lý trong <strong>5-30 phút</strong></p>
+                        <p class="text-muted"><small>?ây là ch? ?? demo. Trong production, ??n hàng s? ???c t?o và l?u vào database.</small></p>
+                    `,
+                    confirmButtonText: '?ã hi?u'
+                });
+            });
+        }
+    </script>
+</body>
+</html>

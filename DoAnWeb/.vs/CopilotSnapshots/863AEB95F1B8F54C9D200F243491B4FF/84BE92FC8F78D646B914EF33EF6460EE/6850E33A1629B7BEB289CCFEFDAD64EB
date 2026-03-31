@@ -1,0 +1,61 @@
+﻿@model IEnumerable<DoAnWeb.Models.MenuDanhMucViewModel>
+
+@* 
+    Partial View: Sidebar danh mục sản phẩm bên trái 
+    Hiển thị động từ database với submenu thương hiệu
+*@
+
+<!--Sidebar - Danh mục bên trái -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+    <h1 class="text-xl font-bold text-center font-size-3">Danh mục</h1>
+    </div>
+    <div class="sidebar-menu">
+        @if (Model != null && Model.Any())
+        {
+        @* Duyệt qua từng danh mục từ database *@
+ foreach (var menuItem in Model)
+          {
+    var danhMuc = menuItem.DanhMuc;
+       
+            @* Xác định Partial View phù hợp dựa trên tên danh mục *@
+   string partialViewName = "_CategoryMenuItem"; // Mặc định
+
+                @* Map tên danh mục với Partial View cụ thể *@
+     if (danhMuc.TenDanhMuc != null)
+           {
+     if (danhMuc.TenDanhMuc.Contains("Điện thoại"))
+           {
+     partialViewName = "_MenuDienThoai";
+                    }
+       else if (danhMuc.TenDanhMuc.Contains("Laptop"))
+          {
+   partialViewName = "_MenuLaptop";
+      }
+     else if (danhMuc.TenDanhMuc.Contains("Tablet"))
+      {
+ partialViewName = "_MenuTablet";
+     }
+ else if (danhMuc.TenDanhMuc.Contains("Phụ kiện"))
+ {
+       partialViewName = "_MenuPhuKien";
+            }
+     }
+       
+        @* Render Partial View tương ứng với MenuDanhMucViewModel *@
+      @Html.Partial(partialViewName, menuItem)
+            }
+        }
+    else
+        {
+          @* Hiển thị thông báo nếu không có danh mục nào *@
+            <div class="text-center text-gray-500 py-8">
+       <i class="fas fa-folder-open text-4xl mb-3"></i>
+        <p>Chưa có danh mục nào</p>
+  </div>
+        }
+    </div>
+</div>
+
+<!-- Lớp phủ mờ khi sidebar mở -->
+<div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>

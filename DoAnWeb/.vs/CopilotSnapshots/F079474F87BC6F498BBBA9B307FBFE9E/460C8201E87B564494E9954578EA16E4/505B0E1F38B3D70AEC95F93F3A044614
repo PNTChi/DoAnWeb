@@ -1,0 +1,196 @@
+﻿@model List<DoAnWeb.Models.BannerViewModel>
+
+@{
+    ViewBag.Title = "Quản lý Banner";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="banners" class="tab-content active">
+    <h1 class="mb-4">Quản lý Banner (Quảng cáo)</h1>
+    
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimBanner" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timbn" name="timbn" 
+                       placeholder="Tìm kiếm banner..." value="@TuKhoa">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+            <a href="@Url.Action("formThemBanner", "Admin")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm banner mới
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+         {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 5%">ID</th>
+                    <th style="width: 15%">Hình ảnh</th>
+                    <th style="width: 20%">Tiêu đề</th>
+                    <th style="width: 15%">Vị trí</th>
+                    <th style="width: 10%">Thứ tự</th>
+                    <th style="width: 10%">Link</th>
+                    <th style="width: 10%">Hiển thị</th>
+                    <th style="width: 15%">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                {
+                                    <img src="~/Content/Images/@item.HinhAnh" 
+                                         alt="@item.TieuDe" 
+                                         class="img-thumbnail" 
+                                         style="max-width: 150px; max-height: 80px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có ảnh</span>
+                                }
+                            </td>
+                            <td>
+                                <strong>@item.TieuDe</strong>
+                                @if (!string.IsNullOrEmpty(item.MoTa))
+                                {
+                                    <br><small class="text-muted">@item.MoTa</small>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.ViTri))
+                                {
+                                    <span class="badge bg-info">@item.ViTri</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa xác định</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">@item.ThuTu</span>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Link))
+                                {
+                                    <a href="@item.Link" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (item.HienThi)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-eye"></i> Hiển thị
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-eye-slash"></i> Ẩn
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="@Url.Action("formSuaBanner", "Admin", new { id = item.Id })" 
+                                       class="btn btn-sm btn-warning" 
+                                       title="Sửa banner">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="@Url.Action("XoaBanner", "Admin", new { id = item.Id })" 
+                                       class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa banner này?')" 
+                                       title="Xóa banner">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            Chưa có banner nào
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action(
+                            String.IsNullOrEmpty(TuKhoa) ? "Banner" : "TimBanner",
+                            new { timbn = TuKhoa, page = currentPage - 1 })">
+                            <i class="fas fa-chevron-left"></i> Trước
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action(
+                                String.IsNullOrEmpty(TuKhoa) ? "Banner" : "TimBanner",
+                                new { timbn = TuKhoa, page = i })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action(
+                            String.IsNullOrEmpty(TuKhoa) ? "Banner" : "TimBanner",
+                            new { timbn = TuKhoa, page = currentPage + 1 })">
+                            Sau <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+@section scripts {
+<script>
+    // Auto dismiss alerts after 5 seconds
+    setTimeout(function () {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+</script>
+}

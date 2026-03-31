@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="Admin.css" rel="stylesheet" />
+    <link href="../bootstrap-5.0.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+</head>
+<body>
+    <!--
+      Đây là form Thêm/Sửa Sản Phẩm.
+      - Bạn cần đặt 'action' cho form trỏ đến controller của bạn (ví dụ: /products/save).
+      - Khi sửa, bạn cần điền 'value' cho các trường và 'productId'.
+    -->
+    <form action="/products/save" method="POST" enctype="multipart/form-data" class="p-4">
+        <input type="hidden" id="productId" name="productId">
+
+        <h3 id="formProductTitle">Thêm sản phẩm mới</h3>
+        <hr>
+
+        <!-- Bố cục 2 cột cho thông tin cơ bản -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productName" class="form-label">Tên sản phẩm</label>
+                    <input type="text" class="form-control" id="productName" name="productName" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productImage" class="form-label">Hình ảnh</label>
+                    <input type="file" class="form-control" id="productImage" name="productImage">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productCategory" class="form-label">Danh mục</label>
+                    <select class="form-select" id="productCategory" name="productCategory">
+                        <!-- Bạn nên tải động danh sách danh mục ở đây -->
+                        <option value="1">Điện thoại</option>
+                        <option value="2">Laptop</option>
+                        <option value="3">Phụ kiện</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productBrand" class="form-label">Thương hiệu</label>
+                    <select class="form-select" id="productBrand" name="productBrand">
+                        <!-- Bạn nên tải động danh sách thương hiệu ở đây -->
+                        <option value="1">Apple</option>
+                        <option value="2">Samsung</option>
+                        <option value="3">Dell</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productPrice" class="form-label">Giá (VNĐ)</label>
+                    <input type="number" class="form-control" id="productPrice" name="productPrice" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productStock" class="form-label">Tồn kho</label>
+                    <input type="number" class="form-control" id="productStock" name="productStock" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="productLabel" class="form-label">Nhãn</label>
+            <select class="form-select" id="productLabel" name="productLabel">
+                <option value="Không">Không</option>
+                <option value="Mới">Mới</option>
+                <option value="Giảm giá">Giảm giá</option>
+                <option value="Bán chạy">Bán chạy</option>
+            </select>
+        </div>
+
+        <!-- Thêm các trường mô tả -->
+        <div class="mb-3">
+            <label for="productShortDesc" class="form-label">Mô tả ngắn</label>
+            <textarea class="form-control" id="productShortDesc" name="productShortDesc" rows="2"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="productDetailDesc" class="form-label">Mô tả chi tiết</label>
+            <textarea class="form-control" id="productDetailDesc" name="productDetailDesc" rows="4"></textarea>
+        </div>
+
+        <hr>
+        <h6 class="mb-3">Thông số kỹ thuật</h6>
+
+        <!-- Thêm các trường thông số -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productStorage" class="form-label">Bộ nhớ trong</label>
+                    <input type="text" class="form-control" id="productStorage" name="productStorage">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productRam" class="form-label">Ram</label>
+                    <input type="text" class="form-control" id="productRam" name="productRam">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productScreen" class="form-label">Màng hình</label>
+                    <input type="text" class="form-control" id="productScreen" name="productScreen">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productBattery" class="form-label">Pin</label>
+                    <input type="text" class="form-control" id="productBattery" name="productBattery">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productCamera" class="form-label">Camera</label>
+                    <input type="text" class="form-control" id="productCamera" name="productCamera">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productOS" class="form-label">Hệ điều hành</label>
+                    <input type="text" class="form-control" id="productOS" name="productOS">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="productConnection" class="form-label">Cổng kết nối</label>
+                    <input type="text" class="form-control" id="productConnection" name="productConnection">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+            <a href="/#products" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+
+
+</body>
+</html>

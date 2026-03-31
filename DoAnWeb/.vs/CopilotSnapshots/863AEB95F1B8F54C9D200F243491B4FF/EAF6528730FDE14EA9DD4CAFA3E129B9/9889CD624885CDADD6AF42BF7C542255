@@ -1,0 +1,70 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace DoAnWeb.Models
+{
+    /// <summary>
+    /// ViewModel cho trang ??ng nh?p
+ /// </summary>
+    public class LoginViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nh?p email")]
+    [EmailAddress(ErrorMessage = "Email không h?p l?")]
+[Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nh?p m?t kh?u")]
+        [DataType(DataType.Password)]
+        [Display(Name = "M?t kh?u")]
+        public string Password { get; set; }
+
+[Display(Name = "Ghi nh? ??ng nh?p")]
+  public bool RememberMe { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel cho trang ??ng ký
+    /// </summary>
+    public class RegisterViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nh?p h? tên")]
+        [StringLength(100, ErrorMessage = "H? tên không ???c v??t quá 100 ký t?")]
+        [Display(Name = "H? và tên")]
+        public string FullName { get; set; }
+
+      [Required(ErrorMessage = "Vui lòng nh?p email")]
+        [EmailAddress(ErrorMessage = "Email không h?p l?")]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Phone(ErrorMessage = "S? ?i?n tho?i không h?p l?")]
+        [Display(Name = "S? ?i?n tho?i")]
+        public string PhoneNumber { get; set; }
+
+      [Required(ErrorMessage = "Vui lòng nh?p m?t kh?u")]
+        [StringLength(100, ErrorMessage = "M?t kh?u ph?i có ít nh?t {2} ký t?", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "M?t kh?u")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng xác nh?n m?t kh?u")]
+   [DataType(DataType.Password)]
+        [Display(Name = "Xác nh?n m?t kh?u")]
+   [Compare("Password", ErrorMessage = "M?t kh?u và xác nh?n m?t kh?u không kh?p")]
+        public string ConfirmPassword { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel cho thông tin user trong session
+    /// </summary>
+    public class UserSessionViewModel
+    {
+        public int Id { get; set; }
+        public string HoTen { get; set; }
+        public string Email { get; set; }
+      public bool LaQuanTri { get; set; }
+    }
+}

@@ -1,0 +1,189 @@
+﻿# Báo Cáo Sửa Lỗi Tồn Kho
+
+## Vấn Đề
+Khi khách hàng mua 1 sản phẩm, số lượng tồn kho bị trừ 2 thay vì trừ 1.
+
+## 🎯 Nguyên Nhân Thực Sự (ĐÃ TÌM RA!)
+
+### **Database Trigger Trùng Lặp**
+
+Trong file `Database/CreateConstraint.sql` có trigger tự động trừ tồn kho:
+
+```sql
+CREATE TRIGGER [dbo].[trg_TruSoLuongTonKho]
+ON [dbo].[tb_ChiTietDonHang]
+AFTER INSERT
+AS
+BEGIN
+    UPDATE sp
+    SET sp.SoLuong = sp.SoLuong - i.SoLuong
+    FROM [dbo].[tb_SanPham] sp
+    JOIN inserted i ON sp.Id = i.SanPhamId;
+END
+```
+
+**Vấn đề**: 
+1. ❌ Code C# trong `ThanhToanController.cs` **TRỪ TỒN KHO** bằng `ExecuteSqlCommand`
+2. ❌ Trigger `trg_TruSoLuongTonKho` **CŨNG TỰ ĐỘNG TRỪ** khi insert vào `tb_ChiTietDonHang`
+3. ❌ **KẾT QUẢ: TỒN KHO BỊ TRỪ 2 LẦN!**
+
+### Flow xảy ra lỗi:
+
+```
+User đặt hàng (Quantity = 1)
+    ↓
+ThanhToanController.Index() được gọi
+    ↓
+Trong transaction:
+    ├─ db.tb_ChiTietDonHang.Add(chiTiet)  
+    ├─ db.Database.ExecuteSqlCommand("UPDATE ... SoLuong - 1")  ← TRỪ LẦN 1
+    └─ db.SaveChanges()
+           ↓
+       TRIGGER trg_TruSoLuongTonKho tự động chạy  ← TRỪ LẦN 2
+           ↓
+    Kết quả: Tồn kho giảm 2 thay vì 1
+```
+
+## Nguyên Nhân Khác (Đã loại trừ)
+
+### 1. Double-Click/Double-Submit ❌
+- Đã thêm kiểm tra session `LastOrderTime` nhưng vẫn bị lỗi
+- Không phải nguyên nhân chính
+
+### 2. Giỏ Hàng Chứa Sản Phẩm Trùng Lặp ❌
+- Đã kiểm tra code CartModels.cs - logic đúng
+- Không phải nguyên nhân chính
+
+## Các Sửa Đổi Đã Thực Hiện
+
+### 1. **GioHangController.cs** - Kiểm tra tồn kho tốt hơn
+```csharp
+// TRƯỚC:
+// Chỉ kiểm tra số lượng tồn kho với số lượng mới thêm
+if (product.SoLuong.HasValue && product.SoLuong.Value < quantity)
+
+// SAU:
+// Kiểm tra tổng số lượng trong giỏ + số lượng mới thêm
+var existingItem = cart.GetItem(productId, color);
+var totalQuantityInCart = (existingItem?.Quantity ?? 0) + quantity;
+if (product.SoLuong.HasValue && product.SoLuong.Value < totalQuantityInCart)
+{
+    return Json(new {
+        success = false,
+        message = $"Chỉ còn {product.SoLuong.Value} sản phẩm trong kho. Bạn đã có {existingItem?.Quantity ?? 0} trong giỏ hàng."
+    });
+}
+```
+
+**Lợi ích**: Ngăn người dùng thêm quá nhiều sản phẩm vào giỏ hàng hơn số lượng tồn kho.
+
+### 2. **ThanhToanController.cs** - Thêm logging và kiểm tra
+```csharp
+// Thêm debug logging
+System.Diagnostics.Debug.WriteLine($"Processing item: {item.ProductName}, Quantity: {item.Quantity}");
+System.Diagnostics.Debug.WriteLine($"Current stock before update: {currentStock}");
+System.Diagnostics.Debug.WriteLine($"Stock after update: {stockAfterUpdate}");
+
+// Kiểm tra số lượng sau khi cập nhật
+if (stockAfterUpdate != currentStock - item.Quantity)
+{
+    throw new Exception($"LỖI: Số lượng tồn kho không khớp!");
+}
+```
+
+**Lợi ích**: Giúp phát hiện chính xác khi nào và tại sao số lượng bị trừ sai.
+
+### 3. **ThanhToanController.cs** - Ngăn chặn double-submit
+```csharp
+// Kiểm tra session để ngăn submit liên tục trong 5 giây
+var lastOrderTime = Session["LastOrderTime"] as DateTime?;
+if (lastOrderTime.HasValue && (DateTime.Now - lastOrderTime.Value).TotalSeconds < 5)
+{
+    TempData["ErrorMessage"] = "Vui lòng không gửi đơn hàng quá nhanh. Hãy đợi vài giây.";
+    return RedirectToAction("Index");
+}
+Session["LastOrderTime"] = DateTime.Now;
+```
+
+**Lợi ích**: Ngăn người dùng click "Đặt hàng" nhiều lần trong thời gian ngắn.
+
+## Cách Test
+
+### Test Case 1: Thêm sản phẩm vào giỏ nhiều lần
+1. Thêm sản phẩm A vào giỏ (số lượng 1)
+2. Thêm sản phẩm A vào giỏ lần nữa (số lượng 1)
+3. Kiểm tra giỏ hàng - nên thấy sản phẩm A với số lượng 2
+4. Đặt hàng
+5. Kiểm tra tồn kho - nên giảm đúng 2
+
+### Test Case 2: Đặt hàng với số lượng lớn hơn tồn kho
+1. Sản phẩm B có tồn kho 5
+2. Thêm sản phẩm B vào giỏ với số lượng 3
+3. Thêm sản phẩm B vào giỏ thêm 3 lần nữa
+4. Hệ thống phải báo lỗi: "Chỉ còn 5 sản phẩm trong kho. Bạn đã có 3 trong giỏ hàng."
+
+### Test Case 3: Double-click nút đặt hàng
+1. Thêm sản phẩm vào giỏ
+2. Vào trang thanh toán
+3. Click nút "Đặt hàng" 2 lần nhanh liên tục
+4. Chỉ nên tạo 1 đơn hàng, lần click thứ 2 sẽ báo lỗi: "Vui lòng không gửi đơn hàng quá nhanh"
+
+### Test Case 4: Xem Debug Log
+1. Mở Visual Studio Output window (View > Output)
+2. Chọn "Debug" trong dropdown "Show output from"
+3. Thực hiện đặt hàng
+4. Xem log để kiểm tra:
+   - Số lượng trong giỏ
+   - Số lượng tồn kho trước khi cập nhật
+   - Số lượng bị trừ
+   - Số lượng tồn kho sau khi cập nhật
+
+## Khuyến Nghị Tiếp Theo
+
+### 1. Thêm JavaScript để disable nút sau khi click
+Thêm vào trang thanh toán:
+```javascript
+$('#checkout-form').on('submit', function() {
+    $(this).find('button[type="submit"]').prop('disabled', true).text('Đang xử lý...');
+});
+```
+
+### 2. Thêm Transaction Isolation Level cao hơn
+```csharp
+using (var transaction = db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+{
+    // ... code xử lý đơn hàng ...
+}
+```
+
+### 3. Thêm Database Constraint
+```sql
+-- Đảm bảo số lượng không âm
+ALTER TABLE tb_SanPham
+ADD CONSTRAINT CK_SoLuong_NonNegative CHECK (SoLuong >= 0);
+```
+
+### 4. Log vào Database thay vì Debug.WriteLine
+Tạo bảng `tb_Log` để lưu trữ các thao tác quan trọng:
+```sql
+CREATE TABLE tb_Log (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    NgayTao DATETIME DEFAULT GETDATE(),
+    LoaiThaoTac NVARCHAR(50),
+    NoiDung NVARCHAR(MAX),
+    TaiKhoanId INT NULL
+);
+```
+
+## Kết Luận
+
+Các sửa đổi trên sẽ:
+1. ✅ Ngăn chặn thêm quá nhiều sản phẩm vào giỏ
+2. ✅ Ngăn chặn double-submit đơn hàng
+3. ✅ Cung cấp logging chi tiết để debug
+4. ✅ Kiểm tra tính toàn vẹn của dữ liệu tồn kho
+
+Nếu vấn đề vẫn tiếp diễn sau các sửa đổi này, vui lòng:
+1. Kiểm tra Debug Output để xem log chi tiết
+2. Kiểm tra xem có trigger hoặc stored procedure nào trong database không
+3. Kiểm tra xem có job/service nào khác đang cập nhật tồn kho không

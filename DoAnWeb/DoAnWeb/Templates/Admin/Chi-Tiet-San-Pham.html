@@ -1,0 +1,376 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Các thẻ meta cơ bản -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Sản phẩm </title>
+    <link href="bootstrap-5.0.2/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="bootstrap-5.0.2/Web-Ban-Hang.css" rel="stylesheet" />
+
+    <!-- Tải Font Awesome (bộ icon) từ CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tải Google Fonts (Roboto) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Nội dung chính của trang -->
+    <div class="container my-5">
+        <!-- Thẻ chính chứa thông tin sản phẩm -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="row">
+                    <!-- Cột trái: Bộ sưu tập ảnh sản phẩm -->
+                    <div class="col-lg-6">
+                        <div class="product-gallery">
+                            <div class="main-image-container mb-3">
+                                <img src="https://placehold.co/600x600/EFEFEF/333?text=MacBook+Pro" id="mainProductImage" alt="MacBook Pro M3">
+                            </div>
+                            <div class="thumbnail-images justify-content-center">
+                                <img src="https://placehold.co/100x100/EFEFEF/333?text=View+1" alt="Thumbnail 1" class="active" onclick="changeImage('https://placehold.co/600x600/EFEFEF/333?text=MacBook+Pro', this)">
+                                <img src="https://placehold.co/100x100/EFEFEF/333?text=View+2" alt="Thumbnail 2" onclick="changeImage('https://placehold.co/600x600/CCC/333?text=Side+View', this)">
+                                <img src="https://placehold.co/100x100/EFEFEF/333?text=View+3" alt="Thumbnail 3" onclick="changeImage('https://placehold.co/600x600/DDD/333?text=Keyboard', this)">
+                                <img src="https://placehold.co/100x100/EFEFEF/333?text=View+4" alt="Thumbnail 4" onclick="changeImage('https://placehold.co/600x600/AAA/333?text=Ports', this)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Chi tiết và các tùy chọn sản phẩm -->
+                    <div class="col-lg-6">
+                        <div class="product-details ps-lg-4">
+                            <!-- Tên sản phẩm và nút yêu thích -->
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="product-brand text-primary mb-1">APPLE</p>
+                                    <h1 class="product-title">MacBook Pro 14 inch M3 8GB/512GB</h1>
+                                </div>
+                                <button id="wishlistBtn" class="btn btn-outline-danger btn-lg ms-3" title="Thêm vào Yêu thích">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+
+                            <!-- Đánh giá, số lượt đánh giá, tình trạng kho hàng -->
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <a href="#reviews" class="ms-2 text-decoration-none text-muted">(125 đánh giá)</a>
+                                <span class="mx-2">|</span>
+                                <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> Còn hàng</span>
+                            </div>
+
+                            <!-- Giá sản phẩm -->
+                            <div class="product-price mb-3">
+                                <span class="current-price">39.990.000₫</span>
+                                <span class="original-price">42.990.000₫</span>
+                                <span class="badge bg-danger discount-badge">-7%</span>
+                            </div>
+
+                            <!-- ĐỒNG HỒ ĐẾM NGƯỢC KHUYẾN MÃI -->
+                            <div id="countdown" class="countdown-timer mb-4">
+                                Khuyến mãi kết thúc trong: <span id="days"></span> ngày <span id="hours"></span> giờ <span id="minutes"></span> phút <span id="seconds"></span> giây
+                            </div>
+
+                            <!-- Khu vực khuyến mãi đặc biệt -->
+                            <div class="promo-section mb-4">
+                                <h6 class="fw-bold"><i class="fas fa-gift me-2"></i>Ưu đãi đặc biệt</h6>
+                                <ul>
+                                    <li><i class="fas fa-check-circle me-2"></i>Giảm thêm 500.000₫ khi thanh toán qua VNPAY.</li>
+                                    <li><i class="fas fa-check-circle me-2"></i>Hỗ trợ trả góp 0% lãi suất.</li>
+                                    <li><i class="fas fa-check-circle me-2"></i>Tặng chuột không dây cao cấp.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Mô tả ngắn -->
+                            <p class="text-muted small">Chip Apple M3 với CPU 8 lõi, GPU 10 lõi, Neural Engine 16 lõi. Hiệu năng vượt trội cho mọi tác vụ từ cơ bản đến chuyên nghiệp.</p>
+
+                            <!-- Tùy chọn màu sắc -->
+                            <div class="product-options mb-4">
+                                <p class="option-label">Màu sắc:</p>
+                                <div class="color-options">
+                                    <span class="color-dot active" style="background-color: #C0C0C0;" data-color="Bạc" title="Bạc"></span>
+                                    <span class="color-dot" style="background-color: #5A5A5A;" data-color="Xám không gian" title="Xám không gian"></span>
+                                </div>
+                            </div>
+
+                            <!-- Tùy chọn dung lượng -->
+                            <div class="product-options mb-4">
+                                <p class="option-label">Dung lượng:</p>
+                                <div class="btn-group option-btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary">256GB</button>
+                                    <button type="button" class="btn btn-outline-secondary active">512GB</button>
+                                    <button type="button" class="btn btn-outline-secondary">1TB</button>
+                                </div>
+                            </div>
+
+                            <!-- Tùy chọn số lượng -->
+                            <div class="product-options mb-4">
+                                <p class="option-label">Số lượng:</p>
+                                <div class="quantity-selector">
+                                    <button class="btn btn-outline-secondary" onclick="changeQuantity(-1)">-</button>
+                                    <input type="text" class="form-control" id="quantityInput" value="1" readonly>
+                                    <button class="btn btn-outline-secondary" onclick="changeQuantity(1)">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Nút hành động: Thêm vào giỏ và Mua ngay -->
+                            <div class="action-buttons d-grid gap-2 d-sm-flex">
+                                <button class="btn btn-primary flex-grow-1" id="addToCartBtn">
+                                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                                </button>
+                                <button class="btn btn-danger flex-grow-1">
+                                    <i class="fas fa-dollar-sign"></i> Mua ngay
+                                </button>
+                            </div>
+
+                            <!-- TÍNH NĂNG SO SÁNH -->
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" value="" id="compareCheck">
+                                <label class="form-check-label" for="compareCheck">
+                                    So sánh sản phẩm
+                                </label>
+                            </div>
+
+                            <!-- Chính sách cửa hàng -->
+                            <div class="store-policies mt-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="policy-item">
+                                            <i class="fas fa-shield-alt me-2"></i>
+                                            <span>Bảo hành chính hãng 12 tháng</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="policy-item">
+                                            <i class="fas fa-box-open me-2"></i>
+                                            <span>Hàng mới 100% nguyên seal</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="policy-item">
+                                            <i class="fas fa-shipping-fast me-2"></i>
+                                            <span>Giao hàng miễn phí toàn quốc</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="policy-item">
+                                            <i class="fas fa-sync-alt me-2"></i>
+                                            <span>Lỗi 1 đổi 1 trong 7 ngày</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nút chia sẻ mạng xã hội -->
+                            <div class="mt-4 text-center text-lg-start">
+                                <span class="fw-bold me-2">Chia sẻ:</span>
+                                <a href="#" class="btn btn-outline-secondary btn-sm"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="btn btn-outline-secondary btn-sm"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="btn btn-outline-secondary btn-sm"><i class="fab fa-pinterest"></i></a>
+                                <a href="#" class="btn btn-outline-secondary btn-sm"><i class="fas fa-envelope"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khu vực Tab: Mô tả, Thông số, Đánh giá -->
+        <div class="card shadow-sm border-0 mt-5">
+            <div class="card-header bg-white border-0">
+                <ul class="nav nav-tabs card-header-tabs product-info-tabs" id="productTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Mô tả sản phẩm</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs" type="button" role="tab" aria-controls="specs" aria-selected="false">Thông số kỹ thuật</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">Đánh giá (125)</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content p-3" id="productTabContent">
+                    <!-- Nội dung Tab Mô tả -->
+                    <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                        <h4>Hiệu năng đột phá với Chip Apple M3</h4>
+                        <p>MacBook Pro mới nay được trang bị chip M3, M3 Pro và M3 Max. Được chế tạo trên công nghệ 3 nanômét và sở hữu kiến trúc GPU hoàn toàn mới, đây là những con chip tân tiến nhất từng được trang bị cho máy tính cá nhân. Và mỗi con chip đều mang lại hiệu năng và năng lực chuyên nghiệp vượt trội hơn.</p>
+
+                        <!-- Video Review Sản phẩm -->
+                        <div class="video-container my-4">
+                            <iframe src="https://www.youtube.com/embed/t8iA-t1W63I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+
+                        <h4>Màn hình Liquid Retina XDR</h4>
+                        <p>Dải tần nhạy sáng cực cao (XDR) mang đến các vùng sáng phản chiếu tinh tế, chi tiết đáng kinh ngạc trong vùng tối và màu sắc sống động, chân thực. Được hiệu chuẩn tại nhà máy, mỗi màn hình Liquid Retina XDR còn sở hữu chế độ ProMotion và các chế độ tham chiếu chuyên nghiệp.</p>
+                    </div>
+                    <!-- Nội dung Tab Thông số kỹ thuật -->
+                    <div class="tab-pane fade" id="specs" role="tabpanel" aria-labelledby="specs-tab">
+                        <table class="table table-striped table-bordered spec-table">
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Bộ nhớ trong</th>
+                                    <td>128GB</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">RAM</th>
+                                    <td>8GB</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Camera</th>
+                                    <td>Camera</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Màn hình</th>
+                                    <td>14.2 inch, Liquid Retina XDR display (3024 x 1964)</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Pin</th>
+                                    <td>5000mhA</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Cổng kết nối</th>
+                                    <td>2 x Thunderbolt / USB 4, HDMI, Jack 3.5 mm, MagSafe 3, khe thẻ nhớ SD</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Hệ điều hành</th>
+                                    <td>macOS</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Nội dung Tab Đánh giá -->
+                    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                        <div class="review mb-4 pb-4">
+                            <div class="d-flex mb-2">
+                                <img src="https://placehold.co/50x50/EFEFEF/333?text=User" class="rounded-circle me-3" alt="User avatar">
+                                <div>
+                                    <h5 class="mb-0">Nguyễn Văn A</h5>
+                                    <div class="product-rating">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>Sản phẩm tuyệt vời, máy chạy rất mượt và mát. Màn hình siêu đẹp, pin dùng cả ngày không hết. Rất đáng tiền!</p>
+                        </div>
+                        <div class="review mb-4 pb-4">
+                            <div class="d-flex mb-2">
+                                <img src="https://placehold.co/50x50/CCC/333?text=User" class="rounded-circle me-3" alt="User avatar">
+                                <div>
+                                    <h5 class="mb-0">Trần Thị B</h5>
+                                    <div class="product-rating">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>Máy tốt, nhưng phiên bản 8GB RAM đôi khi hơi thiếu nếu mở nhiều ứng dụng nặng. Nên cân nhắc bản 16GB nếu có điều kiện.</p>
+                        </div>
+                        <hr>
+                        <!-- Form viết đánh giá -->
+                        <h4 class="mt-4">Viết đánh giá của bạn</h4>
+                        <form>
+                            <div class="mb-3">
+                                <label for="reviewerName" class="form-label">Tên của bạn</label>
+                                <input type="text" class="form-control" id="reviewerName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label d-block">Đánh giá của bạn:</label>
+                                <div class="review-form-rating d-inline-block">
+                                    <i class="far fa-star" data-rating="1"></i>
+                                    <i class="far fa-star" data-rating="2"></i>
+                                    <i class="far fa-star" data-rating="3"></i>
+                                    <i class="far fa-star" data-rating="4"></i>
+                                    <i class="far fa-star" data-rating="5"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="ratingValue" value="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="reviewContent" class="form-label">Nội dung đánh giá</label>
+                                <textarea class="form-control" id="reviewContent" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reviewImages" class="form-label">Tải ảnh lên (tùy chọn)</label>
+                                <input class="form-control" type="file" id="reviewImages" multiple>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khu vực Sản phẩm liên quan -->
+        <div class="related-products mt-5">
+            <h2 class="mb-4">Sản phẩm liên quan</h2>
+            <div class="row">
+                <!-- Sản phẩm 1 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <img src="https://placehold.co/300x200/EFEFEF/333?text=Dell+XPS" class="card-img-top" alt="Dell XPS">
+                        <div class="card-body">
+                            <h5 class="card-title">Dell XPS 15 9530</h5>
+                            <p class="card-text text-danger fw-bold">45.000.000₫</p>
+                            <a href="#" class="btn btn-primary w-100">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Sản phẩm 2 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <img src="https://placehold.co/300x200/EFEFEF/333?text=iPhone+15" class="card-img-top" alt="iPhone 15">
+                        <div class="card-body">
+                            <h5 class="card-title">iPhone 15 Pro Max</h5>
+                            <p class="card-text text-danger fw-bold">29.590.000₫</p>
+                            <a href="#" class="btn btn-primary w-100">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Sản phẩm 3 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <img src="https://placehold.co/300x200/EFEFEF/333?text=AirPods" class="card-img-top" alt="AirPods">
+                        <div class="card-body">
+                            <h5 class="card-title">Apple AirPods Pro 2</h5>
+                            <p class="card-text text-danger fw-bold">5.890.000₫</p>
+                            <a href="#" class="btn btn-primary w-100">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Sản phẩm 4 -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <img src="https://placehold.co/300x200/EFEFEF/333?text=Galaxy+Tab" class="card-img-top" alt="Galaxy Tab">
+                        <div class="card-body">
+                            <h5 class="card-title">Samsung Galaxy Tab S9</h5>
+                            <p class="card-text text-danger fw-bold">18.990.000₫</p>
+                            <a href="#" class="btn btn-primary w-100">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container cho thông báo Toast -->
+    <div class="toast-container">
+        <div id="cartToast" class="toast-message">
+            <i class="fas fa-check-circle me-2"></i> Đã thêm sản phẩm vào giỏ hàng!
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="bootstrap-5.0.2/js/bootstrap.bundle.min.js"></script>
+    <script src="bootstrap-5.0.2/Web-Bang-Hang.js"></script>
+
+</body>
+</html>
+

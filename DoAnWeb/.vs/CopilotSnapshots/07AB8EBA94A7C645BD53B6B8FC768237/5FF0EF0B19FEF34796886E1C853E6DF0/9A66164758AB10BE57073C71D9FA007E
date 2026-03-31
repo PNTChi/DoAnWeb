@@ -1,0 +1,555 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller xử lý chatbot
+    /// </summary>
+    public class ChatbotController : BaseController
+    {
+        /// <summary>
+        /// POST: Xử lý tin nhắn từ user
+        /// </summary>
+        [HttpPost]
+        public JsonResult ProcessMessage(string message)
+        {
+            try
+            {
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] Received message: {message}");
+
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Vui lòng nhập tin nhắn"
+                    });
+                }
+
+                // Normalize message
+                string normalizedMessage = message.ToLower().Trim();
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] Normalized message: {normalizedMessage}");
+
+                // Xử lý các intent khác nhau
+                var response = ProcessIntent(normalizedMessage);
+
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] Response: {response.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] Products count: {response.Products?.Count ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] Suggestions count: {response.Suggestions?.Count ?? 0}");
+
+                return Json(new
+                {
+                    success = true,
+                    message = response.Message,
+                    products = response.Products,
+                    suggestions = response.Suggestions
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Chatbot] Stack trace: {ex.StackTrace}");
+
+                return Json(new
+                {
+                    success = false,
+                    message = "Có lỗi xảy ra: " + ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Xử lý intent của user
+        /// </summary>
+        private ChatbotResponse ProcessIntent(string message)
+        {
+            var response = new ChatbotResponse();
+
+            // Intent 1: Hỏi về sản phẩm cụ thể
+            if (ContainsKeywords(message, new[] { "iphone", "samsung", "xiaomi", "oppo", "vivo", "realme" }))
+            {
+                return SearchProductByBrand(message);
+            }
+
+            // Intent 2: Hỏi về giá
+            if (ContainsKeywords(message, new[] { "giá", "bao nhiêu", "tiền", "rẻ", "mắc" }))
+            {
+                return SearchProductByPrice(message);
+            }
+
+            // Intent 3: Hỏi về tính năng
+            if (ContainsKeywords(message, new[] { "pin", "camera", "màn hình", "ram", "bộ nhớ" }))
+            {
+                return SearchProductBySpec(message);
+            }
+
+            // Intent 4: Sản phẩm hot/mới/bán chạy
+            if (ContainsKeywords(message, new[] { "hot", "mới", "bán chạy", "phổ biến", "nổi bật" }))
+            {
+                return GetTrendingProducts(message);
+            }
+
+            // Intent 5: Hỗ trợ chung
+            if (ContainsKeywords(message, new[] { "chào", "hello", "hi", "hỗ trợ", "giúp" }))
+            {
+                return GetGreeting();
+            }
+
+            // Default: Không hiểu
+            return GetDefaultResponse();
+        }
+
+        /// <summary>
+        /// Tìm sản phẩm theo thương hiệu
+        /// </summary>
+        private ChatbotResponse SearchProductByBrand(string message)
+        {
+            var response = new ChatbotResponse();
+
+            // Detect brand
+            string brand = "";
+            if (message.Contains("iphone") || message.Contains("ip")) brand = "iPhone";
+            else if (message.Contains("samsung") || message.Contains("ss")) brand = "Samsung";
+            else if (message.Contains("xiaomi") || message.Contains("mi")) brand = "Xiaomi";
+            else if (message.Contains("oppo")) brand = "OPPO";
+            else if (message.Contains("vivo")) brand = "Vivo";
+            else if (message.Contains("realme")) brand = "Realme";
+            else if (message.Contains("nokia")) brand = "Nokia";
+            else if (message.Contains("huawei")) brand = "Huawei";
+
+            System.Diagnostics.Debug.WriteLine($"[SearchByBrand] Detected brand: {brand}");
+
+            if (!string.IsNullOrEmpty(brand))
+            {
+                // Try multiple search strategies
+                var products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true && 
+                           (sp.TenSanPham.Contains(brand) || 
+                            sp.tb_ThuongHieu.TenThuongHieu.Contains(brand)))
+                    .OrderByDescending(sp => sp.LuotXem)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                System.Diagnostics.Debug.WriteLine($"[SearchByBrand] Found {products.Count} products");
+
+                if (products.Any())
+                {
+                    response.Message = $"Tôi tìm thấy {products.Count} sản phẩm {brand} cho bạn:";
+                    response.Products = products;
+                    response.Suggestions = new List<string>
+                    {
+                        $"{brand} giá rẻ nhất",
+                        $"{brand} mới nhất",
+                        "Sản phẩm bán chạy",
+                        "Xem tất cả"
+                    };
+                }
+                else
+                {
+                    response.Message = $"Hiện tại chúng tôi không có sản phẩm {brand}. Bạn có thể xem các sản phẩm khác.";
+                    response.Suggestions = new List<string> { "Sản phẩm bán chạy", "Sản phẩm mới", "Sản phẩm giá rẻ" };
+                }
+            }
+            else
+            {
+                // Fallback: Show all products
+                var products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true)
+                    .OrderByDescending(sp => sp.LuotXem)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm nổi bật:";
+                response.Products = products;
+                response.Suggestions = new List<string> { "iPhone", "Samsung", "Xiaomi", "Sản phẩm giá rẻ" };
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Tìm sản phẩm theo giá
+        /// </summary>
+        private ChatbotResponse SearchProductByPrice(string message)
+        {
+            var response = new ChatbotResponse();
+
+            // Detect price range
+            decimal minPrice = 0;
+            decimal maxPrice = 0;
+
+            if (message.Contains("dưới") || message.Contains("duoi"))
+            {
+                // Dưới X triệu
+                if (message.Contains("5")) maxPrice = 5000000;
+                else if (message.Contains("10")) maxPrice = 10000000;
+                else if (message.Contains("15")) maxPrice = 15000000;
+                else if (message.Contains("20")) maxPrice = 20000000;
+            }
+            else if (message.Contains("từ") || message.Contains("tu") || message.Contains("khoảng") || message.Contains("khoang"))
+            {
+                // Từ X đến Y triệu
+                if (message.Contains("5") && message.Contains("10"))
+                {
+                    minPrice = 5000000;
+                    maxPrice = 10000000;
+                }
+                else if (message.Contains("10") && message.Contains("15"))
+                {
+                    minPrice = 10000000;
+                    maxPrice = 15000000;
+                }
+                else if (message.Contains("15") && message.Contains("20"))
+                {
+                    minPrice = 15000000;
+                    maxPrice = 20000000;
+                }
+            }
+            else if (message.Contains("trên") || message.Contains("tren"))
+            {
+                // Trên X triệu
+                if (message.Contains("20")) minPrice = 20000000;
+                else if (message.Contains("30")) minPrice = 30000000;
+            }
+
+            if (maxPrice > 0 || minPrice > 0)
+            {
+                var query = db.tb_SanPham.Where(sp => sp.HienThi == true);
+
+                if (minPrice > 0)
+                    query = query.Where(sp => (sp.GiaKhuyenMai ?? sp.Gia) >= minPrice);
+
+                if (maxPrice > 0)
+                    query = query.Where(sp => (sp.GiaKhuyenMai ?? sp.Gia) <= maxPrice);
+
+                var products = query
+                    .OrderBy(sp => sp.GiaKhuyenMai ?? sp.Gia)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                if (products.Any())
+                {
+                    string priceRange = "";
+                    if (minPrice > 0 && maxPrice > 0)
+                        priceRange = $"từ {minPrice / 1000000}tr đến {maxPrice / 1000000}tr";
+                    else if (maxPrice > 0)
+                        priceRange = $"dưới {maxPrice / 1000000}tr";
+                    else if (minPrice > 0)
+                        priceRange = $"trên {minPrice / 1000000}tr";
+
+                    response.Message = $"Tôi tìm thấy {products.Count} sản phẩm {priceRange}:";
+                    response.Products = products;
+                    response.Suggestions = new List<string>
+                    {
+                        "Sản phẩm dưới 5 triệu",
+                        "Sản phẩm từ 10-15 triệu",
+                        "Sản phẩm trên 20 triệu"
+                    };
+                }
+                else
+                {
+                    response.Message = "Không tìm thấy sản phẩm phù hợp. Bạn có thể thử mức giá khác.";
+                    response.Suggestions = new List<string> { "Tất cả sản phẩm", "Sản phẩm bán chạy" };
+                }
+            }
+            else
+            {
+                response.Message = "Bạn có thể cho tôi biết mức giá cụ thể hơn không? Ví dụ: 'dưới 10 triệu' hoặc 'từ 10-15 triệu'";
+                response.Suggestions = new List<string>
+                {
+                    "Dưới 5 triệu",
+                    "Từ 10-15 triệu",
+                    "Trên 20 triệu"
+                };
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Tìm sản phẩm theo thông số
+        /// </summary>
+        private ChatbotResponse SearchProductBySpec(string message)
+        {
+            var response = new ChatbotResponse();
+
+            var products = new List<ProductChatbotViewModel>();
+
+            if (message.Contains("pin") && (message.Contains("khủng") || message.Contains("lớn") || message.Contains("lon")))
+            {
+                // Sản phẩm pin khủng (>= 5000mAh)
+                products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true)
+                    .ToList() // Execute query first
+                    .Where(sp => sp.tb_ThongSo.Any(ts => ts.TenThongSo.Contains("pin") && 
+                                 (ts.GiaTri.Contains("5000") || ts.GiaTri.Contains("6000"))))
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm có pin khủng (>= 5000mAh):";
+            }
+            else if (message.Contains("camera"))
+            {
+                // Sản phẩm camera tốt
+                products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true)
+                    .OrderByDescending(sp => sp.LuotXem)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm có camera tốt:";
+            }
+            else if (message.Contains("ram") || message.Contains("bộ nhớ") || message.Contains("bo nho"))
+            {
+                // Sản phẩm RAM lớn
+                products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true)
+                    .ToList()
+                    .Where(sp => sp.tb_ThongSo.Any(ts => ts.TenThongSo.Contains("RAM") && 
+                                 (ts.GiaTri.Contains("8") || ts.GiaTri.Contains("12") || ts.GiaTri.Contains("16"))))
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm có RAM lớn (>= 8GB):";
+            }
+
+            if (products.Any())
+            {
+                response.Products = products;
+                response.Suggestions = new List<string>
+                {
+                    "Sản phẩm pin khủng",
+                    "Sản phẩm camera tốt",
+                    "Sản phẩm RAM lớn"
+                };
+            }
+            else
+            {
+                response.Message = "Bạn muốn tìm sản phẩm với thông số như thế nào? (Pin khủng, Camera tốt, RAM lớn...)";
+                response.Suggestions = new List<string> { "Pin khủng", "Camera tốt", "RAM lớn" };
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Lấy sản phẩm trending
+        /// </summary>
+        private ChatbotResponse GetTrendingProducts(string message)
+        {
+            var response = new ChatbotResponse();
+
+            var products = new List<ProductChatbotViewModel>();
+
+            if (message.Contains("mới") || message.Contains("moi"))
+            {
+                // Sản phẩm mới nhất
+                products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true && sp.LaSanPhamMoi == true)
+                    .OrderByDescending(sp => sp.NgayTao)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm mới nhất:";
+            }
+            else if (message.Contains("bán chạy") || message.Contains("ban chay") || message.Contains("phổ biến") || message.Contains("pho bien"))
+            {
+                // Sản phẩm bán chạy
+                products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true && sp.LaSanPhamBanChay == true)
+                    .OrderByDescending(sp => sp.LuotXem)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm bán chạy nhất:";
+            }
+            else if (message.Contains("hot") || message.Contains("nổi bật") || message.Contains("noi bat"))
+            {
+                // Sản phẩm hot
+                products = db.tb_SanPham
+                    .Where(sp => sp.HienThi == true && sp.LaSanPhamHot == true)
+                    .OrderByDescending(sp => sp.LuotXem)
+                    .Take(5)
+                    .Select(sp => new ProductChatbotViewModel
+                    {
+                        Id = sp.Id,
+                        TenSanPham = sp.TenSanPham,
+                        Gia = sp.GiaKhuyenMai ?? sp.Gia ?? 0,
+                        GiaGoc = sp.Gia,
+                        HinhAnh = sp.HinhAnh,
+                        ThuongHieu = sp.tb_ThuongHieu.TenThuongHieu
+                    })
+                    .ToList();
+
+                response.Message = "Đây là các sản phẩm hot nhất:";
+            }
+
+            if (products.Any())
+            {
+                response.Products = products;
+                response.Suggestions = new List<string>
+                {
+                    "Sản phẩm mới nhất",
+                    "Sản phẩm bán chạy",
+                    "Sản phẩm hot"
+                };
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Lời chào
+        /// </summary>
+        private ChatbotResponse GetGreeting()
+        {
+            return new ChatbotResponse
+            {
+                Message = "Xin chào! Tôi là trợ lý ảo của TechShop. Tôi có thể giúp bạn tìm kiếm sản phẩm điện thoại. Bạn muốn tìm gì?",
+                Suggestions = new List<string>
+                {
+                    "Sản phẩm iPhone",
+                    "Sản phẩm dưới 10 triệu",
+                    "Sản phẩm pin khủng",
+                    "Sản phẩm mới nhất"
+                }
+            };
+        }
+
+        /// <summary>
+        /// Response mặc định
+        /// </summary>
+        private ChatbotResponse GetDefaultResponse()
+        {
+            return new ChatbotResponse
+            {
+                Message = "Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Bạn có thể hỏi tôi về:\n" +
+                          "- Sản phẩm của thương hiệu nào đó (iPhone, Samsung...)\n" +
+                          "- Sản phẩm theo mức giá (dưới 10 triệu, từ 10-15 triệu...)\n" +
+                          "- Sản phẩm theo tính năng (pin khủng, camera tốt...)\n" +
+                          "- Sản phẩm hot/mới/bán chạy",
+                Suggestions = new List<string>
+                {
+                    "Sản phẩm iPhone",
+                    "Sản phẩm dưới 10 triệu",
+                    "Sản phẩm pin khủng",
+                    "Sản phẩm mới nhất"
+                }
+            };
+        }
+
+        /// <summary>
+        /// Kiểm tra message có chứa keywords
+        /// </summary>
+        private bool ContainsKeywords(string message, string[] keywords)
+        {
+            return keywords.Any(k => message.Contains(k));
+        }
+    }
+
+    /// <summary>
+    /// Response model cho chatbot
+    /// </summary>
+    public class ChatbotResponse
+    {
+        public string Message { get; set; }
+        public List<ProductChatbotViewModel> Products { get; set; }
+        public List<string> Suggestions { get; set; }
+
+        public ChatbotResponse()
+        {
+            Products = new List<ProductChatbotViewModel>();
+            Suggestions = new List<string>();
+        }
+    }
+
+    /// <summary>
+    /// ViewModel cho sản phẩm trong chatbot
+    /// </summary>
+    public class ProductChatbotViewModel
+    {
+        public int Id { get; set; }
+        public string TenSanPham { get; set; }
+        public decimal Gia { get; set; }
+        public decimal? GiaGoc { get; set; }
+        public string HinhAnh { get; set; }
+        public string ThuongHieu { get; set; }
+    }
+}

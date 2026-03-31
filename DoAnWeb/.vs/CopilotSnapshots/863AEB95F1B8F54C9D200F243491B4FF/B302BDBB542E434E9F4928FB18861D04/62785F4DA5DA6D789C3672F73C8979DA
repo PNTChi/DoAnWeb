@@ -1,0 +1,71 @@
+﻿@model IEnumerable<DoAnWeb.tb_DanhMuc>
+
+@* Partial View: Sidebar danh mục sản phẩm bên trái - Hiển thị động từ database *@
+
+<!--Sidebar - Danh mục bên trái -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h1 class="text-xl font-bold text-center font-size-3">Danh mục</h1>
+  </div>
+    <div class="sidebar-menu">
+        @if (Model != null && Model.Any())
+      {
+    @* Duyệt qua từng danh mục từ database *@
+ foreach (var danhMuc in Model)
+            {
+         <!-- Danh mục: @danhMuc.TenDanhMuc -->
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id })" class="toggle-category">
+            @* Hiển thị icon nếu có, nếu không dùng icon mặc định *@
+         @if (!string.IsNullOrEmpty(danhMuc.Icon))
+         {
+       <i class="@danhMuc.Icon"></i>
+       }
+          else
+    {
+  <i class="fas fa-tags"></i>
+         }
+ @danhMuc.TenDanhMuc
+          </a>
+       
+             @* Có thể thêm submenu ở đây nếu có bảng DanhMucCon *@
+   @* Hiện tại để trống hoặc có thể lọc theo thương hiệu, giá... *@
+                <ul class="category-list">
+       <li>
+               <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id })">
+              Tất cả @danhMuc.TenDanhMuc
+              </a>
+    </li>
+        @* Có thể thêm các filter phụ như giá, thương hiệu *@
+      <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id, loc = "moi" })">
+    Sản phẩm mới
+                  </a>
+       </li>
+           <li>
+       <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id, loc = "banchay" })">
+             Bán chạy nhất
+</a>
+           </li>
+       <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id, giaMax = 5000000 })">
+      Dưới 5 triệu
+     </a>
+           </li>
+        <li>
+            <a href="@Url.Action("Index", "SanPham", new { danhMucId = danhMuc.Id, giaMax = 10000000 })">
+            Dưới 10 triệu
+             </a>
+</li>
+ </ul>
+ }
+        }
+        else
+        {
+   @* Hiển thị thông báo nếu không có danh mục nào *@
+            <p class="text-center text-gray-500 py-4">Chưa có danh mục nào</p>
+        }
+    </div>
+</div>
+
+<!-- Lớp phủ mờ khi sidebar mở -->
+<div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>

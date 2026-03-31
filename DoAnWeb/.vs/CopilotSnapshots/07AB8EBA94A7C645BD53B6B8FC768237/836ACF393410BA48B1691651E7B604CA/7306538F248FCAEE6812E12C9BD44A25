@@ -1,0 +1,321 @@
+﻿@model DoAnWeb.Models.QLSP
+@{
+    ViewBag.Title = "formThemSP";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemSP", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <h3 id="formProductTitle">Thêm sản phẩm mới</h3>
+    <hr>
+    
+    if (ViewBag.ThongBao != null)
+    {
+        <div class="alert alert-danger">@ViewBag.ThongBao</div>
+    }
+    
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <!-- Bố cục 2 cột cho thông tin cơ bản -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenSanPham", "Tên sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.TenSanPham, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.TenSanPham)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BiDanh)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("MaSanPham", "Mã sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.MaSanPham, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.MaSanPham)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="productImages" class="form-label">
+                    Hình ảnh sản phẩm <span class="text-danger">*</span>
+                    <small class="text-muted">(Có thể chọn nhiều ảnh)</small>
+                </label>
+                <input type="file" class="form-control" id="productImages" name="fileupload" accept="image/*" multiple required>
+                <small class="text-muted">Click vào ảnh để chọn làm ảnh đại diện</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Images -->
+    <div class="row mb-3" id="imagePreviewContainer" style="display: none;">
+        <div class="col-12">
+            <label class="form-label">Xem trước ảnh (Click vào ảnh để chọn làm ảnh đại diện):</label>
+            <div id="imagePreview" class="d-flex flex-wrap gap-2"></div>
+            <input type="hidden" id="defaultImageIndex" name="defaultImageIndex" value="0">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("MoTa", "Mô tả", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.MoTa, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.MoTa)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ChiTiet", "Mô tả chi tiết", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.ChiTiet, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ChiTiet)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("Gia", "Giá sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.Gia, new { htmlAttributes = new { @class = "form-control", type = "number", step = "1000", min = "0", required = "required", placeholder = "VD: 10000000" } })
+                @Html.ValidationMessageFor(model => model.Gia, "", new { @class = "text-danger" })
+                <small class="text-muted">Nhập giá sản phẩm (VNĐ)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("SoLuong", "Số lượng", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.SoLuong, new { htmlAttributes = new { @class = "form-control", type = "number", min = "0" } })
+                @Html.ValidationMessageFor(model => model.SoLuong, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.DanhMucId, (SelectList)ViewBag.lstDMSP, "Chọn danh mục", new { @class = "form-select", required = "required" })
+                @Html.ValidationMessageFor(model => model.DanhMucId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenThuongHieu", "Tên thương hiệu", htmlAttributes: new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.ThuongHieuId, (SelectList)ViewBag.lstTH, "Chọn thương hiệu", new { @class = "form-select", required = "required" })
+                @Html.ValidationMessageFor(model => model.ThuongHieuId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <h6 class="mb-3">Thông số kỹ thuật</h6>
+
+    <!-- Thêm các trường thông số -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BoNhoRAM", "Bộ nhớ Ram", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BoNhoRAM, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 8GB" } })
+                @Html.ValidationMessageFor(model => model.BoNhoRAM, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BoNhoTrong", "Bộ nhớ trong", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BoNhoTrong, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 256GB" } })
+                @Html.ValidationMessageFor(model => model.BoNhoTrong, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ManHinh", "Màn hình", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.ManHinh, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 6.7 inch" } })
+                @Html.ValidationMessageFor(model => model.ManHinh, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("DungLuongPin", "Dung lượng pin", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.DungLuongPin, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 4500mAh" } })
+                @Html.ValidationMessageFor(model => model.DungLuongPin, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("Camera", "Camera", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.Camera, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 48MP" } })
+                @Html.ValidationMessageFor(model => model.Camera, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("HeDieuHanh", "Hệ điều hành", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.HeDieuHanh, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: Android 13" } })
+                @Html.ValidationMessageFor(model => model.HeDieuHanh, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("CongKetNoi", "Cổng kết nối", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.CongKetNoi, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: USB-C" } })
+                @Html.ValidationMessageFor(model => model.CongKetNoi, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Lưu sản phẩm
+        </button>
+        <a href="@Url.Action("QLSP", "Admin")" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Hủy
+        </a>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    
+    <script>
+        // Preview multiple images và chọn ảnh mặc định
+        $(document).ready(function() {
+            $('#productImages').on('change', function(e) {
+                var files = e.target.files;
+                var previewContainer = $('#imagePreview');
+                var containerWrapper = $('#imagePreviewContainer');
+                
+                previewContainer.empty(); // Xóa preview cũ
+                
+                if (files.length > 0) {
+                    containerWrapper.show();
+                    
+                    // Hiển thị từng ảnh
+                    Array.from(files).forEach(function(file, index) {
+                        if (file.type.match('image.*')) {
+                            var reader = new FileReader();
+                            
+                            reader.onload = function(event) {
+                                var imageCard = $('<div>', {
+                                    'class': 'image-preview-card position-relative',
+                                    'data-index': index,
+                                    'style': 'cursor: pointer; border: 3px solid ' + (index === 0 ? '#007bff' : 'transparent') + '; border-radius: 8px; overflow: hidden; width: 150px; height: 150px; transition: all 0.3s;'
+                                });
+                                
+                                var img = $('<img>', {
+                                    'src': event.target.result,
+                                    'class': 'img-thumbnail',
+                                    'style': 'width: 100%; height: 100%; object-fit: cover;'
+                                });
+                                
+                                var badge = $('<span>', {
+                                    'class': 'badge bg-primary position-absolute top-0 start-0 m-2',
+                                    'text': index === 0 ? 'Ảnh đại diện' : 'Ảnh ' + (index + 1),
+                                    'style': 'font-size: 10px;'
+                                });
+                                
+                                if (index === 0) {
+                                    var defaultIcon = $('<i>', {
+                                        'class': 'fas fa-check-circle position-absolute top-0 end-0 m-2 text-primary',
+                                        'style': 'font-size: 24px; background: white; border-radius: 50%;'
+                                    });
+                                    imageCard.append(defaultIcon);
+                                }
+                                
+                                imageCard.append(img);
+                                imageCard.append(badge);
+                                
+                                // Click để chọn làm ảnh mặc định
+                                imageCard.on('click', function() {
+                                    var selectedIndex = $(this).data('index');
+                                    
+                                    // Cập nhật border và badge cho tất cả ảnh
+                                    $('.image-preview-card').each(function() {
+                                        var cardIndex = $(this).data('index');
+                                        
+                                        if (cardIndex === selectedIndex) {
+                                            $(this).css('border-color', '#007bff');
+                                            $(this).find('.badge').text('Ảnh đại diện').removeClass('bg-secondary').addClass('bg-primary');
+                                            
+                                            // Thêm icon check nếu chưa có
+                                            if ($(this).find('.fa-check-circle').length === 0) {
+                                                $(this).append($('<i>', {
+                                                    'class': 'fas fa-check-circle position-absolute top-0 end-0 m-2 text-primary',
+                                                    'style': 'font-size: 24px; background: white; border-radius: 50%;'
+                                                }));
+                                            }
+                                        } else {
+                                            $(this).css('border-color', 'transparent');
+                                            $(this).find('.badge').text('Ảnh ' + (cardIndex + 1)).removeClass('bg-primary').addClass('bg-secondary');
+                                            $(this).find('.fa-check-circle').remove();
+                                        }
+                                    });
+                                    
+                                    // Cập nhật hidden field
+                                    $('#defaultImageIndex').val(selectedIndex);
+                                    
+                                    // Hiển thị thông báo
+                                    showToastNotification('Đã chọn ảnh ' + (selectedIndex + 1) + ' làm ảnh đại diện', 'success');
+                                });
+                                
+                                previewContainer.append(imageCard);
+                            };
+                            
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                } else {
+                    containerWrapper.hide();
+                }
+            });
+            
+            // Hàm hiển thị toast notification
+            function showToastNotification(message, type) {
+                var bgColor = type === 'success' ? '#28a745' : '#dc3545';
+                var toast = $('<div>', {
+                    'class': 'alert alert-dismissible fade show position-fixed',
+                    'role': 'alert',
+                    'style': 'top: 20px; right: 20px; z-index: 9999; background: ' + bgColor + '; color: white; min-width: 250px;'
+                });
+                
+                toast.html(message + '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>');
+                $('body').append(toast);
+                
+                setTimeout(function() {
+                    toast.fadeOut(function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+        });
+    </script>
+    
+    <style>
+        .image-preview-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        #imagePreview {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+}

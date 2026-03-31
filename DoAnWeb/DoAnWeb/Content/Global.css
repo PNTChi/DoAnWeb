@@ -1,0 +1,42 @@
+/* ===================================
+   GLOBAL STYLES
+   =================================== */
+
+/**
+ * Remove text-decoration from all anchor tags
+ * Applied globally across the entire website
+ * Covers all link states for consistency
+ */
+a,
+a:hover,
+a:focus,
+a:active,
+a:visited {
+    text-decoration: none !important;
+}
+
+/**
+ * Smooth transition for anchor tags
+ * Provides smooth color and background transitions on hover
+ */
+a {
+    transition: color 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+}
+
+/**
+ * Ensure links are accessible with focus outline
+ * Visible focus outline for keyboard navigation (WCAG compliance)
+ */
+a:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/**
+ * Remove default outline for mouse users
+ * But keep it for keyboard users (focus-visible handles this)
+ */
+a:focus:not(:focus-visible) {
+    outline: none;
+}

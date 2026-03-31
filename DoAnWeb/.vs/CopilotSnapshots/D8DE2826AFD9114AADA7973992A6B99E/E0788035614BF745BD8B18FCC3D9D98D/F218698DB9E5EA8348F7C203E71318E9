@@ -1,0 +1,340 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?PowerDesigner AppLocale="UTF16" ID="{F2F2F2F2-F2F2-F2F2-F2F2-F2F2F2F2F2F2}" Label="" LastModificationDate="1234567890" Name="XacNhanNhanHang" Objects="300" Symbols="300" Type="{08ABFB48-5338-4E96-8B8A-A5D88BDC5C21}" signature="PDM_DATA_MODEL_XML" version="1.0.0.0"?>
+<!-- PowerDesigner Sequence Diagram: 4. Xác nhận nhận hàng và trả hàng -->
+<Model xmlns:a="attribute" xmlns:c="collection" xmlns:o="object">
+    <o:RootObject Id="o1">
+        <a:SessionID>00000000-0000-0000-0000-000000000000</a:SessionID>
+        <a:ObjectID>F2F2F2F2-F2F2-F2F2-F2F2-F2F2F2F2F2F2</a:ObjectID>
+        <a:Name>Sequence Diagram 4: Xác nhận nhận hàng và yêu cầu trả hàng</a:Name>
+        <a:Code>XacNhanNhanHang</a:Code>
+        <a:CreationDate>1234567890</a:CreationDate>
+        <a:Creator>Student</a:Creator>
+        <a:ModificationDate>1234567890</a:ModificationDate>
+        <a:Modifier>Student</a:Modifier>
+        <c:Actors>
+            <o:Actor Id="actor1">
+                <a:Name>User</a:Name>
+                <a:Code>User</a:Code>
+            </o:Actor>
+        </c:Actors>
+        <c:Objects>
+            <o:Object Id="obj1">
+                <a:Name>Browser</a:Name>
+                <a:Code>Browser</a:Code>
+            </o:Object>
+            <o:Object Id="obj2">
+                <a:Name>TaiKhoanController</a:Name>
+                <a:Code>TaiKhoanController</a:Code>
+            </o:Object>
+            <o:Object Id="obj3">
+                <a:Name>BaseController</a:Name>
+                <a:Code>BaseController</a:Code>
+            </o:Object>
+            <o:Object Id="obj4">
+                <a:Name>Database</a:Name>
+                <a:Code>Database</a:Code>
+            </o:Object>
+            <o:Object Id="obj5">
+                <a:Name>ChiTietDonHangView</a:Name>
+                <a:Code>ChiTietDonHangView</a:Code>
+            </o:Object>
+        </c:Objects>
+        <c:Messages>
+            <!-- Scenario 1: XÁC NHẬN NHẬN HÀNG -->
+            <o:Message Id="msg1">
+                <a:Name>1: User vào "Đơn hàng của tôi"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj1</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 2. GET đơn hàng -->
+            <o:Message Id="msg2">
+                <a:Name>2: GET /TaiKhoan/DonHang</a:Name>
+                <a:Source>obj1</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 3. Kiểm tra đăng nhập -->
+            <o:Message Id="msg3">
+                <a:Name>3: IsAuthenticated()</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj3</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 4. Return true -->
+            <o:Message Id="msg4">
+                <a:Name>4: Return true (User logged in)</a:Name>
+                <a:Source>obj3</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 5. Query orders -->
+            <o:Message Id="msg5">
+                <a:Name>5: SELECT * FROM tb_DonHang WHERE TaiKhoanId = CurrentUser.Id ORDER BY NgayTao DESC</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 6. Return orders -->
+            <o:Message Id="msg6">
+                <a:Name>6: Return List&lt;DonHang&gt; (3 orders, 1 order TrangThai=3 "Đang giao")</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 7. Hiển thị danh sách -->
+            <o:Message Id="msg7">
+                <a:Name>7: Hiển thị danh sách đơn hàng với status và actions</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 8. User click chi tiết -->
+            <o:Message Id="msg8">
+                <a:Name>8: Click "Xem chi tiết" đơn hàng #123 (TrangThai=3)</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj1</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 9. GET chi tiết -->
+            <o:Message Id="msg9">
+                <a:Name>9: GET /TaiKhoan/ChiTietDonHang?id=123</a:Name>
+                <a:Source>obj1</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 10. Query order -->
+            <o:Message Id="msg10">
+                <a:Name>10: SELECT * FROM tb_DonHang WHERE Id=123 AND TaiKhoanId=CurrentUser.Id</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 11. Return order -->
+            <o:Message Id="msg11">
+                <a:Name>11: Return DonHang (MaDonHang, TongTien, TrangThai=3)</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 12. Query order details with JOIN -->
+            <o:Message Id="msg12">
+                <a:Name>12: SELECT ct.*, sp.TenSanPham, sp.HinhAnh FROM tb_ChiTietDonHang ct JOIN tb_SanPham sp ON ct.SanPhamId=sp.Id WHERE ct.DonHangId=123</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 13. Return details -->
+            <o:Message Id="msg13">
+                <a:Name>13: Return List&lt;ChiTietDonHangViewModel&gt; (2 products)</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 14. Return view -->
+            <o:Message Id="msg14">
+                <a:Name>14: Return View(DonHang, ViewBag.ChiTiet)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 15. Hiển thị chi tiết -->
+            <o:Message Id="msg15">
+                <a:Name>15: Hiển thị thông tin đơn + sản phẩm + 2 buttons: "Đã nhận hàng", "Yêu cầu trả hàng"</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- BRANCH 1: XÁC NHẬN NHẬN HÀNG -->
+            <o:Message Id="msg16">
+                <a:Name>ALT 1: User click "Đã nhận hàng"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 17. AJAX POST -->
+            <o:Message Id="msg17">
+                <a:Name>17: POST /TaiKhoan/XacNhanDaNhan (id=123)</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 18. Query order -->
+            <o:Message Id="msg18">
+                <a:Name>18: SELECT * FROM tb_DonHang WHERE Id=123 AND TaiKhoanId=CurrentUser.Id</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 19. Return order -->
+            <o:Message Id="msg19">
+                <a:Name>19: Return DonHang (TrangThai=3)</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 20. Validate -->
+            <o:Message Id="msg20">
+                <a:Name>20: IF TrangThai == 3 (Đang giao) → Valid</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 21. Update status -->
+            <o:Message Id="msg21">
+                <a:Name>21: UPDATE tb_DonHang SET TrangThai=4, NgayCapNhat=NOW WHERE Id=123</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 22. SaveChanges -->
+            <o:Message Id="msg22">
+                <a:Name>22: SaveChanges() → Success</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 23. Return JSON -->
+            <o:Message Id="msg23">
+                <a:Name>23: Return JSON {success: true, message: "Cảm ơn! Đơn hàng hoàn thành"}</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 24. Update UI -->
+            <o:Message Id="msg24">
+                <a:Name>24: Update status → "Đã giao hàng" + Hide buttons + Show success message</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- BRANCH 2: YÊU CẦU TRẢ HÀNG -->
+            <o:Message Id="msg25">
+                <a:Name>ALT 2: User click "Yêu cầu trả hàng"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 26. Show dialog -->
+            <o:Message Id="msg26">
+                <a:Name>26: Show modal dialog "Nhập lý do trả hàng" (textarea, min 10 chars)</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 27. User nhập lý do -->
+            <o:Message Id="msg27">
+                <a:Name>27: Nhập "Sản phẩm bị lỗi màn hình, không hoạt động"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 28. Submit -->
+            <o:Message Id="msg28">
+                <a:Name>28: Click "Gửi yêu cầu"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 29. AJAX POST -->
+            <o:Message Id="msg29">
+                <a:Name>29: POST /TaiKhoan/YeuCauTraHang (id=123, lyDo="Sản phẩm bị lỗi...")</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 30. Query order -->
+            <o:Message Id="msg30">
+                <a:Name>30: SELECT * FROM tb_DonHang WHERE Id=123 AND TaiKhoanId=CurrentUser.Id</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 31. Return order -->
+            <o:Message Id="msg31">
+                <a:Name>31: Return DonHang (TrangThai=3)</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 32. Validate reason -->
+            <o:Message Id="msg32">
+                <a:Name>32: Validate: IF TrangThai==3 AND lyDo.Length &gt;= 10 → Valid</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 33. Update to return status -->
+            <o:Message Id="msg33">
+                <a:Name>33: UPDATE tb_DonHang SET TrangThai=6, NgayCapNhat=NOW WHERE Id=123</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 34. SaveChanges -->
+            <o:Message Id="msg34">
+                <a:Name>34: SaveChanges() → Success</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 35. Return JSON -->
+            <o:Message Id="msg35">
+                <a:Name>35: Return JSON {success: true, message: "Đã gửi yêu cầu. Chúng tôi sẽ liên hệ"}</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 36. Update UI -->
+            <o:Message Id="msg36">
+                <a:Name>36: Update status → "Yêu cầu trả hàng" (badge danger) + Hide buttons + Show message</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 37. Send notification to Admin -->
+            <o:Message Id="msg37">
+                <a:Name>37: [OPTIONAL] Send email/notification to Admin about return request</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+        </c:Messages>
+    </o:RootObject>
+</Model>

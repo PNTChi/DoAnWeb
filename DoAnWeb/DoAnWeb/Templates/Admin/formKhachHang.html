@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="Admin.css" rel="stylesheet" />
+    <link href="../bootstrap-5.0.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+</head>
+<body>
+    <form action="/customers/save" method="POST" class="p-4">
+        <input type="hidden" id="customerId" name="customerId">
+
+        <h3 id="formCustomerTitle">Thêm khách hàng mới</h3>
+        <hr>
+
+        <div class="mb-3">
+            <label for="customerName" class="form-label">Tên</label>
+            <input type="text" class="form-control" id="customerName" name="customerName" required>
+        </div>
+        <div class="mb-3">
+            <label for="customerEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="customerEmail" name="customerEmail" required>
+        </div>
+        <div class="mb-3">
+            <label for="customerPhone" class="form-label">Số điện thoại</label>
+            <input type="text" class="form-control" id="customerPhone" name="customerPhone">
+        </div>
+        <div class="mb-3">
+            <label for="customerHistory" class="form-label">Lịch sử mua hàng</label>
+            <input type="text" class="form-control" id="customerHistory" name="customerHistory">
+        </div>
+        <div class="mb-3">
+            <label for="customerLabel" class="form-label">Nhãn</label>
+            <select class="form-select" id="customerLabel" name="customerLabel">
+                <option value="Thường">Thường</option>
+                <option value="VIP">VIP</option>
+                <option value="Mới">Mới</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="customerStatus" class="form-label">Trạng thái</label>
+            <select class="form-select" id="customerStatus" name="customerStatus">
+                <option value="Hoạt động">Hoạt động</option>
+                <option value="Khóa">Khóa</option>
+            </select>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Lưu khách hàng</button>
+            <a href="/#customers" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+
+
+</body>
+</html>

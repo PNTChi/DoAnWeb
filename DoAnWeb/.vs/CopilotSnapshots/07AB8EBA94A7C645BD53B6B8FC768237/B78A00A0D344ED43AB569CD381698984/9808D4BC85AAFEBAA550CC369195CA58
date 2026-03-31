@@ -1,0 +1,200 @@
+﻿@model DoAnWeb.Models.QLSP
+@{
+    ViewBag.Title = "formSuaSP";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("SuaSP", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+
+    <h3 id="formProductTitle">Sửa sản phẩm</h3>
+    <hr>
+
+    @if (ViewBag.ThongBao != null)
+    {
+        <div class="alert alert-danger">@ViewBag.ThongBao</div>
+    }
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <!-- Bố cục 2 cột cho thông tin cơ bản -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenSanPham", "Tên sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.TenSanPham, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                @Html.ValidationMessageFor(model => model.TenSanPham, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BiDanh, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("MaSanPham", "Mã sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.MaSanPham, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+                @Html.ValidationMessageFor(model => model.MaSanPham, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="productImage" class="form-label">Hình ảnh (để trống nếu không đổi)</label>
+                <input type="file" class="form-control" id="productImage" name="fileupload" accept="image/*">
+                @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                {
+                    <div class="mt-2">
+                        <img src="~/Content/Images/@Model.HinhAnh" alt="@Model.TenSanPham" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
+                        <p class="text-muted small">Ảnh hiện tại: @Model.HinhAnh</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("MoTa", "Mô tả", htmlAttributes: new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.MoTa, new { @class = "form-control", rows = "3" })
+                @Html.ValidationMessageFor(model => model.MoTa, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ChiTiet", "Mô tả chi tiết", htmlAttributes: new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.ChiTiet, new { @class = "form-control", rows = "3" })
+                @Html.ValidationMessageFor(model => model.ChiTiet, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("Gia", "Giá", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.Gia, new { htmlAttributes = new { @class = "form-control", type = "number", step = "1000", required = "required" } })
+                @Html.ValidationMessageFor(model => model.Gia, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("GiaKhuyenMai", "Giá khuyến mãi", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.GiaKhuyenMai, new { htmlAttributes = new { @class = "form-control", type = "number", step = "1000" } })
+                @Html.ValidationMessageFor(model => model.GiaKhuyenMai, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("SoLuong", "Số lượng", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.SoLuong, new { htmlAttributes = new { @class = "form-control", type = "number", min = "0" } })
+                @Html.ValidationMessageFor(model => model.SoLuong, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Lượt xem</label>
+                <input type="text" class="form-control" value="@(Model.LuotXem ?? 0)" readonly disabled style="background-color: #f8f9fa;">
+                <small class="text-muted">Lượt xem được tính tự động khi khách hàng xem sản phẩm</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("DanhMucId", "Danh mục", htmlAttributes: new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.DanhMucId, (SelectList)ViewBag.lstDMSP, "Chọn danh mục", new { @class = "form-select", required = "required" })
+                @Html.ValidationMessageFor(model => model.DanhMucId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ThuongHieuId", "Thương hiệu", htmlAttributes: new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.ThuongHieuId, (SelectList)ViewBag.lstTH, "Chọn thương hiệu", new { @class = "form-select", required = "required" })
+                @Html.ValidationMessageFor(model => model.ThuongHieuId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <h6 class="mb-3">Thông số kỹ thuật</h6>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BoNhoRAM", "Bộ nhớ Ram", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BoNhoRAM, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 8GB" } })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BoNhoTrong", "Bộ nhớ trong", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BoNhoTrong, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 256GB" } })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ManHinh", "Màn hình", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.ManHinh, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 6.7 inch" } })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("DungLuongPin", "Dung lượng pin", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.DungLuongPin, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 4500mAh" } })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("Camera", "Camera", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.Camera, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: 48MP" } })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("HeDieuHanh", "Hệ điều hành", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.HeDieuHanh, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: Android 13" } })
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("CongKetNoi", "Cổng kết nối", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.CongKetNoi, new { htmlAttributes = new { @class = "form-control", placeholder = "VD: USB-C" } })
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Cập nhật sản phẩm
+        </button>
+        <a href="@Url.Action("QLSP", "Admin")" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Hủy
+        </a>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

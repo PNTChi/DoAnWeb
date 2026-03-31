@@ -1,0 +1,118 @@
+﻿@model DoAnWeb.tb_ThuongHieu
+@{
+    ViewBag.Title = "formThemTH";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemTH", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCategoryTitle">Thêm thương hiệu mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+
+    <div class="mb-3">
+        @Html.Label("TenThuongHieu", "Tên thương hiệu", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenThuongHieu, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenThuongHieu)
+    </div>
+    <div class="mb-3">
+        @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.BiDanh)
+    </div>
+
+    <div class="mb-3">
+        @Html.Label("HinhAnh", "Logo thương hiệu", htmlAttributes: new { @class = "form-label" })
+        
+        <div class="card">
+            <div class="card-body">
+                <input type="file" name="logoFile" id="logoFile" class="form-control mb-2" accept="image/*">
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Chọn file ảnh logo (PNG, JPG, SVG). Kích thước khuyến nghị: 200x100px
+                </small>
+                
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                    <label class="form-label">Xem trước:</label>
+                    <div class="text-center p-3 bg-light rounded">
+                        <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 300px; max-height: 150px; object-fit: contain;">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger mt-2" id="clearImage">
+                        <i class="fas fa-times"></i> Xóa ảnh
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        @Html.ValidationMessageFor(model => model.HinhAnh, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.CheckBoxFor(model => model.HienThi, new { @class = "form-check-input" })
+        <small class="form-text text-muted ms-2">Cho phép hiển thị thương hiệu trên website</small>
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i> Lưu thương hiệu
+        </button>
+        <a href="@Url.Action("ThuongHieu", "Admin")" class="btn btn-secondary">
+            <i class="fas fa-times me-1"></i> Hủy
+        </a>
+    </div>
+}
+
+@section scripts {
+<script>
+    $(document).ready(function() {
+        // Preview image before upload
+        $('#logoFile').change(function(e) {
+            var file = e.target.files[0];
+            
+            if (file) {
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Vui lòng chọn file ảnh (PNG, JPG, JPEG, GIF, SVG)',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    $(this).val('');
+                    return;
+                }
+
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Kích thước file không được vượt quá 5MB',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    $(this).val('');
+                    return;
+                }
+
+                // Show preview
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewImg').attr('src', e.target.result);
+                    $('#imagePreview').fadeIn();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Clear image
+        $('#clearImage').click(function() {
+            $('#logoFile').val('');
+            $('#imagePreview').fadeOut();
+            $('#previewImg').attr('src', '');
+        });
+    });
+</script>
+}

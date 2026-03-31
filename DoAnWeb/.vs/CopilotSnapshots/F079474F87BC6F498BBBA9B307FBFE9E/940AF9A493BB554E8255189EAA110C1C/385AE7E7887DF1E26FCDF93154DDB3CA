@@ -1,0 +1,246 @@
+﻿@model DoAnWeb.Models.ForgotPasswordViewModel
+
+@{
+    ViewBag.Title = "Quên mật khẩu";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - TECH SHOP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .form-heading {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+            .input-group input {
+                width: 100%;
+                padding: 12px 15px 12px 45px;
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                font-size: 16px;
+                transition: all 0.3s;
+                outline: none;
+            }
+
+                .input-group input:focus {
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+
+            .input-group label {
+                position: absolute;
+                top: 12px;
+                left: 45px;
+                color: #999;
+                pointer-events: none;
+                transition: all 0.3s;
+                background: white;
+                padding: 0 5px;
+            }
+
+            .input-group input:focus + label,
+            .input-group input:not(:placeholder-shown) + label {
+                top: -10px;
+                left: 40px;
+                font-size: 12px;
+                color: #667eea;
+            }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+        }
+
+        .input-group input:focus ~ .input-icon {
+            color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .submit-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            }
+
+        .back-to-login {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+            .back-to-login a {
+                color: #667eea;
+                font-weight: 500;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+                .back-to-login a:hover {
+                    text-decoration: underline;
+                }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-danger {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert i {
+            margin-right: 8px;
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border: 1px solid #b8daff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+            .info-box p {
+                margin: 0 0 10px 0;
+                font-size: 14px;
+                color: #004085;
+            }
+
+                .info-box p:last-child {
+                    margin-bottom: 0;
+                }
+
+            .info-box i {
+                margin-right: 8px;
+                color: #667eea;
+            }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="text-center mb-6">
+            <i class="fas fa-key" style="font-size: 48px; color: #667eea;"></i>
+        </div>
+
+        <h2 class="form-heading">Quên mật khẩu?</h2>
+        <p class="form-subtitle">
+            Nhập email đăng ký của bạn và chúng tôi sẽ gửi mật khẩu mới cho bạn.
+        </p>
+
+        @* Hiển thị thông báo lỗi *@
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                @ViewBag.ErrorMessage
+            </div>
+        }
+
+        @* Validation Summary *@
+        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <p><i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong></p>
+            <p>• Mật khẩu mới sẽ được gửi đến email của bạn</p>
+            <p>• Vui lòng kiểm tra cả hộp thư Spam/Junk</p>
+            <p>• Đổi mật khẩu ngay sau khi đăng nhập</p>
+        </div>
+
+        <!-- Form -->
+        @using (Html.BeginForm("ForgotPassword", "Account", FormMethod.Post, new { @class = "forgot-password-form" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="input-group">
+                <i class="fas fa-envelope input-icon"></i>
+                @Html.TextBoxFor(m => m.Email, new
+                {
+                    @class = "form-control",
+                    placeholder = " ",
+                    id = "email",
+                    type = "email",
+                    required = "required"
+                })
+                @Html.LabelFor(m => m.Email, "Email", new { @class = "label" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            </div>
+
+            <button class="submit-btn" type="submit">
+                <i class="fas fa-paper-plane mr-2"></i>
+                Gửi mật khẩu mới
+            </button>
+        }
+
+        <!-- Back to Login -->
+        <div class="back-to-login">
+            <i class="fas fa-arrow-left mr-2"></i>
+            <a href="@Url.Action("Login", "Account")">Quay lại đăng nhập</a>
+        </div>
+    </div>
+
+    <!-- jQuery from CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+</html>

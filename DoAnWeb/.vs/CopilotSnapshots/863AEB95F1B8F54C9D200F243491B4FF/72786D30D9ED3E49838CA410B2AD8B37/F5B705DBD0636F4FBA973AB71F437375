@@ -1,0 +1,183 @@
+﻿@{
+    ViewBag.Title = "Đặt hàng thành công";
+}
+
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="max-w-2xl w-full">
+        <!-- Success Card -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 text-center animate-fade-in">
+    <!-- Success Icon -->
+ <div class="mb-6">
+   <div class="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center animate-bounce-slow">
+  <i class="fas fa-check-circle text-green-500 text-6xl"></i>
+   </div>
+   </div>
+
+   <!-- Success Message -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">
+  Đặt hàng thành công!
+ </h1>
+   
+  <p class="text-gray-600 mb-6">
+       Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được tiếp nhận và đang được xử lý.
+          </p>
+
+       <!-- Order Code -->
+          @if (ViewBag.OrderCode != null)
+    {
+     <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+        <p class="text-sm text-gray-600 mb-2">Mã đơn hàng của bạn:</p>
+          <p class="text-3xl font-bold text-blue-600 font-mono tracking-wider">
+           @ViewBag.OrderCode
+    </p>
+   <p class="text-xs text-gray-500 mt-2">
+     Vui lòng lưu lại mã này để tra cứu đơn hàng
+       </p>
+   </div>
+     }
+
+<!-- Order Info -->
+<div class="bg-gray-50 rounded-lg p-6 mb-6 text-left">
+       <h3 class="font-bold text-gray-900 mb-4 flex items-center">
+    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+    Thông tin đơn hàng
+  </h3>
+    <div class="space-y-3 text-sm">
+<div class="flex items-start">
+    <i class="fas fa-clock text-gray-400 mr-3 mt-1"></i>
+       <div>
+    <p class="font-semibold text-gray-700">Thời gian đặt hàng</p>
+         <p class="text-gray-600">@DateTime.Now.ToString("HH:mm:ss - dd/MM/yyyy")</p>
+           </div>
+  </div>
+      
+         <div class="flex items-start">
+     <i class="fas fa-truck text-gray-400 mr-3 mt-1"></i>
+        <div>
+       <p class="font-semibold text-gray-700">Trạng thái</p>
+      <p class="text-blue-600 font-semibold flex items-center">
+        <i class="fas fa-check-circle mr-1"></i>
+Đã xác nhận
+     </p>
+    </div>
+</div>
+ 
+   <div class="flex items-start">
+  <i class="fas fa-envelope text-gray-400 mr-3 mt-1"></i>
+      <div>
+  <p class="font-semibold text-gray-700">Thông báo</p>
+    <p class="text-gray-600">Chúng tôi đã gửi email xác nhận đến hộp thư của bạn</p>
+      </div>
+     </div>
+   </div>
+ </div>
+
+<!-- Action Buttons -->
+    <div class="space-y-3">
+      @if (ViewBag.OrderId != null)
+     {
+  <a href="@Url.Action("ChiTiet", "ThanhToan", new { id = ViewBag.OrderId })" 
+  class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+     <i class="fas fa-file-invoice mr-2"></i>
+       Xem chi tiết đơn hàng
+         </a>
+      }
+  
+ <a href="@Url.Action("Index", "Home")" 
+       class="block w-full bg-white border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 text-gray-700 hover:text-blue-600 font-bold py-4 px-6 rounded-lg transition-all duration-200">
+   <i class="fas fa-home mr-2"></i>
+    Về trang chủ
+  </a>
+   
+     <a href="@Url.Action("Index", "SanPham")" 
+class="block w-full text-gray-600 hover:text-gray-900 font-semibold py-3 transition-colors">
+    <i class="fas fa-shopping-bag mr-2"></i>
+     Tiếp tục mua sắm
+     </a>
+ </div>
+
+      <!-- Customer Service Note -->
+   <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+       <div class="flex items-start">
+    <i class="fas fa-headset text-yellow-600 text-xl mr-3 mt-1"></i>
+       <div class="text-left text-sm">
+<p class="font-semibold text-yellow-800 mb-1">Cần hỗ trợ?</p>
+    <p class="text-gray-600">
+         Liên hệ hotline: <a href="tel:1900xxxx" class="text-blue-600 font-semibold hover:underline">1900 xxxx</a><br>
+      hoặc email: <a href="mailto:support@example.com" class="text-blue-600 font-semibold hover:underline">support@example.com</a>
+    </p>
+</div>
+</div>
+ </div>
+        </div>
+  </div>
+</div>
+
+@section scripts {
+<script>
+    // Show success notification with SweetAlert2
+    $(document).ready(function() {
+        @if (ViewBag.OrderCode != null)
+    {
+          <text>
+   Swal.fire({
+        icon: 'success',
+                title: 'Đặt hàng thành công!',
+       html: '<div class="text-left">' +
+  '<p class="mb-2">✅ Mã đơn hàng: <strong class="text-blue-600">@ViewBag.OrderCode</strong></p>' +
+      '<p class="mb-2">💰 Tổng tiền: <strong class="text-red-600">@String.Format("{0:0,0}", ViewBag.OrderTotal ?? 0) ₫</strong></p>' +
+   '<p class="text-gray-600 text-sm mt-3">📧 Chúng tôi đã gửi email xác nhận đến hộp thư của bạn</p>' +
+        '</div>',
+         showConfirmButton: true,
+                confirmButtonText: '<i class="fas fa-check mr-2"></i>Đã hiểu',
+   confirmButtonColor: '#3b82f6',
+             timer: 5000,
+              timerProgressBar: true,
+                allowOutsideClick: false,
+    showClass: {
+         popup: 'animate__animated animate__fadeInDown animate__faster'
+                },
+      hideClass: {
+           popup: 'animate__animated animate__fadeOutUp animate__faster'
+ }
+   });
+            </text>
+        }
+    });
+
+    // Animate success icon
+    setTimeout(function() {
+        $('.animate-bounce-slow').removeClass('animate-bounce-slow');
+    }, 2000);
+</script>
+
+<style>
+    .animate-fade-in {
+     animation: fadeIn 0.5s ease-in;
+    }
+
+  .animate-bounce-slow {
+animation: bounce 1s ease-in-out 3;
+    }
+
+    @@keyframes fadeIn {
+ from {
+ opacity: 0;
+       transform: translateY(-20px);
+  }
+     to {
+  opacity: 1;
+ transform: translateY(0);
+  }
+    }
+
+    @@keyframes bounce {
+  0%, 100% {
+      transform: translateY(0);
+        }
+ 50% {
+    transform: translateY(-10px);
+  }
+    }
+</style>
+}

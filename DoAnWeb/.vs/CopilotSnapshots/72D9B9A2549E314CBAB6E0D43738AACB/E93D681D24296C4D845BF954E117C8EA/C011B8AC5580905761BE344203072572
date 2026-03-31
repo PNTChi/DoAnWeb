@@ -1,0 +1,212 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Admin - Bán Thiết Bị Điện Tử</title>
+    <!-- CSS và thư viện giữ nguyên -->
+    <link href="~/Content/Admin.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Content/bootstrap-5.0.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js for reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Thư viện PapaParse để xử lý CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <!-- Thư viện SheetJS (xlsx) để xử lý Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="navbar-brand">
+            <i class="fas fa-store"></i> Admin Panel
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="@Url.Action("TongQuan", "Admin")" onclick="setActive(this)"><i class="fas fa-tachometer-alt"></i> Tổng quan</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("QLSP", "Admin")" onclick="setActive(this)"><i class="fas fa-box"></i> Quản lý sản phẩm</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("DanhMuc", "Admin")" onclick="setActive(this)"><i class="fas fa-folder"></i> Quản lý danh mục</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("ThuongHieu", "Admin")" onclick="setActive(this)"><i class="fas fa-tags"></i> Quản lý thương hiệu</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("KhachHang", "Admin")" onclick="setActive(this)"><i class="fas fa-users"></i> Quản lý khách hàng</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("DonHang", "Admin")" onclick="setActive(this)"><i class="fas fa-shopping-cart"></i> Quản lý đơn hàng</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("ThanhToan", "Admin")" onclick="setActive(this)"><i class="fas fa-credit-card"></i> Quản lý thanh toán</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("KhuyenMai", "Admin")" onclick="setActive(this)"><i class="fas fa-percent"></i> Quản lý khuyến mãi</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("BaoCaoThongKe", "Admin")" onclick="setActive(this)"><i class="fas fa-chart-bar"></i> Báo cáo & thống kê</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("QuanTriVien", "Admin")" onclick="setActive(this)"><i class="fas fa-user-shield"></i> Quản lý tài khoản admin</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("HoTroKH", "Admin")" onclick="setActive(this)"><i class="fas fa-headset"></i> Hỗ trợ khách hàng</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="@Url.Action("Login", "Account")"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="content">
+        @RenderBody()
+    </div>
+
+    <!-- Modals -->
+    <!-- Modal In Hóa Đơn -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="invoiceModalBody">
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h4>Cửa hàng điện tử - LTWeb</h4>
+                                <p class="mb-0">140 Lê Trọng Tấn,P. Tân Sơn Nhì TP. HCM</p>
+                                <p class="mb-0">laprinhweb@gmail.vn</p>
+                            </div>
+                            <h2 class="text-primary">HÓA ĐƠN</h2>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <strong>Khách hàng:</strong>
+                                <p id="invoiceCustomerName" class="mb-0">Nguyễn Văn A</p>
+                                <p id="invoiceCustomerEmail" class="mb-0">a@example.com</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <strong>Mã đơn hàng:</strong> <span id="invoiceOrderId">1</span><br>
+                                <strong>Ngày đặt:</strong> <span id="invoiceOrderDate">2023-10-01</span>
+                            </div>
+                        </div>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceItems">
+                                <tr>
+                                    <td>iPhone 14 Pro</td>
+                                    <td>1</td>
+                                    <td>25,000,000 VNĐ</td>
+                                    <td>25,000,000 VNĐ</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">Tổng cộng:</th>
+                                    <th id="invoiceTotal">25,000,000 VNĐ</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p class="text-center mt-4">Cảm ơn quý khách đã mua hàng!</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="printModalContent('invoiceModalBody')">
+                        <i class="fas fa-print"></i> In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận Xóa -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Bạn có chắc chắn muốn xóa mục này không? Hành động này không thể hoàn tác.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Thông báo</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery (phải load đầu tiên) -->
+    @Scripts.Render("~/bundles/jquery")
+    
+    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="~/Content/Admin.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" async></script>
+    
+    <script>
+        function setActive(element) {
+            // Xóa active khỏi tất cả nav-link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            // Thêm active cho link vừa click
+            element.classList.add('active');
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentPath = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.nav-link').forEach(link => {
+                // Bỏ active cũ
+                link.classList.remove('active');
+
+                // So khớp path (bỏ querystring, so sánh lowercase)
+                const linkPath = new URL(link.href, window.location.origin).pathname.toLowerCase();
+
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+
+</body>
+</html>

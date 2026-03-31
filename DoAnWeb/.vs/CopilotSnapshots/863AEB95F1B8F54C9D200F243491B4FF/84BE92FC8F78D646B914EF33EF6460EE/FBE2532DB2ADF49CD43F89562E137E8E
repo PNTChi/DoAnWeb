@@ -1,0 +1,47 @@
+﻿@model DoAnWeb.tb_DanhMuc
+
+@* Partial View: Menu Laptop - Có thể tùy chỉnh riêng cho danh mục này *@
+
+<!-- Danh mục Laptop -->
+<a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })" class="toggle-category">
+    <i class="fas fa-laptop"></i> @Model.TenDanhMuc
+</a>
+
+<ul class="category-list">
+    <li>
+     <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })">
+   Tất cả laptop
+        </a>
+    </li>
+    @* Submenu riêng cho laptop - theo thương hiệu *@
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Dell" })">
+            Dell
+        </a>
+    </li>
+    <li>
+   <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "HP" })">
+   HP
+        </a>
+    </li>
+    <li>
+   <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Apple" })">
+   MacBook
+  </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loai = "gaming" })">
+     Laptop gaming
+   </a>
+    </li>
+    <li>
+   <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, giaMax = 15000000 })">
+  Dưới 15 triệu
+   </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loc = "moi" })">
+  Sản phẩm mới
+</a>
+</li>
+</ul>

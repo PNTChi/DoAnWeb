@@ -1,0 +1,47 @@
+﻿@model DoAnWeb.tb_DanhMuc
+
+@* Partial View: Menu Điện thoại - Có thể tùy chỉnh riêng cho danh mục này *@
+
+<!-- Danh mục Điện thoại -->
+<a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })" class="toggle-category">
+    <i class="fas fa-mobile-alt"></i> @Model.TenDanhMuc
+</a>
+
+<ul class="category-list">
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })">
+  Tất cả điện thoại
+  </a>
+    </li>
+    @* Submenu riêng cho điện thoại - có thể query theo thương hiệu *@
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Apple" })">
+   iPhone
+  </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Samsung" })">
+    Samsung
+  </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Xiaomi" })">
+   Xiaomi
+  </a>
+</li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, thuongHieu = "Oppo" })">
+ Oppo
+      </a>
+    </li>
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, giaMax = 5000000 })">
+   Dưới 5 triệu
+        </a>
+    </li>
+    <li>
+<a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loc = "moi" })">
+      Sản phẩm mới
+ </a>
+    </li>
+</ul>

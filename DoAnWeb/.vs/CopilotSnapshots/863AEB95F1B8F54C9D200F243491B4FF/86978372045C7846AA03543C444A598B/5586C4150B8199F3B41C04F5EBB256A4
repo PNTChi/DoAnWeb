@@ -1,0 +1,174 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller xử lý tìm kiếm sản phẩm
+    /// </summary>
+    public class SearchController : BaseController
+    {
+        /// <summary>
+        /// GET: Trang kết quả tìm kiếm
+        /// </summary>
+        public ActionResult Index(string q, int? danhMucId, int? thuongHieuId, decimal? minPrice, decimal? maxPrice, string sortBy = "newest")
+        {
+    // Kiểm tra từ khóa tìm kiếm
+    if (string.IsNullOrWhiteSpace(q))
+    {
+         TempData["ErrorMessage"] = "Vui lòng nhập từ khóa tìm kiếm";
+    return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.SearchKeyword = q.Trim();
+  ViewBag.DanhMucId = danhMucId ?? 0; // Fix: Set default value
+ ViewBag.ThuongHieuId = thuongHieuId ?? 0; // Fix: Set default value
+ ViewBag.MinPrice = minPrice ?? 0;
+          ViewBag.MaxPrice = maxPrice ?? 0;
+   ViewBag.SortBy = sortBy ?? "newest";
+
+      // Query cơ bản
+    var query = db.tb_SanPham
+                .Where(sp => sp.HienThi == true);
+
+            // Tìm kiếm theo từ khóa
+   var keyword = q.Trim().ToLower();
+        query = query.Where(sp => 
+   sp.TenSanPham.ToLower().Contains(keyword) ||
+ sp.MaSanPham.ToLower().Contains(keyword) ||
+      (sp.MoTa != null && sp.MoTa.ToLower().Contains(keyword)) ||
+  (sp.tb_DanhMuc != null && sp.tb_DanhMuc.TenDanhMuc.ToLower().Contains(keyword)) ||
+    (sp.tb_ThuongHieu != null && sp.tb_ThuongHieu.TenThuongHieu.ToLower().Contains(keyword))
+       );
+
+  // Lọc theo danh mục
+            if (danhMucId.HasValue && danhMucId.Value > 0)
+ {
+  query = query.Where(sp => sp.DanhMucId == danhMucId.Value);
+}
+
+          // Lọc theo thương hiệu
+if (thuongHieuId.HasValue && thuongHieuId.Value > 0)
+            {
+     query = query.Where(sp => sp.ThuongHieuId == thuongHieuId.Value);
+    }
+
+         // Lọc theo khoảng giá
+if (minPrice.HasValue && minPrice.Value > 0)
+        {
+         query = query.Where(sp => sp.Gia >= minPrice.Value);
+       }
+  if (maxPrice.HasValue && maxPrice.Value > 0)
+         {
+    query = query.Where(sp => sp.Gia <= maxPrice.Value);
+          }
+
+            // Sắp xếp
+            switch (sortBy)
+ {
+     case "price_asc":
+ query = query.OrderBy(sp => sp.Gia);
+     break;
+    case "price_desc":
+           query = query.OrderByDescending(sp => sp.Gia);
+ break;
+ case "name_asc":
+    query = query.OrderBy(sp => sp.TenSanPham);
+      break;
+         case "name_desc":
+     query = query.OrderByDescending(sp => sp.TenSanPham);
+     break;
+       case "popular":
+  query = query.OrderByDescending(sp => sp.LuotXem);
+  break;
+    case "newest":
+  default:
+       query = query.OrderByDescending(sp => sp.NgayTao);
+        break;
+       }
+
+ var results = query.ToList();
+        ViewBag.TotalResults = results.Count;
+
+     // Lấy danh sách danh mục và thương hiệu cho filter
+  ViewBag.DanhMucList = db.tb_DanhMuc.Where(dm => dm.HienThi == true).ToList();
+            ViewBag.ThuongHieuList = db.tb_ThuongHieu.Where(th => th.HienThi == true).ToList();
+
+      return View(results);
+   }
+
+        /// <summary>
+     /// AJAX: Autocomplete tìm kiếm
+   /// </summary>
+        [HttpGet]
+   public JsonResult Autocomplete(string term)
+  {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+            {
+        return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+      }
+
+            var keyword = term.Trim().ToLower();
+
+ var suggestions = db.tb_SanPham
+    .Where(sp => sp.HienThi == true && 
+     (sp.TenSanPham.ToLower().Contains(keyword) || 
+                     sp.MaSanPham.ToLower().Contains(keyword)))
+      .Take(10)
+       .Select(sp => new
+                {
+   id = sp.Id,
+            label = sp.TenSanPham,
+     value = sp.TenSanPham,
+    image = sp.HinhAnh,
+             price = sp.GiaKhuyenMai ?? sp.Gia,
+             url = Url.Action("ChiTietSP", "SanPham", new { id = sp.Id })
+                })
+    .ToList();
+
+            return Json(suggestions, JsonRequestBehavior.AllowGet);
+    }
+
+     /// <summary>
+        /// AJAX: Tìm kiếm nhanh
+        /// </summary>
+        [HttpGet]
+        public JsonResult QuickSearch(string q)
+        {
+      if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+            {
+    return Json(new { success = false, message = "Từ khóa quá ngắn" }, JsonRequestBehavior.AllowGet);
+    }
+
+  var keyword = q.Trim().ToLower();
+
+            var results = db.tb_SanPham
+         .Where(sp => sp.HienThi == true &&
+            (sp.TenSanPham.ToLower().Contains(keyword) ||
+                 sp.MaSanPham.ToLower().Contains(keyword)))
+     .Take(5)
+       .Select(sp => new
+            {
+      id = sp.Id,
+         name = sp.TenSanPham,
+            image = sp.HinhAnh,
+       price = sp.GiaKhuyenMai ?? sp.Gia,
+         oldPrice = sp.Gia,
+             hasDiscount = sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia,
+    url = Url.Action("ChiTietSP", "SanPham", new { id = sp.Id })
+       })
+      .ToList();
+
+         return Json(new
+ {
+  success = true,
+            count = results.Count,
+          data = results
+            }, JsonRequestBehavior.AllowGet);
+        }
+    }
+}

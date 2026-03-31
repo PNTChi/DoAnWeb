@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <form action="/admins/save" method="POST" class="p-4">
+        <input type="hidden" id="adminId" name="adminId">
+
+        <h3 id="formAdminTitle">Thêm tài khoản admin mới</h3>
+        <hr>
+
+        <div class="mb-3">
+            <label for="adminName" class="form-label">Tên</label>
+            <input type="text" class="form-control" id="adminName" name="adminName" required>
+        </div>
+        <div class="mb-3">
+            <label for="adminEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="adminEmail" name="adminEmail" required>
+        </div>
+        <div class="mb-3">
+            <label for="adminPassword" class="form-label">Mật khẩu (Để trống nếu không đổi)</label>
+            <input type="password" class="form-control" id="adminPassword" name="adminPassword">
+        </div>
+        <div class="mb-3">
+            <label for="adminRole" class="form-label">Vai trò</label>
+            <select class="form-select" id="adminRole" name="adminRole">
+                <option value="Admin toàn quyền">Admin toàn quyền</option>
+                <option value="Quản lý sản phẩm">Quản lý sản phẩm</option>
+                <option value="CSKH">CSKH</option>
+            </select>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Lưu tài khoản</button>
+            <a href="/#admins" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+
+
+</body>
+</html>

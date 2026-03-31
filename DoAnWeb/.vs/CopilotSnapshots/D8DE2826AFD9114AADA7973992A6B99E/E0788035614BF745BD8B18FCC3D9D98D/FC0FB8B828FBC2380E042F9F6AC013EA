@@ -1,0 +1,481 @@
+﻿# SEQUENCE DIAGRAMS - ĐỒ ÁN WEB MUA SẮM THIẾT BỊ ĐIỆN TỬ TÍCH HỢP CHATBOT
+
+## 📋 TỔNG QUAN
+
+Thư mục này chứa **4 Sequence Diagrams** được thiết kế bằng **PlantUML** (text-based UML tool) cho đồ án môn Công Nghệ Phần Mềm.
+
+### ⚠️ TẠI SAO DÙNG PLANTUML THAY VÌ POWERDESIGNER?
+
+**PowerDesigner** là phần mềm thương mại với format file đặc biệt (binary) không thể tạo bằng XML thủ công. File `.pdm` chỉ có thể tạo trực tiếp trong PowerDesigner.
+
+**PlantUML** là giải pháp:
+- ✅ **Miễn phí 100%** (Open Source)
+- ✅ **Text-based** → Dễ version control, chỉnh sửa
+- ✅ **Export nhiều format**: PNG, SVG, PDF, LaTeX
+- ✅ **Tích hợp VS Code** (extension)
+- ✅ **Chuẩn UML 2.0** - Chấp nhận trong học thuật
+- ✅ **Không cần license** thương mại
+
+👉 **Xem hướng dẫn chi tiết**: [`HUONG_DAN_PLANTUML.md`](HUONG_DAN_PLANTUML.md)
+
+### Hệ thống: 
+**Web mua sắm thiết bị điện tử tích hợp Chatbot AI**
+
+### Công nghệ:
+- **Backend**: ASP.NET MVC (.NET Framework 4.7.2)
+- **Database**: SQL Server
+- **Frontend**: Razor Views, jQuery, AJAX
+- **Chatbot**: AI Intent Detection, Smart Search
+- **Diagram Tool**: PlantUML (text-based UML)
+
+---
+
+## 📊 DANH SÁCH SEQUENCE DIAGRAMS
+
+### 1️⃣ **Tìm kiếm sản phẩm qua Chatbot** 
+📄 File: `1_TimKiemSanPhamChatbot.puml`
+
+**Mô tả**: User tương tác với Chatbot AI để tìm sản phẩm thông qua ngôn ngữ tự nhiên.
+
+**Actors**: 
+- User (Người dùng)
+
+**Components**:
+- Browser (Trình duyệt)
+- ChatbotWidget (Widget chat)
+- ChatbotController (Controller xử lý)
+- ProcessIntent (Phân tích ý định)
+- Database (Cơ sở dữ liệu)
+
+**Use Case**: 
+User nhập câu hỏi "iPhone 15 dưới 20 triệu" → Chatbot phân tích intent → Tìm kiếm đa tiêu chí (brand + price) → Trả về sản phẩm phù hợp
+
+**Flow chính**:
+1. User mở chatbot widget
+2. Nhập tin nhắn tìm kiếm
+3. AJAX POST `/Chatbot/ProcessMessage`
+4. Normalize và phân loại intent (Multi-Criteria Search)
+5. Query database với điều kiện: brand="iPhone" AND price<=20,000,000
+6. Return JSON với danh sách sản phẩm + suggestions
+7. Render product cards trên giao diện
+8. User xem kết quả (5 sản phẩm)
+
+**Đặc điểm**:
+- ✅ AI Intent Detection
+- ✅ Multi-criteria search (brand + price + specs)
+- ✅ Smart ranking algorithm
+- ✅ Real-time AJAX
+- ✅ No page reload
+
+---
+
+### 2️⃣ **Thanh toán đơn hàng**
+📄 File: `2_ThanhToanDonHang.puml`
+
+**Mô tả**: User thực hiện thanh toán giỏ hàng và tạo đơn hàng.
+
+**Actors**:
+- User (Người dùng đã đăng nhập)
+
+**Components**:
+- GioHangView (Trang giỏ hàng)
+- ThanhToanController (Controller thanh toán)
+- Session (Quản lý giỏ hàng)
+- BaseController (Xác thực)
+- Database (Lưu đơn hàng)
+- ThanhToanView (Trang thanh toán)
+
+**Use Case**:
+User có 3 sản phẩm trong giỏ → Click "Thanh toán" → Điền thông tin giao hàng → Chọn phương thức thanh toán → Xác nhận → Tạo đơn hàng
+
+**Flow chính**:
+1. User click "Thanh toán" từ giỏ hàng
+2. GET `/ThanhToan/Index`
+3. Check `IsAuthenticated()` (redirect nếu chưa đăng nhập)
+4. Get cart from Session (3 items, total 45tr)
+5. Load thông tin user từ database (pre-fill form)
+6. Hiển thị form checkout
+7. User nhập địa chỉ, chọn payment method
+8. POST `/ThanhToan/Index` với CheckoutViewModel
+9. Validate form
+10. Generate OrderCode: "DH202412152350431234"
+11. INSERT đơn hàng (TrangThai=2 "Đã xác nhận")
+12. LOOP: INSERT chi tiết đơn hàng (foreach item)
+13. UPDATE tồn kho (SoLuong -= quantity)
+14. SaveChanges()
+15. Clear cart session
+16. Redirect `/ThanhToan/Success`
+17. Hiển thị thông báo thành công + mã đơn hàng
+
+**Đặc điểm**:
+- ✅ Session-based cart
+- ✅ Authentication required
+- ✅ Auto-generate order code
+- ✅ Transaction consistency (order + details + inventory)
+- ✅ Clear cart after success
+
+---
+
+### 3️⃣ **Quản lý đơn hàng (Admin)**
+📄 File: `3_QuanLyDonHangAdmin.puml`
+
+**Mô tả**: Admin xem danh sách đơn hàng, xác minh thanh toán, và lọc theo trạng thái.
+
+**Actors**:
+- Admin (Quản trị viên)
+
+**Components**:
+- Browser
+- AdminController (Controller admin)
+- BaseController (Check IsAdmin)
+- Database
+- DonHangView (Trang quản lý đơn hàng)
+
+**Use Case**:
+Admin đăng nhập → Vào "Quản lý đơn hàng" → Xem danh sách → Xác minh thanh toán cho đơn hàng → Lọc theo trạng thái
+
+**Flow chính**:
+
+**A. Xem danh sách đơn hàng**:
+1. Admin click "Quản lý đơn hàng"
+2. GET `/Admin/DonHang?page=1`
+3. Check `IsAdmin()` (authorization)
+4. SELECT orders với pagination (5/page)
+5. Map to `QLDonHangViewModel` (include payment, shipping methods)
+6. Calculate pagination (TotalPages, CurrentPage)
+7. Render view với bảng orders
+8. Hiển thị status badges (color-coded)
+
+**B. Xác minh thanh toán**:
+9. Admin tìm đơn "DH202412152350431234" (TrangThai=2)
+10. Click "Xác minh thanh toán"
+11. AJAX POST `/Admin/XacMinhThanhToan` (id=123)
+12. SELECT order WHERE Id=123
+13. Validate: IF TrangThai == 2 (Đã xác nhận)
+14. UPDATE SET TrangThai=3 (Đang giao), NgayCapNhat=NOW
+15. SaveChanges()
+16. Return JSON {success: true}
+17. Update UI: badge → "Đang giao" (class warning)
+18. Show alert "Xác minh thành công!"
+
+**C. Lọc theo trạng thái** (Alternative flow):
+19. Admin chọn filter "Đang giao" (TrangThai=3)
+20. GET `/Admin/LocDonHang?trangthai=3&page=1`
+21. SELECT WHERE TrangThai=3
+22. Return filtered list
+23. Hiển thị chỉ đơn hàng "Đang giao"
+
+**Đặc điểm**:
+- ✅ Admin authorization
+- ✅ Pagination (5 orders/page)
+- ✅ Status filtering (1-5)
+- ✅ AJAX update (no page reload)
+- ✅ Real-time badge updates
+- ✅ Search by OrderCode/Customer
+
+---
+
+### 4️⃣ **Xác nhận nhận hàng và yêu cầu trả hàng**
+📄 File: `4_XacNhanNhanHangVaTraHang.puml`
+
+**Mô tả**: User xác nhận đã nhận hàng hoặc yêu cầu trả hàng khi có vấn đề.
+
+**Actors**:
+- User (Người dùng đã mua hàng)
+
+**Components**:
+- Browser
+- TaiKhoanController (Controller tài khoản)
+- BaseController (Authentication)
+- Database
+- ChiTietDonHangView (Trang chi tiết đơn hàng)
+
+**Use Case**:
+User vào "Đơn hàng của tôi" → Chọn đơn hàng đang giao (TrangThai=3) → Xem chi tiết → **2 nhánh**: [A] Xác nhận nhận hàng hoặc [B] Yêu cầu trả hàng
+
+**Flow chính**:
+
+**Phần 1: Xem chi tiết đơn hàng**
+1. User click "Đơn hàng của tôi"
+2. GET `/TaiKhoan/DonHang`
+3. Check `IsAuthenticated()`
+4. SELECT orders WHERE TaiKhoanId=CurrentUser.Id
+5. Return list (3 orders, 1 đang giao)
+6. Hiển thị danh sách với status + actions
+7. User click "Xem chi tiết" order #123 (TrangThai=3)
+8. GET `/TaiKhoan/ChiTietDonHang?id=123`
+9. SELECT order WHERE Id=123 AND TaiKhoanId=CurrentUser.Id
+10. SELECT chi tiết với JOIN: tb_ChiTietDonHang + tb_SanPham
+11. Return `ChiTietDonHangViewModel` (2 products)
+12. Render view: thông tin đơn + sản phẩm + 2 buttons
+13. Hiển thị buttons: "Đã nhận hàng", "Yêu cầu trả hàng"
+
+**Alternative 1: XÁC NHẬN NHẬN HÀNG**
+14. User click "Đã nhận hàng"
+15. AJAX POST `/TaiKhoan/XacNhanDaNhan` (id=123)
+16. SELECT order
+17. Validate: IF TrangThai == 3 (Đang giao)
+18. UPDATE SET TrangThai=4 (Đã giao hàng), NgayCapNhat=NOW
+19. SaveChanges()
+20. Return JSON {success: true, message: "Cảm ơn! Đơn hàng hoàn thành"}
+21. Update UI: status → "Đã giao hàng", hide buttons
+22. Show success message
+
+**Alternative 2: YÊU CẦU TRẢ HÀNG**
+23. User click "Yêu cầu trả hàng"
+24. Show modal dialog "Nhập lý do trả hàng" (textarea, min 10 chars)
+25. User nhập: "Sản phẩm bị lỗi màn hình, không hoạt động"
+26. Click "Gửi yêu cầu"
+27. AJAX POST `/TaiKhoan/YeuCauTraHang` (id=123, lyDo="...")
+28. SELECT order
+29. Validate: IF TrangThai==3 AND lyDo.Length >= 10
+30. UPDATE SET TrangThai=6 (Yêu cầu trả hàng), NgayCapNhat=NOW
+31. SaveChanges()
+32. Return JSON {success: true, message: "Đã gửi yêu cầu. Chúng tôi sẽ liên hệ"}
+33. Update UI: status → "Yêu cầu trả hàng" (badge danger), hide buttons
+34. [Optional] Send notification to Admin
+
+**Đặc điểm**:
+- ✅ Only allow for shipping orders (TrangThai=3)
+- ✅ User can confirm receipt → TrangThai=4 (Completed)
+- ✅ User can request return → TrangThai=6 (Return request)
+- ✅ Validation: return reason min 10 chars
+- ✅ AJAX for smooth UX
+- ✅ Dynamic UI updates
+- ✅ Owner verification (TaiKhoanId check)
+
+---
+
+## 🎯 TRẠNG THÁI ĐỢN HÀNG (Order Status Flow)
+
+```
+1: Chờ xác nhận (Pending)
+    ↓
+2: Đã xác nhận (Confirmed) ← User thanh toán xong
+    ↓
+3: Đang giao (Shipping) ← Admin xác minh thanh toán
+    ↓ [User có 2 lựa chọn]
+    ├─→ 4: Đã giao hàng (Delivered) ← User xác nhận nhận hàng
+    │       ↓
+    │   5: Hoàn thành (Completed) ← Admin đóng đơn
+    │
+    └─→ 6: Yêu cầu trả hàng (Return Request) ← User báo lỗi
+            ↓
+        [Admin xử lý return]
+```
+
+---
+
+## 🔑 ACTORS & ROLES
+
+### 1. **User (Người dùng)**
+- Tìm kiếm sản phẩm qua Chatbot
+- Thêm vào giỏ hàng
+- Thanh toán đơn hàng
+- Xem đơn hàng của mình
+- Xác nhận nhận hàng
+- Yêu cầu trả hàng
+
+### 2. **Admin (Quản trị viên)**
+- Quản lý sản phẩm (CRUD)
+- Xem danh sách đơn hàng
+- Xác minh thanh toán
+- Cập nhật trạng thái đơn hàng
+- Lọc và tìm kiếm đơn hàng
+- Xử lý yêu cầu trả hàng
+
+---
+
+## 💻 CÔNG NGHỆ SỬ DỤNG
+
+### Backend:
+- **Framework**: ASP.NET MVC 5 (.NET Framework 4.7.2)
+- **ORM**: Entity Framework 6
+- **Database**: SQL Server
+- **Authentication**: Forms Authentication + Session
+
+### Frontend:
+- **View Engine**: Razor (.cshtml)
+- **JavaScript**: jQuery 3.x
+- **AJAX**: jQuery AJAX for async calls
+- **CSS**: Bootstrap 4 + Custom CSS
+- **Icons**: Font Awesome
+
+### Design Patterns:
+- **MVC Pattern** (Model-View-Controller)
+- **Repository Pattern** (DbContext)
+- **ViewModel Pattern** (Data Transfer)
+- **Session State** (Shopping Cart)
+
+---
+
+## 📂 CẤU TRÚC PROJECT
+
+```
+DoAnWeb/
+├── Controllers/
+│   ├── ChatbotController.cs      ← Xử lý chatbot (Diagram 1)
+│   ├── ThanhToanController.cs    ← Xử lý thanh toán (Diagram 2)
+│   ├── AdminController.cs        ← Quản lý admin (Diagram 3)
+│   ├── TaiKhoanController.cs     ← Quản lý tài khoản (Diagram 4)
+│   └── BaseController.cs         ← Authentication, Authorization
+│
+├── Models/
+│   ├── tb_SanPham.cs             ← Entity: Sản phẩm
+│   ├── tb_DonHang.cs             ← Entity: Đơn hàng
+│   ├── tb_ChiTietDonHang.cs      ← Entity: Chi tiết đơn hàng
+│   ├── tb_TaiKhoan.cs            ← Entity: Tài khoản
+│   ├── ChatbotResponse.cs        ← ViewModel: Response chatbot
+│   ├── CheckoutViewModel.cs      ← ViewModel: Thanh toán
+│   └── ChiTietDonHangViewModel.cs ← ViewModel: Chi tiết đơn
+│
+├── Views/
+│   ├── Shared/
+│   │   ├── _Layout.cshtml
+│   │   └── _ChatbotWidget.cshtml  ← Widget chatbot
+│   ├── ThanhToan/
+│   │   ├── Index.cshtml           ← Form thanh toán
+│   │   └── Success.cshtml         ← Trang thành công
+│   ├── Admin/
+│   │   ├── DonHang.cshtml         ← Quản lý đơn hàng
+│   │   └── ThanhToan.cshtml       ← Xác minh thanh toán
+│   └── TaiKhoan/
+│       ├── DonHang.cshtml         ← Danh sách đơn hàng user
+│       └── ChiTietDonHang.cshtml  ← Chi tiết đơn hàng
+│
+└── SequenceDiagrams/                    ← 📊 DIAGRAMS (4 files)
+├── 1_TimKiemSanPhamChatbot.puml     ← PlantUML source
+├── 2_ThanhToanDonHang.puml          ← PlantUML source
+├── 3_QuanLyDonHangAdmin.puml        ← PlantUML source
+├── 4_XacNhanNhanHangVaTraHang.puml  ← PlantUML source
+├── README.md                        ← (This file)
+└── HUONG_DAN_PLANTUML.md            ← Hướng dẫn chi tiết
+```
+
+---
+
+## 🛠️ CÁCH MỞ FILE .PDM TRONG POWERDESIGNER
+
+### Bước 1: Cài đặt PowerDesigner
+- Download: SAP PowerDesigner 16.x hoặc cao hơn
+- Install trên Windows
+
+### Bước 2: Mở file
+1. Mở PowerDesigner
+2. File → Open → Chọn file `.pdm`
+3. Hoặc kéo thả file vào PowerDesigner
+
+### Bước 3: Xem Sequence Diagram
+- Diagram sẽ hiển thị với các lifelines (actors, objects)
+- Messages được sắp xếp theo thứ tự thời gian (top-down)
+- Có thể zoom in/out để xem chi tiết
+
+### Bước 4: Chỉnh sửa (nếu cần)
+- Double-click vào message để xem/sửa nội dung
+- Right-click để thêm message, actor, object mới
+- Sử dụng Palette để thêm elements
+
+### Bước 5: Export
+- File → Export → chọn format (PDF, PNG, SVG)
+- Hoặc Print to PDF
+
+---
+
+## 📖 DOCUMENTATION REFERENCES
+
+### Tài liệu tham khảo:
+1. **ASP.NET MVC Documentation**: https://docs.microsoft.com/aspnet/mvc
+2. **Entity Framework 6**: https://docs.microsoft.com/ef/ef6
+3. **UML Sequence Diagrams**: https://www.uml-diagrams.org/sequence-diagrams.html
+4. **PowerDesigner Guide**: SAP PowerDesigner User Guide
+
+### Tài liệu đồ án:
+- `CHATBOT_INTEGRATION.md` - Hướng dẫn tích hợp chatbot
+- `XAC_MINH_THANH_TOAN.md` - Luồng xác minh thanh toán
+- `FIX_CHI_TIET_DON_HANG.md` - Fix lỗi chi tiết đơn hàng
+- `TINH_NANG_DA_NHAN_TRA_HANG.md` - Tính năng đã nhận/trả hàng
+
+---
+
+## ✅ CHECKLIST VALIDATION
+
+### Sequence Diagram 1: ✅ HOÀN THÀNH
+- [x] Actor: User
+- [x] Lifelines: Browser, ChatbotWidget, Controller, Intent Processor, Database
+- [x] Messages: 13 interactions
+- [x] Flow: Request → Process → Query → Response
+- [x] AJAX call documented
+- [x] JSON response structure shown
+- [x] UI rendering included
+
+### Sequence Diagram 2: ✅ HOÀN THÀNH
+- [x] Actor: User
+- [x] Lifelines: Views, Controller, Session, Database
+- [x] Messages: 25 interactions
+- [x] Authentication check
+- [x] Cart validation
+- [x] Order creation loop
+- [x] Inventory update
+- [x] Transaction consistency
+
+### Sequence Diagram 3: ✅ HOÀN THÀNH
+- [x] Actor: Admin
+- [x] Lifelines: Browser, Controller, Database, View
+- [x] Messages: 26 interactions
+- [x] Authorization check (IsAdmin)
+- [x] Pagination logic
+- [x] Status update (AJAX)
+- [x] Alternative flow: Filter
+
+### Sequence Diagram 4: ✅ HOÀN THÀNH
+- [x] Actor: User
+- [x] Lifelines: Browser, Controller, Database, View
+- [x] Messages: 37 interactions
+- [x] Two alternative flows (Confirm vs Return)
+- [x] Validation: Status + Reason length
+- [x] UI updates documented
+- [x] Optional: Admin notification
+
+---
+
+## 🎓 ĐỒ ÁN MÔN HỌC
+
+**Môn học**: Công Nghệ Phần Mềm (Software Engineering)
+
+**Đề tài**: Web mua sắm thiết bị điện tử tích hợp Chatbot AI
+
+**Sinh viên**: [Tên sinh viên]
+
+**MSSV**: [Mã số sinh viên]
+
+**Lớp**: [Lớp học]
+
+**Năm học**: 2024-2025
+
+**Giảng viên hướng dẫn**: [Tên giảng viên]
+
+---
+
+## 📧 CONTACT
+
+Nếu có thắc mắc về các Sequence Diagrams, vui lòng liên hệ:
+
+**Email**: [Email liên hệ]
+
+**GitHub**: [GitHub repository]
+
+---
+
+**Ngày tạo**: 15/12/2024
+
+**Phiên bản**: 1.0
+
+**Công cụ**: PowerDesigner 16.x
+
+**Format**: PDM (Physical Data Model XML)
+
+---
+
+✅ **TẤT CẢ 4 SEQUENCE DIAGRAMS ĐÃ ĐƯỢC THIẾT KẾ HOÀN CHỈNH**
+
+Chúc bạn bảo vệ đồ án thành công! 🎉

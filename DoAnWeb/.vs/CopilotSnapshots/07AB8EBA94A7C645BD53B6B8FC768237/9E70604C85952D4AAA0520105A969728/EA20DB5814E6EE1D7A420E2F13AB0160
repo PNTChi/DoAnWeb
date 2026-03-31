@@ -1,0 +1,96 @@
+﻿@model List<DoAnWeb.Models.QLDonHangViewModel>
+
+@{
+    ViewBag.Title = "DonHang";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="orders" class="tab-content active">
+    <h1 class="mb-4">Quản lý đơn hàng</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimDonHang" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timdh" name="timdh" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <select class="form-select w-25" id="filterOrder" onchange="location = this.value;">
+                <option value="@Url.Action("DonHang", "Admin")">Tất cả</option>
+                @foreach (var trangthai in Model.Select(m => m.TrangThai).Distinct())
+                {
+                    <option value="@Url.Action("LocDonHang", "Admin", new { trangthai = trangthai })">
+                        @trangthai
+                    </option>
+                }
+            </select>
+        </div>
+        <table class="table table-bordered table-hover" id="orderTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã đơn hàng</th>
+                    <th>Tên khách hàng</th>
+                    <th>Số điện thoại</th>
+                    <th>Địa chỉ</th>
+                    <th>Email</th>
+                    <th>Tổng tiền</th>
+                    <th>Loại thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Phương thức vận chuyển</th>
+                    <th>Mã giảm giá</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                @foreach (var item in Model)
+                {
+                    <tr id="order-1">
+                        <td>@item.Id</td>
+                        <td>@item.MaDonHang</td>
+                        <td>@item.TenKhachHang</td>
+                        <td>@item.SoDienThoai</td>
+                        <td>@item.DiaChi</td>
+                        <td>@item.Email</td>
+                        <td>@item.TongTien</td>
+                        <td>@item.PhuongThucThanhToan</td>
+                        <td>@item.TrangThai</td>
+                        <td>@item.NgayTao</td>
+                        <td>@item.PhuongThucVanChuyen</td>
+                        <td>@item.MaGiamGia</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="showInvoiceModal(this)">
+                                <i class="fas fa-print"></i> In hóa đơn
+                            </button>
+                            <button class="btn btn-sm btn-primary"><i class="fas fa-sync"></i> Cập nhật</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "DonHang" : "TimDonHang",
+                    new { timdh = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "DonHang" : "TimDonHang",
+                        new { timdh = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "DonHang" : "TimDonHang",
+                    new { timdh = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

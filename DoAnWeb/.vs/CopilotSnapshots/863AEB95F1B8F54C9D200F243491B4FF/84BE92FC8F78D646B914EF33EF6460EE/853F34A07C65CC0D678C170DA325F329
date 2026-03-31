@@ -1,0 +1,69 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller xử lý các chức năng liên quan đến Menu và Danh mục
+    /// </summary>
+    public class MenuController : Controller
+    {
+        // Khởi tạo DbContext để truy vấn database
+        private WebBanHangDienTuEntities db = new WebBanHangDienTuEntities();
+
+        /// <summary>
+        /// Action trả về Partial View danh mục sản phẩm cho Sidebar
+        /// Được gọi từ _Layout.cshtml bằng @Html.Action()
+        /// </summary>
+        /// <returns>PartialView với danh sách danh mục</returns>
+        [ChildActionOnly] // Chỉ cho phép gọi từ View khác, không truy cập trực tiếp qua URL
+        public ActionResult DanhMuc()
+        {
+            // Lấy tất cả danh mục đang hiển thị, sắp xếp theo thứ tự
+            var danhSachDanhMuc = db.tb_DanhMuc
+                .Where(dm => dm.HienThi == true)
+                .OrderBy(dm => dm.ThuTu)
+                .ToList();
+
+            // Trả về PartialView với danh sách danh mục
+            return PartialView("_DanhMuc", danhSachDanhMuc);
+        }
+
+        /// <summary>
+        /// Helper method: Xác định tên Partial View phù hợp dựa trên tên danh mục
+        /// </summary>
+        /// <param name="tenDanhMuc">Tên danh mục từ database</param>
+        /// <returns>Tên Partial View tương ứng</returns>
+        private string GetPartialViewName(string tenDanhMuc)
+        {
+            // Map tên danh mục với Partial View tương ứng
+            var mapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Điện thoại", "_MenuDienThoai" },
+                { "Laptop", "_MenuLaptop" },
+                { "Tablet", "_MenuTablet" },
+                { "Phụ kiện", "_MenuPhuKien" }
+            };
+
+            // Trả về tên Partial View nếu tìm thấy, nếu không dùng template chung
+            return mapping.ContainsKey(tenDanhMuc)
+                ? mapping[tenDanhMuc]
+                : "_CategoryMenuItem"; // Template chung cho các danh mục khác
+        }
+
+        /// <summary>
+        /// Giải phóng tài nguyên khi controller bị hủy
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}

@@ -1,0 +1,84 @@
+﻿@model DoAnWeb.tb_DanhMuc
+@{
+    ViewBag.Title = "formThemDM";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemDM", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCategoryTitle">Thêm danh mục mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+
+    <div class="mb-3">
+        @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDanhMuc, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenDanhMuc)
+    </div>
+    <div class="mb-3">
+        @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.BiDanh)
+    </div>
+    <div class="mb-3">
+        @Html.Label("Icon", "Icon / Hình ảnh", htmlAttributes: new { @class = "form-label" })
+        
+        <!-- Tab chọn Icon hoặc Upload hình -->
+        <ul class="nav nav-tabs" id="iconTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="icon-tab" data-bs-toggle="tab" data-bs-target="#icon-panel" type="button" role="tab">
+                    <i class="fas fa-icons me-1"></i> Chọn Icon
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="image-tab" data-bs-toggle="tab" data-bs-target="#image-panel" type="button" role="tab">
+                    <i class="fas fa-image me-1"></i> Upload Hình
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content border border-top-0 p-3" id="iconTabContent">
+            <!-- Tab 1: Chọn Icon Font Awesome -->
+            <div class="tab-pane fade show active" id="icon-panel" role="tabpanel">
+                <input type="text" id="iconSearch" class="form-control mb-3" placeholder="Tìm kiếm icon... (vd: laptop, phone, tv)">
+                
+                <div id="iconGrid" class="row g-2" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Icons sẽ được load bằng JavaScript -->
+                </div>
+                
+                @Html.TextBoxFor(model => model.Icon, new { @class = "form-control mt-2", id = "selectedIcon", placeholder = "Icon class (vd: fa-laptop)" })
+            </div>
+            
+            <!-- Tab 2: Upload Hình -->
+            <div class="tab-pane fade" id="image-panel" role="tabpanel">
+                <input type="file" name="iconFile" id="iconFile" class="form-control" accept="image/*">
+                <small class="form-text text-muted">Chọn file ảnh (PNG, JPG, SVG). Kích thước khuyến nghị: 64x64px</small>
+                
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                    <label class="form-label">Xem trước:</label>
+                    <div>
+                        <img id="previewImg" src="" alt="Preview" style="width: 100px; height: 100px; object-fit: contain; border: 1px solid #ddd; padding: 5px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        @Html.ValidationMessageFor(model => model.Icon, "", new { @class = "text-danger" })
+    </div>
+    <div class="mb-3">
+        @Html.Label("ThuTu", "Thứ tự", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.ThuTu, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ThuTu)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HienThi, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu danh mục</button>
+        <a href="@Url.Action("DanhMuc", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}

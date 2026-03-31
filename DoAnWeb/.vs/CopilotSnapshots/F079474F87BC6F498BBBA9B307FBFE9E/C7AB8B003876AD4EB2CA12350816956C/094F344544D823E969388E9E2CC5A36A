@@ -1,0 +1,194 @@
+﻿@model DoAnWeb.tb_TaiKhoan
+@{
+    ViewBag.Title = "formSuaKH";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("SuaKH", "Admin", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCustomerTitle">
+        <i class="fas fa-user-edit me-2"></i>Sửa thông tin khách hàng
+    </h3>
+    <hr>
+    
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
+
+    <!-- Username (Readonly) -->
+    <div class="mb-3">
+        @Html.Label("TenDangNhap", "Tên đăng nhập", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly", @style = "background-color: #f8f9fa;" } })
+        <small class="form-text text-muted">
+            <i class="fas fa-info-circle me-1"></i>Tên đăng nhập không thể thay đổi
+        </small>
+        @Html.ValidationMessageFor(model => model.TenDangNhap, "", new { @class = "text-danger" })
+    </div>
+
+    <!-- Password Security Notice -->
+    <div class="alert alert-warning d-flex align-items-start mb-4">
+        <i class="fas fa-shield-alt fs-4 me-3 mt-1"></i>
+        <div>
+            <h6 class="alert-heading mb-2">
+                <i class="fas fa-lock me-1"></i>Bảo mật mật khẩu
+            </h6>
+            <p class="mb-0 small">
+                <strong>Admin không có quyền xem hoặc thay đổi mật khẩu khách hàng</strong> vì lý do bảo mật.<br/>
+                Khách hàng có thể tự đổi mật khẩu qua:
+            </p>
+            <ul class="mb-0 mt-2 small">
+                <li>Tính năng <strong>"Quên mật khẩu"</strong> trên trang đăng nhập</li>
+                <li>Trang <strong>"Đổi mật khẩu"</strong> trong tài khoản cá nhân</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Full Name -->
+    <div class="mb-3">
+        @Html.Label("HoTen", "Họ tên", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HoTen, new { htmlAttributes = new { @class = "form-control", placeholder = "Nhập họ tên đầy đủ" } })
+        @Html.ValidationMessageFor(model => model.HoTen, "", new { @class = "text-danger" })
+    </div>
+
+    <!-- Email -->
+    <div class="mb-3">
+        @Html.Label("Email", "Email", htmlAttributes: new { @class = "form-label" })
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @type = "email", placeholder = "email@example.com" } })
+        </div>
+        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+    </div>
+
+    <!-- Phone -->
+    <div class="mb-3">
+        @Html.Label("SoDienThoai", "Số điện thoại", htmlAttributes: new { @class = "form-label" })
+        <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+            @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control", @type = "tel", placeholder = "0123456789" } })
+        </div>
+        @Html.ValidationMessageFor(model => model.SoDienThoai, "", new { @class = "text-danger" })
+    </div>
+
+    <!-- Active Status -->
+    <div class="mb-4">
+        @Html.Label("HoatDong", "Trạng thái tài khoản", htmlAttributes: new { @class = "form-label" })
+        <div class="form-check form-switch">
+            @Html.CheckBox("HoatDong", Model.HoatDong ?? true, new { @class = "form-check-input", @id = "HoatDongSwitch", @style = "width: 50px; height: 25px;" })
+            <label class="form-check-label ms-2" for="HoatDongSwitch" style="line-height: 25px;">
+                <span id="statusText" class="fw-bold">@(Model.HoatDong == true ? "Đang hoạt động" : "Đã khóa")</span>
+            </label>
+        </div>
+        <small class="form-text text-muted">
+            <i class="fas fa-info-circle me-1"></i>Tài khoản bị khóa sẽ không thể đăng nhập
+        </small>
+        @Html.ValidationMessageFor(model => model.HoatDong, "", new { @class = "text-danger" })
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-save me-2"></i>Lưu thay đổi
+        </button>
+        <a href="@Url.Action("KhachHang", "Admin")" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times me-2"></i>Hủy
+        </a>
+    </div>
+}
+
+@section scripts {
+<style>
+    .alert-warning {
+        background-color: #fff3cd;
+        border-color: #ffc107;
+    }
+    
+    .alert-heading {
+        color: #856404;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+    
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Update status text when toggle changes
+        $('#HoatDongSwitch').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#statusText')
+                    .text('Đang hoạt động')
+                    .removeClass('text-danger')
+                    .addClass('text-success');
+            } else {
+                $('#statusText')
+                    .text('Đã khóa')
+                    .removeClass('text-success')
+                    .addClass('text-danger');
+            }
+        });
+
+        // Set initial status text color
+        if ($('#HoatDongSwitch').is(':checked')) {
+            $('#statusText').addClass('text-success');
+        } else {
+            $('#statusText').addClass('text-danger');
+        }
+
+        // Form validation
+        $('form').on('submit', function(e) {
+            // Validate email format
+            var email = $('input[name="Email"]').val();
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email)) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Email không đúng định dạng',
+                    confirmButtonColor: '#dc3545'
+                });
+                return false;
+            }
+
+            // Validate phone number (Vietnamese phone)
+            var phone = $('input[name="SoDienThoai"]').val();
+            var phoneRegex = /^[0-9]{10,11}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Số điện thoại không đúng định dạng (10-11 số)',
+                    confirmButtonColor: '#dc3545'
+                });
+                return false;
+            }
+
+            // Validate full name
+            var hoTen = $('input[name="HoTen"]').val().trim();
+            if (!hoTen) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Vui lòng nhập họ tên',
+                    confirmButtonColor: '#dc3545'
+                });
+                return false;
+            }
+        });
+    });
+</script>
+}

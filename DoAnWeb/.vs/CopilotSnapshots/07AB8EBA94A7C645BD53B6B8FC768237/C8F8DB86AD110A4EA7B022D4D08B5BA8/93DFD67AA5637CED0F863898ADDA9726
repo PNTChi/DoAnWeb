@@ -1,0 +1,182 @@
+﻿@model DoAnWeb.Models.QLSP
+@{
+    ViewBag.Title = "formThemSP";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemSP", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <h3 id="formProductTitle">Thêm sản phẩm mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+    <!-- Bố cục 2 cột cho thông tin cơ bản -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenSanPham", "Tên sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.TenSanPham, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.TenSanPham)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BiDanh)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("MaSanPham", "Mã sản phẩm", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.MaSanPham, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.MaSanPham)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="productImage" class="form-label">Hình ảnh</label>
+                <input type="file" class="form-control" id="productImage" name="fileupload" accept="image/*">
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("MoTa", "Mô tả", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.MoTa, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.MoTa)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ChiTiet", "Mô tả chi tiết", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.ChiTiet, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ChiTiet)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("Gia", "Giá", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.Gia, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Gia)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("GiaKhuyenMai", "Giá khuyến mãi", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.GiaKhuyenMai, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.GiaKhuyenMai)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("SoLuong", "Số lượng", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.SoLuong, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.SoLuong)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("LuotXem", "Lượt xem", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.LuotXem, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.LuotXem)
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.DanhMucId, (SelectList)ViewBag.lstDMSP, "Chọn danh mục", new { @class = "form-select", required = "required" })
+                @Html.ValidationMessageFor(model => model.DanhMucId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("TenThuongHieu", "Tên thương hiệu", htmlAttributes: new { @class = "form-label" })
+                @Html.DropDownListFor(model => model.ThuongHieuId, (SelectList)ViewBag.lstTH, "Chọn thương hiệu", new { @class = "form-select", required = "required" })
+                @Html.ValidationMessageFor(model => model.ThuongHieuId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <h6 class="mb-3">Thông số kỹ thuật</h6>
+
+    <!-- Thêm các trường thông số -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BoNhoRAM", "Bộ nhớ Ram", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BoNhoRAM, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BoNhoRAM)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("BoNhoTrong", "Bộ nhớ trong", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.BoNhoTrong, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BoNhoTrong)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("ManHinh", "Màn hình", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.ManHinh, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ManHinh)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("DungLuongPin", "Dung lượng pin", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.DungLuongPin, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.DungLuongPin)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("Camera", "Camera", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.Camera, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Camera)
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("HeDieuHanh", "Hệ điều hành", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.HeDieuHanh, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.HeDieuHanh)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                @Html.Label("CongKetNoi", "Cổng kết nối", htmlAttributes: new { @class = "form-label" })
+                @Html.EditorFor(model => model.CongKetNoi, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.CongKetNoi)
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+        <a href="@Url.Action("QLSP", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}

@@ -1,0 +1,1249 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    public class AdminController : Controller
+    {
+        private WebBanHangDienTuEntities db = new WebBanHangDienTuEntities();
+        // GET: Admin
+        public ActionResult TongQuan()
+        {
+            return View();
+        }
+        public ActionResult QLSP(int page = 1)
+        {
+            // 1. Khai báo phân trang
+            int pageSize = 5; // Số sản phẩm mỗi trang
+
+            // 2. Truy vấn dữ liệu sản phẩm, phân trang và chiếu sang View Model
+            var lstsp = db.tb_SanPham
+                .OrderBy(sp => sp.Id) // Sắp xếp để phân trang ổn định
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(sp => new QLSP
+                {
+                    // Các thuộc tính cơ bản
+                    Id = sp.Id,
+                    TenSanPham = sp.TenSanPham,
+                    BiDanh = sp.BiDanh,
+                    MaSanPham = sp.MaSanPham,
+                    MoTa = sp.MoTa,
+                    ChiTiet = sp.ChiTiet,
+                    Gia = sp.Gia,
+                    GiaKhuyenMai = sp.GiaKhuyenMai,
+                    // Sử dụng ?? 0 cho các cột nullable (theo CSDL của bạn, SoLuong, LuotXem có DEFAULT 0)
+                    SoLuong = sp.SoLuong ?? 0,
+                    LuotXem = sp.LuotXem ?? 0,
+
+                    HinhAnh = sp.HinhAnh,
+                    // Các thuộc tính liên kết
+                    // Lấy HinhAnh chính (của Sản phẩm) hoặc Ảnh đầu tiên từ tb_AnhSanPham
+                    //DsHinhAnh = sp.tb_AnhSanPham.OrderBy(ha => ha.Id).Select(ha => ha.HinhAnh).ToList(),
+
+                    TenDanhMuc = sp.tb_DanhMuc.TenDanhMuc,
+                    TenThuongHieu = sp.tb_ThuongHieu.TenThuongHieu,
+
+                    // Thông số
+                    BoNhoRAM = sp.tb_ThongSo.Where(ts => ts.ThuTu == 1).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    BoNhoTrong = sp.tb_ThongSo.Where(ts => ts.ThuTu == 2).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    ManHinh = sp.tb_ThongSo.Where(ts => ts.ThuTu == 3).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    DungLuongPin = sp.tb_ThongSo.Where(ts => ts.ThuTu == 4).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    Camera = sp.tb_ThongSo.Where(ts => ts.ThuTu == 5).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    HeDieuHanh = sp.tb_ThongSo.Where(ts => ts.ThuTu == 6).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    CongKetNoi = sp.tb_ThongSo.Where(ts => ts.ThuTu == 7).Select(ts => ts.GiaTri).FirstOrDefault(),
+
+                    // Các cờ Boolean
+                    LaSanPhamTrangChu = sp.LaSanPhamTrangChu,
+                    LaSanPhamKhuyenMai = sp.LaSanPhamKhuyenMai,
+                    LaSanPhamNoiBat = sp.LaSanPhamNoiBat,
+                    LaSanPhamHot = sp.LaSanPhamHot,
+                    LaSanPhamMoi = sp.LaSanPhamMoi,
+                    LaSanPhamBanChay = sp.LaSanPhamBanChay,
+                    HienThi = sp.HienThi,
+                    NgayTao = sp.NgayTao,
+
+                }).ToList();
+
+            // 3. Xử lý phân trang cho View
+            int totalItems = db.tb_SanPham.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+
+            return View(lstsp);
+        }
+        public ActionResult formThemSP()
+        {
+            ViewBag.lstDMSP = new SelectList(db.tb_DanhMuc.ToList(), "Id", "TenDanhMuc");
+            ViewBag.lstTH = new SelectList(db.tb_ThuongHieu.ToList(), "Id", "TenThuongHieu");
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ThemSP(QLSP sp, HttpPostedFileBase[] fileupload, int defaultImageIndex = 0)
+        {
+            // Kiểm tra ảnh
+            if (fileupload == null || !fileupload.Any(f => f != null && f.ContentLength > 0))
+            {
+                ViewBag.ThongBao = "Vui lòng chọn ít nhất một ảnh sản phẩm";
+                ViewBag.lstDMSP = new SelectList(db.tb_DanhMuc.ToList(), "Id", "TenDanhMuc");
+                ViewBag.lstTH = new SelectList(db.tb_ThuongHieu.ToList(), "Id", "TenThuongHieu");
+                return View("formThemSP", sp);
+            }
+
+            try
+            {
+                // Lọc các file hợp lệ
+                var validFiles = fileupload.Where(f => f != null && f.ContentLength > 0).ToList();
+                
+                if (!validFiles.Any())
+                {
+                    ViewBag.ThongBao = "Vui lòng chọn ít nhất một ảnh sản phẩm";
+                    ViewBag.lstDMSP = new SelectList(db.tb_DanhMuc.ToList(), "Id", "TenDanhMuc");
+                    ViewBag.lstTH = new SelectList(db.tb_ThuongHieu.ToList(), "Id", "TenThuongHieu");
+                    return View("formThemSP", sp);
+                }
+
+                // Upload ảnh đầu tiên làm ảnh chính
+                var firstFile = validFiles[0];
+                var mainFilename = Path.GetFileName(firstFile.FileName);
+                var mainPath = Path.Combine(Server.MapPath("~/Content/Images"), mainFilename);
+                
+                if (System.IO.File.Exists(mainPath))
+                {
+                    mainFilename = DateTime.Now.Ticks + "_" + mainFilename;
+                    mainPath = Path.Combine(Server.MapPath("~/Content/Images"), mainFilename);
+                }
+                
+                firstFile.SaveAs(mainPath);
+
+                // Tạo sản phẩm mới
+                var sanPham = new tb_SanPham
+                {
+                    TenSanPham = sp.TenSanPham,
+                    BiDanh = sp.BiDanh,
+                    MaSanPham = sp.MaSanPham,
+                    MoTa = sp.MoTa,
+                    ChiTiet = sp.ChiTiet,
+                    Gia = sp.Gia,
+                    GiaKhuyenMai = sp.GiaKhuyenMai,
+                    SoLuong = sp.SoLuong,
+                    LuotXem = 0, // Luôn bắt đầu từ 0
+                    HinhAnh = mainFilename,
+                    DanhMucId = sp.DanhMucId,
+                    ThuongHieuId = sp.ThuongHieuId,
+                    NgayTao = DateTime.Now,
+                    HienThi = true,
+                    LaSanPhamMoi = true
+                };
+
+                db.tb_SanPham.Add(sanPham);
+                db.SaveChanges();
+
+                // Upload các ảnh phụ vào bảng tb_AnhSanPham
+                for (int i = 0; i < validFiles.Count; i++)
+                {
+                    var file = validFiles[i];
+                    var filename = Path.GetFileName(file.FileName);
+                    var path = Path.Combine(Server.MapPath("~/Content/Images"), filename);
+                    
+                    if (System.IO.File.Exists(path) && i > 0) // Ảnh đầu đã save rồi
+                    {
+                        filename = DateTime.Now.Ticks + "_" + i + "_" + filename;
+                        path = Path.Combine(Server.MapPath("~/Content/Images"), filename);
+                    }
+                    
+                    if (i > 0) // Chỉ save lại các ảnh từ thứ 2 trở đi
+                    {
+                        file.SaveAs(path);
+                    }
+
+                    // Thêm vào bảng tb_AnhSanPham
+                    var anhSanPham = new tb_AnhSanPham
+                    {
+                        SanPhamId = sanPham.Id,
+                        HinhAnh = filename,
+                        LaAnhMacDinh = (i == defaultImageIndex) // Ảnh được chọn làm mặc định
+                    };
+                    
+                    db.tb_AnhSanPham.Add(anhSanPham);
+                }
+                
+                db.SaveChanges();
+
+                // Thêm thông số kỹ thuật
+                var thongSoList = new List<tb_ThongSo>();
+                
+                if (!string.IsNullOrEmpty(sp.BoNhoRAM))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Bộ nhớ RAM", GiaTri = sp.BoNhoRAM, ThuTu = 1 });
+                
+                if (!string.IsNullOrEmpty(sp.BoNhoTrong))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Bộ nhớ trong", GiaTri = sp.BoNhoTrong, ThuTu = 2 });
+                
+                if (!string.IsNullOrEmpty(sp.ManHinh))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Màn hình", GiaTri = sp.ManHinh, ThuTu = 3 });
+                
+                if (!string.IsNullOrEmpty(sp.DungLuongPin))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Dung lượng pin", GiaTri = sp.DungLuongPin, ThuTu = 4 });
+                
+                if (!string.IsNullOrEmpty(sp.Camera))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Camera", GiaTri = sp.Camera, ThuTu = 5 });
+                
+                if (!string.IsNullOrEmpty(sp.HeDieuHanh))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Hệ điều hành", GiaTri = sp.HeDieuHanh, ThuTu = 6 });
+                
+                if (!string.IsNullOrEmpty(sp.CongKetNoi))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Cổng kết nối", GiaTri = sp.CongKetNoi, ThuTu = 7 });
+
+                if (thongSoList.Any())
+                {
+                    db.tb_ThongSo.AddRange(thongSoList);
+                    db.SaveChanges();
+                }
+
+                TempData["SuccessMessage"] = "Thêm sản phẩm thành công!";
+                return RedirectToAction("QLSP");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ThongBao = "Có lỗi xảy ra: " + ex.Message;
+                ViewBag.lstDMSP = new SelectList(db.tb_DanhMuc.ToList(), "Id", "TenDanhMuc");
+                ViewBag.lstTH = new SelectList(db.tb_ThuongHieu.ToList(), "Id", "TenThuongHieu");
+                return View("formThemSP", sp);
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        // GET: Form sửa sản phẩm
+        public ActionResult formSuaSP(int id)
+        {
+            var sp = db.tb_SanPham.Find(id);
+            if (sp == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Chuyển đổi sang QLSP model
+            var qlsp = new QLSP
+            {
+                Id = sp.Id,
+                TenSanPham = sp.TenSanPham,
+                BiDanh = sp.BiDanh,
+                MaSanPham = sp.MaSanPham,
+                MoTa = sp.MoTa,
+                ChiTiet = sp.ChiTiet,
+                Gia = sp.Gia,
+                GiaKhuyenMai = sp.GiaKhuyenMai,
+                SoLuong = sp.SoLuong,
+                LuotXem = sp.LuotXem,
+                HinhAnh = sp.HinhAnh,
+                DanhMucId = sp.DanhMucId,
+                ThuongHieuId = sp.ThuongHieuId,
+                
+                // Lấy thông số kỹ thuật
+                BoNhoRAM = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 1)?.GiaTri,
+                BoNhoTrong = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 2)?.GiaTri,
+                ManHinh = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 3)?.GiaTri,
+                DungLuongPin = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 4)?.GiaTri,
+                Camera = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 5)?.GiaTri,
+                HeDieuHanh = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 6)?.GiaTri,
+                CongKetNoi = sp.tb_ThongSo.FirstOrDefault(ts => ts.ThuTu == 7)?.GiaTri
+            };
+
+            ViewBag.lstDMSP = new SelectList(db.tb_DanhMuc.ToList(), "Id", "TenDanhMuc", sp.DanhMucId);
+            ViewBag.lstTH = new SelectList(db.tb_ThuongHieu.ToList(), "Id", "TenThuongHieu", sp.ThuongHieuId);
+            return View(qlsp);
+        }
+
+        // POST: Sửa sản phẩm
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SuaSP(QLSP sp, HttpPostedFileBase fileupload)
+        {
+            try
+            {
+                var sanPham = db.tb_SanPham.Find(sp.Id);
+                if (sanPham == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // Cập nhật thông tin cơ bản
+                sanPham.TenSanPham = sp.TenSanPham;
+                sanPham.BiDanh = sp.BiDanh;
+                sanPham.MaSanPham = sp.MaSanPham;
+                sanPham.MoTa = sp.MoTa;
+                sanPham.ChiTiet = sp.ChiTiet;
+                sanPham.Gia = sp.Gia;
+                sanPham.GiaKhuyenMai = sp.GiaKhuyenMai;
+                sanPham.SoLuong = sp.SoLuong;
+                sanPham.LuotXem = sp.LuotXem;
+                sanPham.DanhMucId = sp.DanhMucId;
+                sanPham.ThuongHieuId = sp.ThuongHieuId;
+                sanPham.NgayCapNhat = DateTime.Now;
+
+                // Xử lý upload ảnh mới (nếu có)
+                if (fileupload != null && fileupload.ContentLength > 0)
+                {
+                    // Xóa ảnh cũ
+                    if (!string.IsNullOrEmpty(sanPham.HinhAnh))
+                    {
+                        var oldImagePath = Path.Combine(Server.MapPath("~/Content/Images"), sanPham.HinhAnh);
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    // Lưu ảnh mới
+                    var filename = Path.GetFileName(fileupload.FileName);
+                    var path = Path.Combine(Server.MapPath("~/Content/Images"), filename);
+                    
+                    if (System.IO.File.Exists(path))
+                    {
+                        filename = DateTime.Now.Ticks + "_" + filename;
+                        path = Path.Combine(Server.MapPath("~/Content/Images"), filename);
+                    }
+                    
+                    fileupload.SaveAs(path);
+                    sanPham.HinhAnh = filename;
+                }
+
+                // Cập nhật thông số kỹ thuật
+                // Xóa thông số cũ
+                var oldThongSo = db.tb_ThongSo.Where(ts => ts.SanPhamId == sp.Id).ToList();
+                db.tb_ThongSo.RemoveRange(oldThongSo);
+
+                // Thêm thông số mới
+                var thongSoList = new List<tb_ThongSo>();
+                
+                if (!string.IsNullOrEmpty(sp.BoNhoRAM))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Bộ nhớ RAM", GiaTri = sp.BoNhoRAM, ThuTu = 1 });
+                
+                if (!string.IsNullOrEmpty(sp.BoNhoTrong))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Bộ nhớ trong", GiaTri = sp.BoNhoTrong, ThuTu = 2 });
+                
+                if (!string.IsNullOrEmpty(sp.ManHinh))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Màn hình", GiaTri = sp.ManHinh, ThuTu = 3 });
+                
+                if (!string.IsNullOrEmpty(sp.DungLuongPin))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Dung lượng pin", GiaTri = sp.DungLuongPin, ThuTu = 4 });
+                
+                if (!string.IsNullOrEmpty(sp.Camera))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Camera", GiaTri = sp.Camera, ThuTu = 5 });
+                
+                if (!string.IsNullOrEmpty(sp.HeDieuHanh))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Hệ điều hành", GiaTri = sp.HeDieuHanh, ThuTu = 6 });
+                
+                if (!string.IsNullOrEmpty(sp.CongKetNoi))
+                    thongSoList.Add(new tb_ThongSo { SanPhamId = sanPham.Id, TenThongSo = "Cổng kết nối", GiaTri = sp.CongKetNoi, ThuTu = 7 });
+
+                if (thongSoList.Any())
+                {
+                    db.tb_ThongSo.AddRange(thongSoList);
+                }
+
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = "Cập nhật sản phẩm thành công!";
+                return RedirectToAction("QLSP");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ThongBao = "Có lỗi xảy ra: " + ex.Message;
+                ViewBag.lstDMSP = new SelectList(db.tb_DanhMuc.ToList(), "Id", "TenDanhMuc", sp.DanhMucId);
+                ViewBag.lstTH = new SelectList(db.tb_ThuongHieu.ToList(), "Id", "TenThuongHieu", sp.ThuongHieuId);
+                return View("formSuaSP", sp);
+            }
+        }
+
+        // GET: Xóa sản phẩm
+        public ActionResult XoaSP(int id)
+        {
+            try
+            {
+                var sanPham = db.tb_SanPham.Find(id);
+                if (sanPham == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy sản phẩm!";
+                    return RedirectToAction("QLSP");
+                }
+
+                // Xóa thông số kỹ thuật liên quan
+                var thongSo = db.tb_ThongSo.Where(ts => ts.SanPhamId == id).ToList();
+                db.tb_ThongSo.RemoveRange(thongSo);
+
+                // Xóa ảnh sản phẩm từ thư mục (nếu có)
+                if (!string.IsNullOrEmpty(sanPham.HinhAnh))
+                {
+                    var imagePath = Path.Combine(Server.MapPath("~/Content/Images"), sanPham.HinhAnh);
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                    }
+                }
+
+                // Xóa sản phẩm
+                db.tb_SanPham.Remove(sanPham);
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = "Xóa sản phẩm thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xóa sản phẩm: " + ex.Message;
+            }
+
+            return RedirectToAction("QLSP");
+        }
+
+
+
+
+
+
+
+
+
+
+
+        public ActionResult TimKiemSP(string timsp, int page = 1)
+        {
+            int pageSize = 5;
+
+            // 1. Khởi tạo truy vấn từ bảng tb_SanPham
+            var query = db.tb_SanPham.AsQueryable();
+
+            if (!String.IsNullOrEmpty(timsp))
+            {
+                // 2. Lọc sản phẩm theo Tên Sản phẩm HOẶC Mã Sản phẩm
+                string keyword = timsp.ToLower();
+                query = query.Where(sp =>
+                    sp.TenSanPham.ToLower().Contains(keyword) ||
+                    sp.MaSanPham.ToLower().Contains(keyword)
+                );
+            }
+
+            // 3. Xử lý phân trang
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // 4. Phân trang, sắp xếp và chiếu dữ liệu sang View Model QLSP
+            var lstsp = query
+                .OrderBy(sp => sp.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(sp => new QLSP
+                { 
+                    Id = sp.Id,
+                    TenSanPham = sp.TenSanPham,
+                    BiDanh = sp.BiDanh,
+                    MaSanPham = sp.MaSanPham,
+                    MoTa = sp.MoTa,
+                    ChiTiet = sp.ChiTiet,
+                    Gia = sp.Gia,
+                    GiaKhuyenMai = sp.GiaKhuyenMai,
+                    SoLuong = sp.SoLuong ?? 0,
+                    LuotXem = sp.LuotXem ?? 0,
+
+                    HinhAnh = sp.HinhAnh,
+                    // Các thuộc tính liên kết
+                    // Lấy Hình Ảnh
+                    //DsHinhAnh = sp.tb_AnhSanPham.OrderBy(ha => ha.Id).Select(ha => ha.HinhAnh).ToList(),
+
+                    TenDanhMuc = sp.tb_DanhMuc.TenDanhMuc,
+                    TenThuongHieu = sp.tb_ThuongHieu.TenThuongHieu ?? "Không có",
+
+                    // Thông số
+                    BoNhoRAM = sp.tb_ThongSo.Where(ts => ts.ThuTu == 1).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    BoNhoTrong = sp.tb_ThongSo.Where(ts => ts.ThuTu == 2).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    ManHinh = sp.tb_ThongSo.Where(ts => ts.ThuTu == 3).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    DungLuongPin = sp.tb_ThongSo.Where(ts => ts.ThuTu == 4).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    Camera = sp.tb_ThongSo.Where(ts => ts.ThuTu == 5).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    HeDieuHanh = sp.tb_ThongSo.Where(ts => ts.ThuTu == 6).Select(ts => ts.GiaTri).FirstOrDefault(),
+                    CongKetNoi = sp.tb_ThongSo.Where(ts => ts.ThuTu == 7).Select(ts => ts.GiaTri).FirstOrDefault(),
+
+                    // Các cờ Boolean và Metadata
+                    LaSanPhamTrangChu = sp.LaSanPhamTrangChu,
+                    LaSanPhamKhuyenMai = sp.LaSanPhamKhuyenMai,
+                    LaSanPhamNoiBat = sp.LaSanPhamNoiBat,
+                    LaSanPhamHot = sp.LaSanPhamHot,
+                    LaSanPhamMoi = sp.LaSanPhamMoi,
+                    LaSanPhamBanChay = sp.LaSanPhamBanChay,
+                    HienThi = sp.HienThi,
+                    NgayTao = sp.NgayTao,
+
+                })
+                .ToList();
+
+            // 5. Truyền dữ liệu phân trang và từ khóa tìm kiếm
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timsp;
+
+            return View("QLSP", lstsp);
+        }
+        public ActionResult DanhMuc(int page = 1)
+        {
+            int pageSize = 2;
+            var lstDM = db.tb_DanhMuc
+                .OrderBy(dm => dm.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            int totalItems = db.tb_DanhMuc.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstDM);
+        }
+        public ActionResult formThemDM()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ThemDM(tb_DanhMuc dm)
+        {
+            if (ModelState.IsValid)
+            {
+                dm.NgayTao = DateTime.Now;
+                db.tb_DanhMuc.Add(dm);
+                db.SaveChanges();
+                return RedirectToAction("DanhMuc");
+            }
+            return View("formThemDM", dm);
+        }
+        public ActionResult formSuaDM(int id)
+        {
+            var dm = db.tb_DanhMuc.Find(id);
+            if (dm == null)
+            {
+                return HttpNotFound();
+            }
+            return View(dm);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SuaDM(tb_DanhMuc dm)
+        {
+            if (ModelState.IsValid)
+            {
+                // 1. Tìm đối tượng gốc từ CSDL (để có tất cả dữ liệu gốc)
+                var dmGoc = db.tb_DanhMuc.Find(dm.Id);
+                if (dmGoc == null)
+                {
+                    return HttpNotFound();
+                }
+                // 2. Cập nhật các thuộc tính được gửi từ Form
+                dmGoc.TenDanhMuc = dm.TenDanhMuc;
+                dmGoc.BiDanh = dm.BiDanh;
+                dmGoc.Icon = dm.Icon;
+                dmGoc.ThuTu = dm.ThuTu;
+                dmGoc.HienThi = dm.HienThi;
+
+                // 3. Cập nhật Metadata
+                dmGoc.NgayCapNhat = DateTime.Now;
+                // Thêm NguoiCapNhat nếu có
+
+                // 4. Lưu thay đổi (EF sẽ tự động nhận diện dmGoc đã bị thay đổi)
+                db.SaveChanges();
+                return RedirectToAction("DanhMuc");
+            }
+
+            // Nếu có lỗi validation, trả về View
+            return View("formSuaDM", dm);
+        }
+        public ActionResult XoaDM(int id)
+        {
+            var dm = db.tb_DanhMuc.Find(id);
+            if (dm != null)
+            {
+                db.tb_DanhMuc.Remove(dm);
+                db.SaveChanges();
+            }
+            return RedirectToAction("DanhMuc");
+        }
+        public ActionResult TimDanhMuc(string timdm, int page = 1)
+        {
+            int pageSize = 2;
+            var query = db.tb_DanhMuc.AsQueryable();
+
+            if (!String.IsNullOrEmpty(timdm))
+            {
+                query = query.Where(dm => dm.TenDanhMuc.ToLower().Contains(timdm.ToLower()) || dm.BiDanh.ToLower().Contains(timdm.ToLower()));
+            }
+
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var lstDM = query
+                .OrderBy(dm => dm.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timdm;
+            return View("DanhMuc", lstDM);
+        }
+        public ActionResult ThuongHieu(int page = 1)
+        {
+            int pageSize = 5;
+            var lstTH = db.tb_ThuongHieu
+                .OrderBy(th => th.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            int totalItems = db.tb_ThuongHieu.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstTH);
+        }
+        public ActionResult formThemTH()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ThemTH(tb_ThuongHieu th)
+        {
+            if (ModelState.IsValid)
+            {
+                th.NgayTao = DateTime.Now;
+                db.tb_ThuongHieu.Add(th);
+                db.SaveChanges();
+                return RedirectToAction("ThuongHieu");
+            }
+            return View("formThemTH", th);
+        }
+        public ActionResult formSuaTH(int id)
+        {
+            var th = db.tb_ThuongHieu.Find(id);
+            if (th == null)
+            {
+                return HttpNotFound();
+            }
+            return View(th);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SuaTH(tb_ThuongHieu th)
+        {
+            if (ModelState.IsValid)
+            {
+                // 1. Tìm đối tượng gốc từ CSDL (để có tất cả dữ liệu gốc)
+                var thGoc = db.tb_ThuongHieu.Find(th.Id);
+                if (thGoc == null)
+                {
+                    return HttpNotFound();
+                }
+                // 2. Cập nhật các thuộc tính được gửi từ Form
+                thGoc.TenThuongHieu = th.TenThuongHieu;
+                thGoc.BiDanh = th.BiDanh;
+                thGoc.HienThi = th.HienThi;
+
+                // 3. Lưu thay đổi (EF sẽ tự động nhận diện dmGoc đã bị thay đổi)
+                db.SaveChanges();
+                return RedirectToAction("ThuongHieu");
+            }
+
+            // Nếu có lỗi validation, trả về View
+            return View("formSuaTH", th);
+        }
+        public ActionResult XoaTH(int id)
+        {
+            var th = db.tb_ThuongHieu.Find(id);
+            if (th != null)
+            {
+                db.tb_ThuongHieu.Remove(th);
+                db.SaveChanges();
+            }
+            return RedirectToAction("ThuongHieu");
+        }
+        public ActionResult TimThuongHieu(string timth, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_ThuongHieu.AsQueryable();
+
+            if (!String.IsNullOrEmpty(timth))
+            {
+                query = query.Where(th => th.TenThuongHieu.ToLower().Contains(timth.ToLower())
+                 || th.BiDanh.ToLower().Contains(timth.ToLower()));
+            }
+
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var lstTH = query
+                .OrderBy(th => th.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timth;
+            return View("ThuongHieu", lstTH);
+        }
+        public ActionResult KhachHang(int page = 1)
+        {
+            int pageSize = 5;
+            var lstKH = db.tb_TaiKhoan
+                .Where(kh => kh.LaQuanTri == false)
+                .OrderBy(kh => kh.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            int totalItems = db.tb_TaiKhoan.Count(kh => kh.LaQuanTri == false);
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstKH);
+        }
+        public ActionResult formThemKH()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ThemKH(tb_TaiKhoan kh)
+        {
+            if (ModelState.IsValid)
+            {
+                kh.LaQuanTri = false;
+                db.tb_TaiKhoan.Add(kh);
+                db.SaveChanges();
+                return RedirectToAction("KhachHang");
+            }
+            return View("formThemKH", kh);
+        }
+        public ActionResult formSuaKH(int id)
+        {
+            var kh = db.tb_TaiKhoan.Find(id);
+            if (kh == null)
+            {
+                return HttpNotFound();
+            }
+            return View(kh);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SuaKH(tb_TaiKhoan kh)
+        {
+            if (ModelState.IsValid)
+            {
+                // 1. Tìm đối tượng gốc từ CSDL (để có tất cả dữ liệu gốc)
+                var khGoc = db.tb_TaiKhoan.Find(kh.Id);
+                if (khGoc == null)
+                {
+                    return HttpNotFound();
+                }
+                // 2. Cập nhật các thuộc tính được gửi từ Form
+                khGoc.TenDangNhap = kh.TenDangNhap;
+                khGoc.MatKhau = kh.MatKhau;
+                khGoc.HoTen = kh.HoTen;
+                khGoc.Email = kh.Email;
+                khGoc.SoDienThoai = kh.SoDienThoai;
+                khGoc.HoatDong = kh.HoatDong;
+
+                db.SaveChanges();
+                return RedirectToAction("KhachHang");
+            }
+            return View("formSuaKH", kh);
+        }
+        public ActionResult KhoaKH(int id)
+        {
+            var kh = db.tb_TaiKhoan.Find(id);
+            if (kh != null)
+            {
+                kh.HoatDong = false;
+                db.SaveChanges();
+            }
+            return RedirectToAction("KhachHang");
+        }
+        public ActionResult TimKhachHang(string timkh, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_TaiKhoan.AsQueryable();
+
+            // 1. LỌC: Chỉ lấy Khách hàng ngay từ đầu (LaQuanTri == false tương ứng với bit = 0)
+            query = query.Where(kh => kh.LaQuanTri == false);
+
+            if (!String.IsNullOrEmpty(timkh))
+            {
+                string keyword = timkh.ToLower();
+
+                // 2. LỌC: Áp dụng điều kiện tìm kiếm lên danh sách Khách hàng
+                query = query.Where(kh =>
+                     kh.HoTen.ToLower().Contains(keyword) ||
+                     kh.TenDangNhap.ToLower().Contains(keyword));
+            }
+
+            // 3. Tính tổng số lượng (query đã chứa cả bộ lọc Khách hàng và Tìm kiếm)
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // 4. Lấy danh sách, sắp xếp và phân trang
+            var lstKH = query
+                .OrderBy(kh => kh.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList(); // Thực thi truy vấn
+
+            // 5. Thiết lập ViewBag
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timkh;
+
+            return View("KhachHang", lstKH);
+        }
+        public ActionResult DonHang(int page = 1)
+        {
+            int pageSize = 5;
+            var lstDH = db.tb_DonHang
+                .OrderBy(dh => dh.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(dh => new QLDonHangViewModel
+                {
+                    Id = dh.Id,
+                    MaDonHang = dh.MaDonHang,
+                    TenKhachHang = dh.TenKhachHang,
+                    SoDienThoai = dh.SoDienThoai,
+                    DiaChi = dh.DiaChi,
+                    Email = dh.Email,
+                    TongTien = dh.TongTien,
+                    SoLuongSanPham = dh.SoLuongSanPham,
+                    PhuongThucThanhToan = dh.tb_PhuongThucThanhToan.TenPhuongThuc,
+                    TrangThai = dh.TrangThai,
+                    NgayTao = dh.NgayTao,
+                    PhuongThucVanChuyen = dh.tb_PhuongThucVanChuyen.TenPhuongThuc,
+                    MaGiamGia = dh.tb_MaGiamGia.MaCode
+                })
+                .ToList();
+
+            int totalItems = db.tb_DonHang.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstDH);
+        }
+        public ActionResult TimDonHang(string timdh, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_DonHang.AsQueryable();
+
+            if (!String.IsNullOrEmpty(timdh))
+            {
+                string keyword = timdh.ToLower();
+
+                // Lọc theo Tên Khách hàng, Mã đơn hàng, hoặc có thể thêm Số điện thoại
+                query = query.Where(dh =>
+                    dh.TenKhachHang.ToLower().Contains(keyword) ||
+                    dh.MaDonHang.ToLower().Contains(keyword)); // Số điện thoại không cần ToLower()
+            }
+
+            // Tính tổng số lượng đơn hàng đã được lọc (tìm kiếm)
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Lấy dữ liệu, sắp xếp, phân trang và ánh xạ sang ViewModel
+            var lstDH = query
+                .OrderByDescending(dh => dh.NgayTao) // Sắp xếp theo ngày tạo thay vì Id để đơn hàng mới lên đầu
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(dh => new QLDonHangViewModel
+                {
+                    // Ánh xạ các trường gốc của tb_DonHang
+                    Id = dh.Id, // Đã sửa từ ID_DH sang Id
+                    MaDonHang = dh.MaDonHang,
+                    TenKhachHang = dh.TenKhachHang,
+                    SoDienThoai = dh.SoDienThoai,
+                    DiaChi = dh.DiaChi,
+                    Email = dh.Email,
+                    TongTien = dh.TongTien,
+                    SoLuongSanPham = dh.SoLuongSanPham,
+                    TrangThai = dh.TrangThai,
+                    NgayTao = dh.NgayTao,
+
+                    // Ánh xạ các thuộc tính liên kết sang chuỗi (string)
+                    PhuongThucThanhToan = dh.tb_PhuongThucThanhToan.TenPhuongThuc,
+                    PhuongThucVanChuyen = dh.tb_PhuongThucVanChuyen.TenPhuongThuc,
+                    MaGiamGia = dh.tb_MaGiamGia.MaCode
+                })
+                .ToList(); // Thực thi truy vấn
+
+            // Thiết lập ViewBag
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timdh;
+
+            // Trả về View "DonHang"
+            return View("DonHang", lstDH);
+        }
+        public ActionResult LocDonHang(string trangthai, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_DonHang.AsQueryable();
+
+            int trangThaiId = 0;
+            bool isFilterActive = false;
+
+            // 1. Kiểm tra và chuyển đổi trạng thái (string) sang ID (int)
+            if (!String.IsNullOrEmpty(trangthai) && int.TryParse(trangthai, out trangThaiId))
+            {
+                // Lọc theo TrangThai (kiểu int)
+                query = query.Where(dh => dh.TrangThai == trangThaiId);
+                isFilterActive = true;
+            }
+
+            // 2. Tính tổng số lượng đơn hàng đã được lọc
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // 3. Phân trang, sắp xếp và ánh xạ sang ViewModel
+            var lstLocDH = query
+                .OrderByDescending(dh => dh.NgayTao) // Sắp xếp theo ngày tạo mới nhất
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(dh => new QLDonHangViewModel // <-- Ánh xạ sang ViewModel
+                {
+                    // Các trường gốc (từ tb_DonHang)
+                    Id = dh.Id,
+                    MaDonHang = dh.MaDonHang,
+                    TenKhachHang = dh.TenKhachHang,
+                    SoDienThoai = dh.SoDienThoai,
+                    DiaChi = dh.DiaChi,
+                    Email = dh.Email,
+                    TongTien = dh.TongTien,
+                    SoLuongSanPham = dh.SoLuongSanPham,
+                    TrangThai = dh.TrangThai,
+                    NgayTao = dh.NgayTao,
+
+                    // Các trường liên kết (từ ViewModel)
+                    PhuongThucThanhToan = dh.tb_PhuongThucThanhToan.TenPhuongThuc,
+                    PhuongThucVanChuyen = dh.tb_PhuongThucVanChuyen.TenPhuongThuc,
+                    MaGiamGia = dh.tb_MaGiamGia.MaCode
+                })
+                .ToList();
+
+            // 4. Thiết lập ViewBag
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            // Truyền lại ID trạng thái (dạng string) để giữ bộ lọc khi phân trang
+            ViewBag.TuKhoa = isFilterActive ? trangthai : "";
+
+            // Trả về View "DonHang"
+            return View("DonHang", lstLocDH);
+        }
+        public ActionResult ThanhToan(int page = 1)
+        {
+            int pageSize = 5;
+            var lstTT = db.tb_DonHang
+                .OrderBy(tt => tt.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(tt => new QLThanhToanViewModel()
+                {
+                    Id = tt.Id,
+                    MaDonHang = tt.MaDonHang,
+                    TenPhuongThucThanhToan = tt.tb_PhuongThucThanhToan.TenPhuongThuc,
+                    TongTien = tt.TongTien,
+                    TrangThai = tt.TrangThai,
+                    NgayTao = tt.NgayTao
+                })
+                .ToList();
+
+            int totalItems = db.tb_DonHang.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstTT);
+        }
+        public ActionResult TimThanhToan(string timtt, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_DonHang.AsQueryable();
+            if (!String.IsNullOrEmpty(timtt))
+            {
+                query = query.Where(tt =>
+                    tt.MaDonHang.ToLower().Contains(timtt.ToLower()) ||
+                    tt.tb_PhuongThucThanhToan.TenPhuongThuc.ToLower().Contains(timtt.ToLower())
+                );
+            }
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var lstTT = query
+                .OrderBy(tt => tt.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(tt => new QLThanhToanViewModel()
+                {
+                    Id = tt.Id,
+                    MaDonHang = tt.MaDonHang,
+                    TenPhuongThucThanhToan = tt.tb_PhuongThucThanhToan.TenPhuongThuc,
+                    TongTien = tt.TongTien,
+                    TrangThai = tt.TrangThai,
+                    NgayTao = tt.NgayTao
+                })
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timtt;
+
+            return View("ThanhToan", lstTT);
+        }
+        public ActionResult KhuyenMai(int page = 1)
+        {
+            int pageSize = 5;
+            var lstKM = db.tb_MaGiamGia
+                .OrderBy(km => km.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize).ToList();
+
+            int totalItems = db.tb_MaGiamGia.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstKM);
+        }
+        public ActionResult formThemKM()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ThemKM(tb_MaGiamGia km)
+        {
+            if (ModelState.IsValid)
+            {
+                km.NgayTao = DateTime.Now;
+                db.tb_MaGiamGia.Add(km);
+                db.SaveChanges();
+                return RedirectToAction("KhuyenMai");
+            }
+            return View("formThemKM", km);
+        }
+        public ActionResult formSuaKM(int id)
+        {
+            var km = db.tb_MaGiamGia.Find(id);
+            if (km == null)
+            {
+                return HttpNotFound();
+            }
+            return View(km);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SuaKM(tb_MaGiamGia km)
+        {
+            if (ModelState.IsValid)
+            {
+                var kmGoc = db.tb_MaGiamGia.Find(km.Id);
+                if (kmGoc == null)
+                {
+                    return HttpNotFound();
+                }
+                // Cập nhật các thuộc tính được gửi từ Form
+                kmGoc.MaCode = km.MaCode;
+                kmGoc.SoTienGiam = km.SoTienGiam;
+                kmGoc.PhanTramGiam = km.PhanTramGiam;
+                if (km.NgayKetThuc.HasValue)
+                {
+                    kmGoc.NgayKetThuc = km.NgayKetThuc;
+                }
+                kmGoc.SoLuong = km.SoLuong;
+                kmGoc.HienThi = km.HienThi;
+                db.SaveChanges();
+                return RedirectToAction("KhuyenMai");
+            }
+            return View("formSuaKM", km);
+        }
+        public ActionResult XoaKM(int id)
+        {
+            var km = db.tb_MaGiamGia.Find(id);
+            if (km != null)
+            {
+                db.tb_MaGiamGia.Remove(km);
+                db.SaveChanges();
+            }
+            return RedirectToAction("KhuyenMai");
+        }
+        public ActionResult TimKhuyenMai(string timkm, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_MaGiamGia.AsQueryable();
+
+            if (!String.IsNullOrEmpty(timkm))
+            {
+                query = query.Where(tt => tt.MaCode.ToLower().Contains(timkm.ToLower()));
+            }
+
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var lstKM = query
+                .OrderBy(tt => tt.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timkm;
+            return View("KhuyenMai", lstKM);
+        }
+        public ActionResult BaoCaoThongKe()
+        {
+            return View();
+        }
+        public ActionResult QuanTriVien(int page = 1)
+        {
+            int pageSize = 5;
+            var lstKH = db.tb_TaiKhoan
+                .Where(kh => kh.LaQuanTri == true)
+                .OrderBy(kh => kh.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            int totalItems = db.tb_TaiKhoan.Count(kh => kh.LaQuanTri == true);
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = "";
+            return View(lstKH);
+        }
+        public ActionResult formThemQTV()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ThemQTV(tb_TaiKhoan qtv)
+        {
+            if (ModelState.IsValid)
+            {
+                qtv.LaQuanTri = true;
+                db.tb_TaiKhoan.Add(qtv);
+                db.SaveChanges();
+                return RedirectToAction("QuanTriVien");
+            }
+            return View("formThemQTV", qtv);
+        }
+        public ActionResult formSuaQTV(int id)
+        {
+            var qtv = db.tb_TaiKhoan.Find(id);
+            if (qtv == null)
+            {
+                return HttpNotFound();
+            }
+            return View(qtv);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SuaQTV(tb_TaiKhoan qtv)
+        {
+            if (ModelState.IsValid)
+            {
+                var qtvGoc = db.tb_TaiKhoan.Find(qtv.Id);
+                if (qtvGoc == null)
+                {
+                    return HttpNotFound();
+                }
+                qtvGoc.HoTen = qtv.HoTen;
+                qtvGoc.TenDangNhap = qtv.TenDangNhap;
+                qtvGoc.Email = qtv.Email;
+                qtvGoc.HoatDong = qtv.HoatDong;
+
+                if (!string.IsNullOrEmpty(qtv.MatKhau))
+                {
+                    qtvGoc.MatKhau = qtv.MatKhau;
+                }
+                db.SaveChanges();
+                return RedirectToAction("QuanTriVien");
+            }
+            return View("formSuaQTV", qtv);
+        }
+        public ActionResult XoaQTV(int id)
+        {
+            var qtv = db.tb_TaiKhoan.Find(id);
+            if (qtv != null)
+            {
+                db.tb_TaiKhoan.Remove(qtv);
+                db.SaveChanges();
+            }
+            return RedirectToAction("QuanTriVien");
+        }
+        public ActionResult TimQuanTriVien(string timqtv, int page = 1)
+        {
+            int pageSize = 5;
+            var query = db.tb_TaiKhoan.AsQueryable();
+            query = query.Where(qtv => qtv.LaQuanTri == true);
+
+            if (!String.IsNullOrEmpty(timqtv))
+            {
+                string keyword = timqtv.ToLower();
+                query = query.Where(qtv =>
+                     qtv.HoTen.ToLower().Contains(keyword) ||
+                     qtv.TenDangNhap.ToLower().Contains(keyword));
+            }
+
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var lstQTV = query
+                .OrderBy(qtv => qtv.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TuKhoa = timqtv;
+
+            return View("QuanTriVien", lstQTV);
+        }
+        public ActionResult HoTroKH()
+        {
+            return View();
+        }
+    }
+}

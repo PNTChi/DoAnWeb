@@ -1,0 +1,237 @@
+﻿@model List<DoAnWeb.tb_SanPham>
+
+@{
+    ViewBag.Title = "Tìm kiếm: " + ViewBag.SearchKeyword;
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+            <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                <i class="fas fa-home mr-2"></i>
+                Trang chủ
+            </a>
+        </li>
+        <li aria-current="page">
+            <div class="flex items-center">
+                <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                <span class="text-sm font-medium text-gray-500">Tìm kiếm</span>
+            </div>
+        </li>
+    </ol>
+</nav>
+
+<!-- Search Header -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-search mr-3 text-blue-600"></i>
+                Kết quả tìm kiếm: "<span class="text-blue-600">@ViewBag.SearchKeyword</span>"
+            </h1>
+            <p class="text-gray-600">
+                Tìm thấy <strong class="text-blue-600">@ViewBag.TotalResults</strong> sản phẩm
+            </p>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="flex items-center space-x-2">
+            <label class="text-sm text-gray-700 font-semibold">Sắp xếp:</label>
+            <select id="sortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="newest" @(ViewBag.SortBy == "newest" ? "selected" : "")>Mới nhất</option>
+                <option value="popular" @(ViewBag.SortBy == "popular" ? "selected" : "")>Phổ biến</option>
+                <option value="price_asc" @(ViewBag.SortBy == "price_asc" ? "selected" : "")>Giá thấp đến cao</option>
+                <option value="price_desc" @(ViewBag.SortBy == "price_desc" ? "selected" : "")>Giá cao đến thấp</option>
+                <option value="name_asc" @(ViewBag.SortBy == "name_asc" ? "selected" : "")>Tên A đến Z</option>
+                <option value="name_desc" @(ViewBag.SortBy == "name_desc" ? "selected" : "")>Tên Z đến A</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Filters Sidebar (1/4 width) -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
+            <h2 class="text-xl font-bold text-gray-900 pb-3 border-b flex items-center">
+                <i class="fas fa-filter mr-2 text-blue-600"></i>
+                Bộ lọc
+            </h2>
+
+            <!-- Category Filter -->
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-3">Danh mục</h3>
+                <div class="space-y-2">
+                    <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <input type="radio" name="danhMucId" value="" @(ViewBag.DanhMucId == 0 ? "checked" : "") class="mr-2">
+                        <span class="text-sm">Tất cả</span>
+                    </label>
+                    @if (ViewBag.DanhMucList != null)
+                    {
+                        foreach (var dm in (List<DoAnWeb.tb_DanhMuc>)ViewBag.DanhMucList)
+                        {
+                            <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                <input type="radio" name="danhMucId" value="@dm.Id" @(ViewBag.DanhMucId == dm.Id ? "checked" : "") class="mr-2">
+                                <span class="text-sm">@dm.TenDanhMuc</span>
+                            </label>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Brand Filter -->
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-3">Thương hiệu</h3>
+                <div class="space-y-2">
+                    <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                        <input type="radio" name="thuongHieuId" value="" @(ViewBag.ThuongHieuId == 0 ? "checked" : "") class="mr-2">
+                        <span class="text-sm">Tất cả</span>
+                    </label>
+                    @if (ViewBag.ThuongHieuList != null)
+                    {
+                        foreach (var th in (List<DoAnWeb.tb_ThuongHieu>)ViewBag.ThuongHieuList)
+                        {
+                            <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                <input type="radio" name="thuongHieuId" value="@th.Id" @(ViewBag.ThuongHieuId == th.Id ? "checked" : "") class="mr-2">
+                                <span class="text-sm">@th.TenThuongHieu</span>
+                            </label>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Price Filter -->
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-3">Khoảng giá</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm text-gray-700">Từ:</label>
+                        <input type="number" id="minPrice" value="@ViewBag.MinPrice" placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-700">Đến:</label>
+                        <input type="number" id="maxPrice" value="@ViewBag.MaxPrice" placeholder="100,000,000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="applyFilters()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                <i class="fas fa-check-circle mr-2"></i>
+                Áp dụng
+            </button>
+        </div>
+    </div>
+
+    <!-- Products Grid (3/4 width) -->
+    <div class="lg:col-span-3">
+        @if (Model.Any())
+        {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var sp in Model)
+                {
+                    <a href="@Url.Action("ChiTietSP", "SanPham", new { id = sp.Id })" class="group block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <!-- Product Image -->
+                        <div class="aspect-square overflow-hidden bg-gray-100 relative">
+                            @if (!string.IsNullOrEmpty(sp.HinhAnh))
+                            {
+                                <img src="@Url.Content("~/Content/Images/" + sp.HinhAnh)"
+                                     alt="@sp.TenSanPham"
+                                     class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+                            }
+                            else
+                            {
+                                <img src="@Url.Content("~/Content/Images/no-image.png")"
+                                     alt="No Image"
+                                     class="w-full h-full object-contain" />
+                            }
+
+                            @if (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia)
+                            {
+                                <span class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                    -@Math.Round((decimal)(1 - (sp.GiaKhuyenMai.Value / sp.Gia.Value)) * 100)%
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="p-4">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 h-10 group-hover:text-blue-600">
+                                @sp.TenSanPham
+                            </h3>
+
+                            <!-- Price -->
+                            @if (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia)
+                            {
+                                <div class="space-y-1">
+                                    <div class="text-lg font-bold text-red-600">
+                                        @String.Format("{0:0,0}", sp.GiaKhuyenMai.Value) đ
+                                    </div>
+                                    <div class="text-sm text-gray-500 line-through">
+                                        @String.Format("{0:0,0}", sp.Gia ?? 0) đ
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-lg font-bold text-blue-600">
+                                    @String.Format("{0:0,0}", sp.Gia ?? 0) đ
+                                </div>
+                            }
+
+                            <!-- Rating & Views -->
+                            <div class="flex items-center justify-between mt-3 text-xs text-gray-600">
+                                <div class="flex items-center">
+                                    <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                    <span>4.5</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    <span>@(sp.LuotXem ?? 0)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
+                <p class="text-gray-600 mb-6">Không có sản phẩm nào phù hợp với từ khóa "<strong>@ViewBag.SearchKeyword</strong>"</p>
+                <a href="@Url.Action("Index", "Home")" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    <i class="fas fa-home mr-2"></i>
+                    Về trang chủ
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    <script>
+    // Sort change handler
+    $('#sortBy').on('change', function() {
+        applyFilters();
+    });
+
+    // Apply filters
+    function applyFilters() {
+        var params = {
+            q: '@ViewBag.SearchKeyword',
+            sortBy: $('#sortBy').val(),
+            danhMucId: $('input[name="danhMucId"]:checked').val() || null,
+            thuongHieuId: $('input[name="thuongHieuId"]:checked').val() || null,
+            minPrice: $('#minPrice').val() || null,
+            maxPrice: $('#maxPrice').val() || null
+        };
+
+        // Build URL
+        var url = '@Url.Action("Index", "Search")?' + $.param(params);
+        window.location.href = url;
+    }
+    </script>
+}

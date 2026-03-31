@@ -1,0 +1,853 @@
+﻿@model DoAnWeb.Models.CheckoutViewModel
+
+@{
+    ViewBag.Title = "Thanh toán";
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+<ol class="inline-flex items-center space-x-1 md:space-x-3">
+ <li class="inline-flex items-center">
+    <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+        <i class="fas fa-home mr-2"></i>
+          Trang chủ
+   </a>
+     </li>
+     <li>
+ <div class="flex items-center">
+   <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+       <a href="@Url.Action("Index", "GioHang")" class="text-sm font-medium text-gray-700 hover:text-blue-600">
+ Giỏ hàng
+      </a>
+ </div>
+      </li>
+     <li aria-current="page">
+      <div class="flex items-center">
+      <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+       <span class="text-sm font-medium text-gray-500">Thanh toán</span>
+       </div>
+ </li>
+  </ol>
+</nav>
+
+<!-- Page Title -->
+<div class="flex items-center justify-between mb-6">
+ <h1 class="text-3xl font-bold text-gray-900">
+  <i class="fas fa-credit-card mr-3 text-blue-600"></i>
+  Thanh toán
+    </h1>
+</div>
+
+@using (Html.BeginForm("Index", "ThanhToan", FormMethod.Post, new { @class = "checkout-form" }))
+{
+    @Html.AntiForgeryToken()
+    
+ <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Shipping Info (2/3 width) -->
+   <div class="lg:col-span-2 space-y-6">
+      <!-- Customer Information -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-3 border-b flex items-center">
+  <i class="fas fa-user mr-3 text-blue-600"></i>
+  Thông tin người nhận
+      </h2>
+
+  @Html.ValidationSummary(false, "", new { @class = "bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" })
+
+ <div class="space-y-4">
+        <!-- Full Name -->
+      <div>
+@Html.LabelFor(m => m.HoTen, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+  @Html.TextBoxFor(m => m.HoTen, new { 
+         @class = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all", 
+  placeholder = "Nguyễn Văn A"
+    })
+      @Html.ValidationMessageFor(m => m.HoTen, "", new { @class = "text-red-500 text-sm mt-1" })
+ </div>
+
+      <!-- Phone & Email -->
+   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div>
+    @Html.LabelFor(m => m.SoDienThoai, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+       @Html.TextBoxFor(m => m.SoDienThoai, new { 
+@class = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all", 
+    placeholder = "0912345678",
+         type = "tel"
+ })
+  @Html.ValidationMessageFor(m => m.SoDienThoai, "", new { @class = "text-red-500 text-sm mt-1" })
+   </div>
+
+<div>
+    @Html.LabelFor(m => m.Email, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+     @Html.TextBoxFor(m => m.Email, new { 
+@class = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all", 
+      placeholder = "email@example.com",
+     type = "email"
+      })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-red-500 text-sm mt-1" })
+       </div>
+   </div>
+
+   <!-- Address Section -->
+  <div class="space-y-4">
+      <!-- Province/City -->
+      <div>
+          @Html.LabelFor(m => m.TinhThanhPho, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+          <select id="province" name="TinhThanhPho" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" required>
+              <option value="">-- Chọn Tỉnh/Thành phố --</option>
+          </select>
+          @Html.ValidationMessageFor(m => m.TinhThanhPho, "", new { @class = "text-red-500 text-sm mt-1" })
+      </div>
+
+      <!-- District -->
+      <div>
+          @Html.LabelFor(m => m.QuanHuyen, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+          <select id="district" name="QuanHuyen" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" required disabled>
+              <option value="">-- Chọn Quận/Huyện --</option>
+          </select>
+          @Html.ValidationMessageFor(m => m.QuanHuyen, "", new { @class = "text-red-500 text-sm mt-1" })
+      </div>
+
+      <!-- Ward -->
+      <div>
+          @Html.LabelFor(m => m.PhuongXa, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+          <select id="ward" name="PhuongXa" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" required disabled>
+              <option value="">-- Chọn Phường/Xã --</option>
+          </select>
+          @Html.ValidationMessageFor(m => m.PhuongXa, "", new { @class = "text-red-500 text-sm mt-1" })
+      </div>
+
+      <!-- House Address -->
+      <div>
+          @Html.LabelFor(m => m.DiaChiNha, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+          @Html.TextBoxFor(m => m.DiaChiNha, new { 
+              @class = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all", 
+              placeholder = "Ví dụ: 123 Nguyễn Văn Linh",
+              id = "houseAddress"
+          })
+          @Html.ValidationMessageFor(m => m.DiaChiNha, "", new { @class = "text-red-500 text-sm mt-1" })
+      </div>
+
+      <!-- Full Address Display (Read-only) -->
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+          <p class="text-sm font-semibold text-blue-900 mb-1">
+              <i class="fas fa-map-marker-alt mr-2"></i>Địa chỉ giao hàng đầy đủ:
+          </p>
+          <p id="fullAddress" class="text-sm text-gray-700 italic">
+              Vui lòng điền đầy đủ thông tin địa chỉ bên trên
+          </p>
+      </div>
+  </div>
+
+ <!-- Note -->
+ <div>
+       @Html.LabelFor(m => m.GhiChu, new { @class = "block text-sm font-semibold text-gray-700 mb-2" })
+ @Html.TextAreaFor(m => m.GhiChu, new { 
+     @class = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all", 
+          placeholder = "Ghi chú thêm (tùy chọn)...",
+rows = 2
+ })
+     @Html.ValidationMessageFor(m => m.GhiChu, "", new { @class = "text-red-500 text-sm mt-1" })
+ </div>
+   </div>
+</div>
+
+<!-- Payment Method -->
+       <div class="bg-white rounded-lg shadow-md p-6">
+ <h2 class="text-xl font-bold text-gray-900 mb-4 pb-3 border-b flex items-center">
+         <i class="fas fa-wallet mr-3 text-green-600"></i>
+   Phương thức thanh toán
+   </h2>
+
+    <div class="space-y-3">
+     <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all payment-method-option">
+ @Html.RadioButtonFor(m => m.PaymentMethod, 1, new { @class = "mr-3 w-5 h-5 text-blue-600", @checked = "checked" })
+   <div class="flex-1">
+  <div class="flex items-center justify-between">
+     <span class="font-semibold text-gray-900">
+<i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+     Thanh toán khi nhận hàng (COD)
+  </span>
+   <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-semibold">Phổ biến</span>
+     </div>
+  <p class="text-sm text-gray-600 mt-1">Thanh toán bằng tiền mặt khi nhận hàng</p>
+ </div>
+   </label>
+
+<label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all payment-method-option">
+    @Html.RadioButtonFor(m => m.PaymentMethod, 2, new { @class = "mr-3 w-5 h-5 text-blue-600" })
+   <div class="flex-1">
+         <span class="font-semibold text-gray-900">
+<i class="fas fa-university text-blue-600 mr-2"></i>
+     Chuyển khoản ngân hàng
+    </span>
+  </div>
+  </label>
+
+ <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all payment-method-option">
+  @Html.RadioButtonFor(m => m.PaymentMethod, 3, new { @class = "mr-3 w-5 h-5 text-blue-600" })
+ <div class="flex-1">
+   <span class="font-semibold text-gray-900">
+  <i class="fas fa-mobile-alt text-pink-600 mr-2"></i>
+       Ví điện tử MoMo
+     </span>
+  </div>
+</label>
+
+ <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all payment-method-option">
+    @Html.RadioButtonFor(m => m.PaymentMethod, 4, new { @class = "mr-3 w-5 h-5 text-blue-600" })
+  <div class="flex-1">
+    <span class="font-semibold text-gray-900">
+<i class="fas fa-qrcode text-blue-600 mr-2"></i>
+  Ví điện tử ZaloPay
+   </span>
+   </div>
+  </label>
+
+  <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all payment-method-option">
+   @Html.RadioButtonFor(m => m.PaymentMethod, 5, new { @class = "mr-3 w-5 h-5 text-blue-600" })
+      <div class="flex-1">
+  <span class="font-semibold text-gray-900">
+        <i class="fas fa-credit-card text-purple-600 mr-2"></i>
+Thẻ tín dụng/Ghi nợ
+  </span>
+</div>
+    </label>
+
+       @Html.ValidationMessageFor(m => m.PaymentMethod, "", new { @class = "text-red-500 text-sm mt-2" })
+ </div>
+ </div>
+   </div>
+
+<!-- Right Column: Order Summary (1/3 width) -->
+        <div class="lg:col-span-1">
+   <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+  <h2 class="text-xl font-bold text-gray-900 mb-4 pb-3 border-b flex items-center">
+ <i class="fas fa-shopping-bag mr-3 text-orange-600"></i>
+     Đơn hàng (@Model.Cart.GetTotalQuantity() sản phẩm)
+  </h2>
+
+    <!-- Cart Items -->
+  <div class="space-y-3 mb-4 max-h-96 overflow-y-auto">
+     @foreach (var item in Model.Cart.Items)
+        {
+<div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+   <img src="@Url.Content("~/Content/Images/" + item.ProductImage)" 
+    alt="@item.ProductName" 
+    class="w-16 h-16 object-contain rounded border border-gray-200" />
+ <div class="flex-1 min-w-0">
+  <h4 class="text-sm font-semibold text-gray-900 truncate">@item.ProductName</h4>
+      @if (!string.IsNullOrEmpty(item.Color))
+     {
+    <p class="text-xs text-gray-600">Màu: @item.Color</p>
+   }
+  <p class="text-sm text-gray-700">
+  <span class="font-semibold">@String.Format("{0:0,0}", item.Price) ₫</span>
+    <span class="text-gray-500">x @item.Quantity</span>
+     </p>
+     </div>
+    <div class="text-right">
+<p class="text-sm font-bold text-blue-600">@String.Format("{0:0,0}", item.TotalPrice) ₫</p>
+    </div>
+</div>
+    }
+    </div>
+
+      <!-- Order Summary -->
+ <div class="space-y-3 pt-4 border-t">
+      <div class="flex justify-between text-gray-700">
+ <span>Tạm tính:</span>
+    <span id="subtotal" class="font-semibold">@String.Format("{0:0,0}", Model.Cart.GetTotal()) ₫</span>
+         </div>
+
+   <div class="flex justify-between text-gray-700">
+     <span>Phí vận chuyển:</span>
+  <span class="font-semibold text-green-600">Miễn phí</span>
+     </div>
+
+            <!-- Discount Section -->
+            <div id="discountSection" style="display: @(Session["DiscountAmount"] != null ? "block" : "none")">
+                <div class="flex justify-between items-center text-green-600">
+                    <div class="flex items-center">
+                        <i class="fas fa-tag mr-2"></i>
+                        <span>Giảm giá (<span id="discountCodeDisplay">@Session["DiscountCode"]</span>):</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="discountAmount" class="font-semibold">
+                            @(Session["DiscountAmount"] != null ? String.Format("-{0:0,0} ₫", Session["DiscountAmount"]) : "")
+                        </span>
+                        <button type="button" onclick="removeDiscount()" class="text-red-500 hover:text-red-700 p-1" title="Xóa mã giảm giá">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+ <div class="border-t pt-3">
+    <div class="flex justify-between items-center">
+ <span class="text-lg font-bold text-gray-900">Tổng cộng:</span>
+ <span id="total" class="text-2xl font-bold text-red-600">
+      @{
+          var discountAmount = Session["DiscountAmount"] != null ? Convert.ToDecimal(Session["DiscountAmount"]) : 0;
+          var finalTotal = Model.Cart.GetTotal() - discountAmount;
+      }
+      @String.Format("{0:0,0}", finalTotal) ₫
+       </span>
+        </div>
+ </div>
+</div>
+
+            <!-- Promo Code Input -->
+            <div class="mt-6 pt-6 border-t">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-ticket-alt mr-2 text-blue-600"></i>
+                    Mã giảm giá
+                </h3>
+                <div class="flex space-x-2">
+                    <input type="text" 
+                           id="discountCodeInput"
+                           placeholder="Nhập mã giảm giá" 
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           value="@Session["DiscountCode"]" />
+                    <button type="button" 
+                            id="btnApplyDiscount"
+                            onclick="applyDiscount()"
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-sm whitespace-nowrap">
+                        <i class="fas fa-check mr-1"></i>
+                        Áp dụng
+                    </button>
+                </div>
+                <div id="discountMessage" class="mt-2 text-sm"></div>
+                
+                <!-- Discount Applied Display -->
+                <div id="discountApplied" style="display: @(Session["DiscountAmount"] != null ? "flex" : "none")" class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg items-center justify-between">
+                    <div class="flex items-center text-green-700 text-sm">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="font-medium">Mã <strong id="appliedCode">@Session["DiscountCode"]</strong> đã được áp dụng!</span>
+                    </div>
+                    <button type="button" onclick="removeDiscount()" class="text-red-500 hover:text-red-700 ml-2 p-1" title="Xóa mã">
+                        <i class="fas fa-times-circle text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+     <!-- Place Order Button -->
+       <button type="submit" class="w-full mt-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center">
+ <i class="fas fa-check-circle mr-2"></i>
+    Đặt hàng
+   </button>
+
+     <!-- Back to Cart -->
+<a href="@Url.Action("Index", "GioHang")" class="block w-full mt-3 text-center text-gray-600 hover:text-gray-900 font-semibold py-2">
+           <i class="fas fa-arrow-left mr-2"></i>
+        Quay lại giỏ hàng
+      </a>
+
+   <!-- Security Note -->
+    <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+  <div class="flex items-start">
+   <i class="fas fa-shield-alt text-green-600 text-xl mr-3 mt-1"></i>
+ <div class="text-sm text-gray-700">
+      <p class="font-semibold text-green-800 mb-1">Thanh toán an toàn</p>
+   <p class="text-xs">Thông tin của bạn được mã hóa và bảo mật tuyệt đối</p>
+       </div>
+      </div>
+  </div>
+ </div>
+    </div>
+  </div>
+}
+
+@section scripts {
+<!-- QR Payment Handler -->
+<script src="~/Scripts/qr-payment.js"></script>
+
+<script>
+    // ===================================
+    // ADDRESS MANAGEMENT - Vietnamese Provinces API
+    // ===================================
+    
+    var provinces = [];
+    var districts = [];
+    var wards = [];
+    
+    // Load provinces when page loads
+    $(document).ready(function() {
+        loadProvinces();
+        updateFullAddress();
+    });
+    
+    // Load provinces from API
+    function loadProvinces() {
+        // Using Vietnam Provinces API
+        $.ajax({
+            url: 'https://provinces.open-api.vn/api/p/',
+            type: 'GET',
+            success: function(data) {
+                provinces = data;
+                var provinceSelect = $('#province');
+                provinceSelect.empty().append('<option value="">-- Chọn Tỉnh/Thành phố --</option>');
+                
+                data.forEach(function(province) {
+                    provinceSelect.append(
+                        $('<option></option>')
+                            .val(province.name)
+                            .data('code', province.code)
+                            .text(province.name)
+                    );
+                });
+            },
+            error: function() {
+                $('#province').append('<option value="">Không thể tải danh sách tỉnh/thành phố</option>');
+            }
+        });
+    }
+    
+    // When province changes, load districts
+    $('#province').on('change', function() {
+        var provinceCode = $(this).find('option:selected').data('code');
+        var provinceName = $(this).val();
+        
+        // Reset district and ward
+        $('#district').prop('disabled', true).empty().append('<option value="">-- Đang tải... --</option>');
+        $('#ward').prop('disabled', true).empty().append('<option value="">-- Chọn Phường/Xã --</option>');
+        
+        if (provinceCode) {
+            $.ajax({
+                url: 'https://provinces.open-api.vn/api/p/' + provinceCode + '?depth=2',
+                type: 'GET',
+                success: function(data) {
+                    districts = data.districts;
+                    var districtSelect = $('#district');
+                    districtSelect.empty().append('<option value="">-- Chọn Quận/Huyện --</option>');
+                    
+                    data.districts.forEach(function(district) {
+                        districtSelect.append(
+                            $('<option></option>')
+                                .val(district.name)
+                                .data('code', district.code)
+                                .text(district.name)
+                        );
+                    });
+                    
+                    districtSelect.prop('disabled', false);
+                },
+                error: function() {
+                    $('#district').empty().append('<option value="">Không thể tải danh sách quận/huyện</option>');
+                }
+            });
+        }
+        
+        updateFullAddress();
+    });
+    
+    // When district changes, load wards
+    $('#district').on('change', function() {
+        var districtCode = $(this).find('option:selected').data('code');
+        var districtName = $(this).val();
+        
+        // Reset ward
+        $('#ward').prop('disabled', true).empty().append('<option value="">-- Đang tải... --</option>');
+        
+        if (districtCode) {
+            $.ajax({
+                url: 'https://provinces.open-api.vn/api/d/' + districtCode + '?depth=2',
+                type: 'GET',
+                success: function(data) {
+                    wards = data.wards;
+                    var wardSelect = $('#ward');
+                    wardSelect.empty().append('<option value="">-- Chọn Phường/Xã --</option>');
+                    
+                    data.wards.forEach(function(ward) {
+                        wardSelect.append(
+                            $('<option></option>')
+                                .val(ward.name)
+                                .data('code', ward.code)
+                                .text(ward.name)
+                        );
+                    });
+                    
+                    wardSelect.prop('disabled', false);
+                },
+                error: function() {
+                    $('#ward').empty().append('<option value="">Không thể tải danh sách phường/xã</option>');
+                }
+            });
+        }
+        
+        updateFullAddress();
+    });
+    
+    // Update full address display
+    $('#ward, #houseAddress').on('change keyup', function() {
+        updateFullAddress();
+    });
+    
+    function updateFullAddress() {
+        var houseAddress = $('#houseAddress').val();
+        var ward = $('#ward').val();
+        var district = $('#district').val();
+        var province = $('#province').val();
+        
+        var fullAddressParts = [];
+        
+        if (houseAddress) fullAddressParts.push(houseAddress);
+        if (ward) fullAddressParts.push(ward);
+        if (district) fullAddressParts.push(district);
+        if (province) fullAddressParts.push(province);
+        
+        if (fullAddressParts.length > 0) {
+            $('#fullAddress').html('<i class="fas fa-check-circle text-green-600 mr-2"></i>' + fullAddressParts.join(', '));
+        } else {
+            $('#fullAddress').html('<i class="fas fa-exclamation-circle text-gray-400 mr-2"></i>Vui lòng điền đầy đủ thông tin địa chỉ bên trên');
+        }
+    }
+
+    // Apply discount code
+    function applyDiscount() {
+        var discountCode = $('#discountCodeInput').val().trim();
+        var btnApply = $('#btnApplyDiscount');
+        
+        if (!discountCode) {
+            showDiscountMessage('Vui lòng nhập mã giảm giá', 'error');
+            return;
+        }
+        
+        btnApply.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Đang xử lý...');
+        
+        $.ajax({
+            url: '@Url.Action("ApplyDiscount", "ThanhToan")',
+            type: 'POST',
+            data: { discountCode: discountCode },
+            success: function(response) {
+                if (response.success) {
+                    $('#discountSection').show();
+                    $('#discountCodeDisplay').text(response.discountCode);
+                    $('#discountAmount').text('-' + formatCurrency(response.discountAmount));
+                    $('#total').text(formatCurrency(response.finalTotal));
+                    $('#discountApplied').show();
+                    $('#appliedCode').text(response.discountCode);
+                    $('#discountCodeInput').prop('readonly', true);
+                    showDiscountMessage(response.message, 'success');
+                } else {
+                    showDiscountMessage(response.message, 'error');
+                }
+            },
+            error: function() {
+                showDiscountMessage('Có lỗi xảy ra, vui lòng thử lại', 'error');
+            },
+            complete: function() {
+                btnApply.prop('disabled', false).html('<i class="fas fa-check mr-1"></i> Áp dụng');
+            }
+        });
+    }
+    
+    // Remove discount code
+    function removeDiscount() {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Xác nhận',
+            text: 'Bạn có chắc muốn xóa mã giảm giá?',
+            showCancelButton: true,
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+            
+            $.ajax({
+            url: '@Url.Action("RemoveDiscount", "ThanhToan")',
+            type: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    $('#discountSection').hide();
+                    $('#discountApplied').hide();
+                    $('#discountCodeInput').val('').prop('readonly', false);
+                    $('#total').text(formatCurrency(response.finalTotal));
+                    showDiscountMessage(response.message, 'success');
+                } else {
+                    showDiscountMessage(response.message, 'error');
+                }
+            },
+            error: function() {
+                showDiscountMessage('Có lỗi xảy ra, vui lòng thử lại', 'error');
+            }
+        });
+        });
+    }
+    
+    // Show discount message
+    function showDiscountMessage(message, type) {
+        var messageDiv = $('#discountMessage');
+        var colorClass = type === 'success' ? 'text-green-600' : 'text-red-600';
+        var icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+        
+        messageDiv.html('<i class="fas fa-' + icon + ' mr-1"></i>' + message)
+                  .removeClass('text-green-600 text-red-600')
+                  .addClass(colorClass);
+        
+        setTimeout(function() {
+            messageDiv.fadeOut(function() {
+                $(this).html('').show();
+            });
+        }, 5000);
+    }
+    
+    // Format currency
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+    }
+    
+    // Allow enter key to apply discount
+    $('#discountCodeInput').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            applyDiscount();
+        }
+    });
+
+    // Payment method selection visual feedback
+    $('.payment-method-option').on('click', function() {
+        $('.payment-method-option').removeClass('border-blue-500 bg-blue-50');
+        $(this).addClass('border-blue-500 bg-blue-50');
+  });
+
+    // Form validation and confirmation on submit
+    $('form').on('submit', function(e) {
+        e.preventDefault(); // Prevent default submission
+ 
+        console.log('Form submitted!'); // DEBUG
+        
+        var isValid = true;
+        var firstError = null;
+
+        // Check required fields
+        $('input[required], textarea[required], select[required]').each(function() {
+            if (!$(this).val()) {
+                isValid = false;
+                if (!firstError) {
+                    firstError = $(this);
+                }
+                $(this).addClass('border-red-500');
+            } else {
+                $(this).removeClass('border-red-500');
+            }
+        });
+
+        if (!isValid) {
+            console.log('Form validation failed'); // DEBUG
+            
+            // Scroll to first error
+            if (firstError) {
+                $('html, body').animate({
+                    scrollTop: firstError.offset().top - 100
+                }, 500);
+            }
+
+            // Show error message
+            showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
+            return false;
+        }
+
+        // Check payment method
+        var paymentMethod = $('input[name="PaymentMethod"]:checked').val();
+        console.log('Payment method:', paymentMethod); // DEBUG
+        
+        // Check if showQRCodeModal function exists
+        if (typeof showQRCodeModal !== 'function') {
+            console.error('showQRCodeModal function not found!'); // DEBUG
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Không tìm thấy hàm showQRCodeModal. Vui lòng kiểm tra file qr-payment.js',
+                confirmButtonColor: '#dc3545'
+            });
+            return false;
+        }
+        
+        // If transfer payment method (2=Bank, 3=MoMo, 4=ZaloPay), show QR first
+        if (paymentMethod == '2' || paymentMethod == '3' || paymentMethod == '4') {
+            console.log('Showing QR modal for payment method:', paymentMethod); // DEBUG
+            try {
+                showQRCodeModal(paymentMethod, this);
+            } catch(error) {
+                console.error('Error showing QR modal:', error); // DEBUG
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Lỗi hiển thị QR code: ' + error.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        } else {
+            console.log('Showing normal confirmation'); // DEBUG
+            // COD or Credit Card - show normal confirmation
+            showOrderConfirmation(this);
+        }
+    });
+
+    // Get discount HTML for confirmation dialog
+    function getDiscountHTML() {
+        var discountSection = $('#discountSection');
+        if (discountSection.is(':visible')) {
+            var discountCode = $('#discountCodeDisplay').text();
+            var discountAmount = $('#discountAmount').text();
+            return `
+                <p class="text-green-600">
+                    <i class="fas fa-tag mr-1"></i>
+                    <strong>Giảm giá (${discountCode}):</strong> ${discountAmount}
+                </p>
+            `;
+        }
+        return '';
+    }
+
+    // Show order confirmation dialog
+    function showOrderConfirmation(form) {
+      var hoTen = $('input[name="HoTen"]').val();
+var soDienThoai = $('input[name="SoDienThoai"]').val();
+        var email = $('input[name="Email"]').val();
+        var diaChiNha = $('#houseAddress').val();
+        var phuongXa = $('#ward').val();
+        var quanHuyen = $('#district').val();
+        var tinhThanhPho = $('#province').val();
+        var diaChi = diaChiNha + ', ' + phuongXa + ', ' + quanHuyen + ', ' + tinhThanhPho;
+        var paymentMethod = $('input[name="PaymentMethod"]:checked').parent().find('.font-semibold').text().trim();
+        var totalItems = @Model.Cart.GetTotalQuantity();
+        
+        // ✅ Get final total from display (includes discount)
+        var totalAmount = $('#total').text().trim();
+
+        // Build items list HTML
+     var itemsHtml = '<div class="text-left" style="max-height: 300px; overflow-y: auto;">';
+ @foreach (var item in Model.Cart.Items)
+    {
+            <text>
+            itemsHtml += '<div class="flex items-center justify-between py-2 border-b">';
+       itemsHtml += '<div class="flex-1">';
+         itemsHtml += '<p class="font-semibold text-sm">@item.ProductName</p>';
+            itemsHtml += '<p class="text-xs text-gray-600">Số lượng: @item.Quantity</p>';
+            itemsHtml += '</div>';
+          itemsHtml += '<p class="font-bold text-blue-600">@String.Format("{0:0,0}", item.TotalPrice) ₫</p>';
+  itemsHtml += '</div>';
+          </text>
+        }
+  itemsHtml += '</div>';
+
+        Swal.fire({
+     title: '<strong>🛒 Xác nhận đơn hàng</strong>',
+  icon: 'question',
+    html: `
+                <div class="text-left space-y-4">
+           <!-- Customer Info -->
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <h3 class="font-bold text-blue-900 mb-2 flex items-center">
+     <i class="fas fa-user-circle mr-2"></i> Thông tin người nhận
+        </h3>
+                <div class="space-y-1 text-sm">
+           <p><strong>Họ tên:</strong> ${hoTen}</p>
+                  <p><strong>SĐT:</strong> ${soDienThoai}</p>
+    <p><strong>Email:</strong> ${email}</p>
+           <p><strong>Địa chỉ:</strong> ${diaChi}</p>
+     </div>
+  </div>
+
+         <!-- Order Summary -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="font-bold text-gray-900 mb-2 flex items-center">
+  <i class="fas fa-shopping-bag mr-2"></i> Đơn hàng (${totalItems} sản phẩm)
+             </h3>
+     ${itemsHtml}
+          </div>
+
+  <!-- Payment Info -->
+   <div class="bg-green-50 p-4 rounded-lg">
+ <h3 class="font-bold text-green-900 mb-2 flex items-center">
+          <i class="fas fa-wallet mr-2"></i> Thanh toán
+                </h3>
+             <div class="space-y-1 text-sm">
+                 <p><strong>Phương thức:</strong> ${paymentMethod}</p>
+                 ${getDiscountHTML()}
+       <p class="text-lg"><strong>Tổng cộng:</strong> <span class="text-red-600 font-bold">${totalAmount}</span></p>
+   </div>
+  </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 text-sm">
+           <p class="flex items-start">
+               <i class="fas fa-exclamation-triangle text-yellow-600 mr-2 mt-1"></i>
+               <span>Vui lòng kiểm tra kỹ thông tin trước khi xác nhận. Bạn có chắc chắn muốn đặt hàng?</span>
+             </p>
+        </div>
+    </div>
+            `,
+    showCancelButton: true,
+            confirmButtonColor: '#3b82f6',
+       cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-check-circle mr-2"></i>Xác nhận đặt hàng',
+    cancelButtonText: '<i class="fas fa-times-circle mr-2"></i>Kiểm tra lại',
+            width: '600px',
+  customClass: {
+                popup: 'rounded-lg',
+           title: 'text-xl',
+             htmlContainer: 'text-sm',
+     confirmButton: 'px-6 py-3 rounded-lg font-bold',
+    cancelButton: 'px-6 py-3 rounded-lg font-bold'
+    },
+            showClass: {
+         popup: 'animate__animated animate__zoomIn animate__faster'
+            },
+hideClass: {
+         popup: 'animate__animated animate__zoomOut animate__faster'
+   }
+        }).then((result) => {
+            if (result.isConfirmed) {
+ // Show loading state
+       $('button[type="submit"]')
+  .prop('disabled', true)
+          .html('<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...');
+
+     // Show processing notification
+      Swal.fire({
+     title: 'Đang xử lý...',
+         html: 'Vui lòng đợi trong giây lát',
+  allowOutsideClick: false,
+    allowEscapeKey: false,
+ didOpen: () => {
+        Swal.showLoading();
+   }
+  });
+
+     // Submit form
+         form.submit();
+       }
+        });
+    }
+
+    // Show notification
+    function showNotification(message, type) {
+        var bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+  var notification = $('<div class="fixed top-20 right-4 ' + bgColor + ' text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate__animated animate__fadeInRight">' +
+     '<i class="fas fa-' + (type === 'success' ? 'check' : 'exclamation') + '-circle mr-2"></i>' +
+            message +
+            '</div>');
+
+        $('body').append(notification);
+
+   setTimeout(function() {
+            notification.removeClass('animate__fadeInRight').addClass('animate__fadeOutRight');
+            setTimeout(function() {
+          notification.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Phone number formatting
+  $('input[type="tel"]').on('input', function() {
+   var value = $(this).val().replace(/\D/g, '');
+        $(this).val(value);
+    });
+</script>
+}

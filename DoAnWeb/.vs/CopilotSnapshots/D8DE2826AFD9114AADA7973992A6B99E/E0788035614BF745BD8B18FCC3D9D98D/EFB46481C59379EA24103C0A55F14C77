@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?PowerDesigner AppLocale="UTF16" ID="{C8C8C8C8-C8C8-C8C8-C8C8-C8C8C8C8C8C8}" Label="" LastModificationDate="1234567890" Name="TimKiemSanPhamChatbot" Objects="270" Symbols="270" Type="{08ABFB48-5338-4E96-8B8A-A5D88BDC5C21}" signature="PDM_DATA_MODEL_XML" version="1.0.0.0"?>
+<!-- PowerDesigner Sequence Diagram: 1. Tìm kiếm sản phẩm qua Chatbot -->
+<Model xmlns:a="attribute" xmlns:c="collection" xmlns:o="object">
+    <o:RootObject Id="o1">
+        <a:SessionID>00000000-0000-0000-0000-000000000000</a:SessionID>
+        <a:ObjectID>C8C8C8C8-C8C8-C8C8-C8C8-C8C8C8C8C8C8</a:ObjectID>
+        <a:Name>Sequence Diagram 1: Tìm kiếm sản phẩm qua Chatbot</a:Name>
+        <a:Code>TimKiemSanPhamChatbot</a:Code>
+        <a:CreationDate>1234567890</a:CreationDate>
+        <a:Creator>Student</a:Creator>
+        <a:ModificationDate>1234567890</a:ModificationDate>
+        <a:Modifier>Student</a:Modifier>
+        <c:Actors>
+            <o:Actor Id="actor1">
+                <a:Name>User</a:Name>
+                <a:Code>User</a:Code>
+            </o:Actor>
+        </c:Actors>
+        <c:Objects>
+            <o:Object Id="obj1">
+                <a:Name>Browser</a:Name>
+                <a:Code>Browser</a:Code>
+            </o:Object>
+            <o:Object Id="obj2">
+                <a:Name>ChatbotWidget</a:Name>
+                <a:Code>ChatbotWidget</a:Code>
+            </o:Object>
+            <o:Object Id="obj3">
+                <a:Name>ChatbotController</a:Name>
+                <a:Code>ChatbotController</a:Code>
+            </o:Object>
+            <o:Object Id="obj4">
+                <a:Name>ProcessIntent</a:Name>
+                <a:Code>ProcessIntent</a:Code>
+            </o:Object>
+            <o:Object Id="obj5">
+                <a:Name>Database</a:Name>
+                <a:Code>Database</a:Code>
+            </o:Object>
+        </c:Objects>
+        <c:Messages>
+            <!-- 1. User mở chatbot -->
+            <o:Message Id="msg1">
+                <a:Name>1: Nhấn icon Chatbot</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj1</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 2. Browser hiển thị widget -->
+            <o:Message Id="msg2">
+                <a:Name>2: Hiển thị ChatbotWidget</a:Name>
+                <a:Source>obj1</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 3. User nhập tin nhắn -->
+            <o:Message Id="msg3">
+                <a:Name>3: Nhập tin nhắn "iPhone 15 dưới 20 triệu"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 4. Widget gửi AJAX request -->
+            <o:Message Id="msg4">
+                <a:Name>4: POST /Chatbot/ProcessMessage(message)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj3</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 5. Normalize message -->
+            <o:Message Id="msg5">
+                <a:Name>5: Normalize message (toLowerCase, trim)</a:Name>
+                <a:Source>obj3</a:Source>
+                <a:Target>obj3</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 6. Gọi ProcessIntent -->
+            <o:Message Id="msg6">
+                <a:Name>6: ProcessIntent(normalizedMessage)</a:Name>
+                <a:Source>obj3</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 7. Phân loại Intent -->
+            <o:Message Id="msg7">
+                <a:Name>7: Detect Intent = "Multi-Criteria Search"</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 8. Truy vấn database -->
+            <o:Message Id="msg8">
+                <a:Name>8: Query: SELECT * FROM tb_SanPham WHERE TenSanPham LIKE '%iPhone%' AND Gia &lt;= 20000000</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 9. Trả về kết quả -->
+            <o:Message Id="msg9">
+                <a:Name>9: Return List&lt;SanPham&gt; (5 products)</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 10. Tạo ChatbotResponse -->
+            <o:Message Id="msg10">
+                <a:Name>10: Create ChatbotResponse (Message, Products, Suggestions)</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj3</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 11. Trả JSON response -->
+            <o:Message Id="msg11">
+                <a:Name>11: Return JSON {success: true, message, products, suggestions}</a:Name>
+                <a:Source>obj3</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 12. Render UI -->
+            <o:Message Id="msg12">
+                <a:Name>12: Render bot message + product cards</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj1</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 13. Hiển thị kết quả -->
+            <o:Message Id="msg13">
+                <a:Name>13: Hiển thị 5 sản phẩm iPhone phù hợp</a:Name>
+                <a:Source>obj1</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+        </c:Messages>
+    </o:RootObject>
+</Model>

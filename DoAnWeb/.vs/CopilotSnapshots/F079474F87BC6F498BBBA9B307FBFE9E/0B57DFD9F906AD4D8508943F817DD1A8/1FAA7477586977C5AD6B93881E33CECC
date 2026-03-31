@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>@ViewBag.Title - Web bán thiết bị điện tử</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Đường dẫn CSS: Lưu ý dấu ~ để trỏ về thư mục gốc -->
+ <link href="~/Content/Trang-Chu.css" rel="stylesheet" />
+    
+    <!-- jQuery - REQUIRED for AJAX -->
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap CSS & JS - REQUIRED for Modal -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+  <!-- SweetAlert2 for beautiful notifications -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
+ <!-- Animate.css for smooth animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+ <header class="bg-white shadow-sm sticky top-0 z-50">
+ <div class="container mx-auto px-4 py-3">
+<div class="flex items-center justify-between">
+  <!-- Logo -->
+ <div class="flex items-center">
+  <a href="@Url.Action("Index", "Home")" class="text-2xl font-bold text-blue-600 flex items-center">
+ <img src="~/Content/Images/logo.png" alt="Logo" class="mr-2" style="max-height: 50px;" />
+     </a>
+      </div>
+   <!-- Search Bar -->
+   <div class="flex-1 mx-8">
+ <div class="flex items-center justify-between">
+  <!-- Ô tìm kiếm -->
+ <div class="relative w-1/2">
+    <form id="searchForm" action="@Url.Action("Index", "Search")" method="get">
+  <input type="text" 
+    id="searchInput"
+       name="q" 
+ placeholder="Tìm kiếm sản phẩm..."
+   class="w-full py-2 px-4 pr-12 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        autocomplete="off">
+<button type="submit" class="absolute right-0 top-0 h-full px-4 text-gray-500 hover:text-blue-600">
+       <i class="fas fa-search"></i>
+     </button>
+           
+    <!-- Autocomplete Dropdown -->
+         <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+ <!-- Results will be populated here -->
+    </div>
+       </form>
+  </div>
+  <!-- Menu -->
+     <div class="flex space-x-4 ml-8">
+  <a href="@Url.Action("Index", "Home")" class="px-4 py-3 font-medium hover:text-blue-600 focusable">TRANG CHỦ</a>
+ <a href="@Url.Action("Index", "KhuyenMai")" class="px-4 py-3 font-medium hover:text-blue-600 focusable">
+    <i class="fas fa-tags mr-1"></i>KHUYẾN MÃI
+</a>
+<a href="@Url.Action("Index", "TinTuc")" class="px-4 py-3 font-medium hover:text-blue-600 focusable">
+    <i class="fas fa-newspaper mr-1"></i>TIN TỨC
+</a>
+  <a href="@Url.Action("Index", "LienHe")" class="px-4 py-3 font-medium hover:text-blue-600 focusable">
+    <i class="fas fa-envelope mr-1"></i>LIÊN HỆ
+</a>
+  </div>
+     </div>
+  </div>
+   <!-- Icon: User - Giỏ hàng -->
+  <div class="flex items-center space-x-4">
+    @if (ViewBag.IsAuthenticated == true)
+    {
+ @* Hiển thị khi đã đăng nhập *@
+  <div class="relative group">
+  <a href="#" class="text-gray-700 hover:text-blue-600 p-2 flex items-center">
+ <i class="fas fa-user text-xl mr-2"></i>
+    <span class="hidden md:inline">@ViewBag.CurrentUser.HoTen</span>
+   <i class="fas fa-chevron-down ml-1 text-sm"></i>
+</a>
+     @* Dropdown menu *@
+   <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 hidden group-hover:block z-50">
+       <div class="py-2">
+           <a href="@Url.Action("Index", "TaiKhoan")" class="block px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors">
+    <i class="fas fa-user-circle w-5 mr-2"></i> Tài khoản của tôi
+    </a>
+   <a href="@Url.Action("DonHang", "TaiKhoan")" class="block px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors">
+ <i class="fas fa-shopping-bag w-5 mr-2"></i> Đơn hàng của tôi
+   </a>
+      <a href="@Url.Action("DoiMatKhau", "TaiKhoan")" class="block px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors">
+               <i class="fas fa-key w-5 mr-2"></i> Đổi mật khẩu
+      </a>
+   @if (ViewBag.IsAdmin == true)
+    {
+ <div class="border-t my-2"></div>
+     <a href="@Url.Action("TongQuan", "Admin")" class="block px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors">
+<i class="fas fa-cog w-5 mr-2"></i> Quản trị
+  </a>
+  }
+ <div class="border-t my-2"></div>
+      <a href="@Url.Action("Logout", "Account")" class="block px-4 py-3 hover:bg-red-50 text-red-600 transition-colors">
+ <i class="fas fa-sign-out-alt w-5 mr-2"></i> Đăng xuất
+    </a>
+           </div>
+       </div>
+    </div>
+  }
+       else
+        {
+  @* Hiển thị khi chưa đăng nhập *@
+      <a href="@Url.Action("Login", "Account")" class="text-gray-700 hover:text-blue-600 p-2 flex items-center">
+     <i class="fas fa-user text-xl mr-2"></i>
+         <span class="hidden md:inline">Đăng nhập</span>
+     </a>
+     }
+    
+  <!--Giỏ hàng-->
+  <a href="@Url.Action("Index", "GioHang")" class="text-gray-700 hover:text-blue-600 relative">
+     <i class="fas fa-shopping-cart text-xl"></i>
+       <span class="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+   </a>
+  </div>
+  </div>
+     </div>
+    </header>
+    
+    <!-- Category Navigation -  Danh mục sản phẩm trên đầu -->
+    @Html.Action("TopMenu", "Menu")
+
+    @* Gọi Action từ MenuController để render Partial View động với dữ liệu từ database *@
+  @Html.Action("DanhMuc", "Menu")
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+<!-- Nút bật Sidebar cố định cho danh mục bên trái -->
+        <div class="fixed top-1/3 -translate-y-1/2 left-0 z-30">
+ <button id="sidebarToggle" class="w-10 h-16 rounded-r-lg bg-blue-600 text-white flex items-center justify-center shadow-lg hover:bg-blue-700 transition">
+   <i class="fas fa-bars text-lg"></i>
+  </button>
+</div>
+      <!-- RenderBody: Nơi nội dung của từng trang con sẽ hiển thị ở đây -->
+        @RenderBody()
+</main>
+    
+    <!-- Footer -->
+  <footer class="bg-black text-white py-8">
+     <div class="container mx-auto px-4">
+   <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+     <div>
+         <h3 class="text-lg font-bold mb-4">THÔNG TIN LIÊN HỆ</h3>
+          <p class="mb-2"><i class="fas fa-map-marker-alt mr-2"></i> Tổng đài hỗ trợ: 1800.1060</p>
+      <p class="mb-2"><i class="fas fa-phone mr-2"></i> Hỗ trợ khách hàng: hotro@laptrinhweb.vn</p>
+   <p><i class="fas fa-envelope mr-2"></i> Liên hệ báo giá: baogia@doanlaptrinhweb.vn</p>
+      </div>
+       <div>
+     <h3 class="text-lg font-bold mb-4">VỀ ĐỒ ÁN LTW</h3>
+     <ul class="space-y-2">
+       <li><a href="#" class="hover:text-yellow-400 focusable">Giới thiệu đồ án</a></li>
+ <li><a href="#" class="hover:text-yellow-400 focusable">Tuyển dụng</a></li>
+   <li><a href="#" class="hover:text-yellow-400 focusable">Gửi góp ý, khiếu nại</a></li>
+  <li><a href="#" class="hover:text-yellow-400 focusable">Chính sách bảo mật</a></li>
+   </ul>
+    </div>
+   <div>
+   <h3 class="text-lg font-bold mb-4">HỖ TRỢ KHÁCH HÀNG</h3>
+   <ul class="space-y-2">
+    <li><a href="#" class="hover:text-yellow-400 focusable">Hướng dẫn mua hàng online</a></li>
+       <li><a href="#" class="hover:text-yellow-400 focusable">Chính sách bảo hành</a></li>
+   <li><a href="#" class="hover:text-yellow-400 focusable">Chính sách đổi trả</a></li>
+      <li><a href="#" class="hover:text-yellow-400 focusable">Câu hỏi thường gặp</a></li>
+      </ul>
+      </div>
+      <div>
+   <h3 class="text-lg font-bold mb-4">KẾT NỐI VỚI CHÚNG TÔI</h3>
+  <div class="flex space-x-4 mb-4">
+   <a href="#" class="text-2xl hover:text-yellow-400 focusable" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+     <a href="#" class="text-2xl hover:text-yellow-400 focusable" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      <a href="#" class="text-2xl hover:text-yellow-400 focusable" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="#" class="text-2xl hover:text-yellow-400 focusable" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+       </div>
+        <h4 class="text-lg font-bold mb-2">ĐĂNG KÝ NHẬN BẢN TIN</h4>
+    <div class="flex">
+     <input type="email" placeholder="Email của bạn" class="px-3 py-2 text-black w-full rounded-l focusable" aria-label="Đăng ký nhận bản tin">
+      <button class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-r focusable" aria-label="Gửi">
+        <i class="fas fa-paper-plane"></i>
+ </button>
+   </div>
+            </div>
+   </div>
+   <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+          <p>© 2025 Đồ án lập trình Web. GPDKKD: do Trường DH Công Thương TP.HCM & Phòng GD và DT cấp ngày 24/08/2025.</p>
+  <p>GP: 238/GP-BTTTT do Khoa công nghệ thông tin cấp ngày 01/09/2023.</p>
+       </div>
+  </div>
+    </footer>
+    
+    <!-- Chatbot Widget -->
+    @Html.Partial("_ChatbotWidget")
+ 
+    <!-- Javascript -->
+    <script src="~/Scripts/Trang-Chu.js"></script>
+  <script src="~/Scripts/cart.js"></script>
+    
+ <script>
+      // Load cart count on page load
+        $(document).ready(function() {
+ $.ajax({
+   url: '@Url.Action("GetCartCount", "GioHang")',
+  type: 'GET',
+    success: function(response) {
+  if (response.count > 0) {
+     $('.cart-count').text(response.count).show();
+    } else {
+      $('.cart-count').hide();
+   }
+  }
+     });
+  });
+   
+        // Search Autocomplete
+   var searchTimeout;
+  var $searchInput = $('#searchInput');
+ var $searchDropdown = $('#searchDropdown');
+
+  $searchInput.on('input', function() {
+      clearTimeout(searchTimeout);
+   var keyword = $(this).val().trim();
+
+      if (keyword.length < 2) {
+ $searchDropdown.addClass('hidden').empty();
+ return;
+     }
+
+  searchTimeout = setTimeout(function() {
+     $.ajax({
+     url: '@Url.Action("QuickSearch", "Search")',
+          type: 'GET',
+     data: { q: keyword },
+       dataType: 'json', // Important: Specify JSON
+    success: function(response) {
+     if (response.success && response.count > 0) {
+  var html = '<div class="p-2">';
+    
+    // Header
+  html += '<div class="px-3 py-2 text-xs font-semibold text-gray-500 border-b">';
+        html += 'Tìm thấy ' + response.count + ' sản phẩm';
+         html += '</div>';
+
+      // Results
+ $.each(response.data, function(index, item) {
+       html += '<a href="' + item.url + '" class="flex items-center p-3 hover:bg-blue-50 transition-colors border-b last:border-b-0">';
+      
+  // Image
+       html += '<img src="/Content/Images/' + item.image + '" alt="' + escapeHtml(item.name) + '" class="w-16 h-16 object-contain rounded border border-gray-200 mr-3" onerror="this.src=\'/Content/Images/no-image.png\'">';
+   
+    // Info
+html += '<div class="flex-1 min-w-0">';
+ html += '<p class="text-sm font-semibold text-gray-900 truncate">' + escapeHtml(item.name) + '</p>';
+ 
+ // Price
+     if (item.hasDiscount) {
+       html += '<div class="flex items-center space-x-2 mt-1">';
+      html += '<span class="text-sm font-bold text-red-600">' + formatPrice(item.price) + ' ₫</span>';
+         html += '<span class="text-xs text-gray-500 line-through">' + formatPrice(item.oldPrice) + ' ₫</span>';
+   html += '</div>';
+     } else {
+          html += '<span class="text-sm font-bold text-blue-600 mt-1 block">' + formatPrice(item.price) + ' ₫</span>';
+     }
+     
+          html += '</div>';
+
+    // Arrow
+     html += '<i class="fas fa-chevron-right text-gray-400"></i>';
+     
+     html += '</a>';
+   });
+ 
+  // View All
+   html += '<div class="p-3 border-t bg-gray-50">';
+    html += '<a href="@Url.Action("Index", "Search")?q=' + encodeURIComponent(keyword) + '" class="block text-center text-blue-600 hover:text-blue-700 font-semibold text-sm">';
+     html += '<i class="fas fa-search mr-2"></i>Xem tất cả kết quả';
+       html += '</a>';
+     html += '</div>';
+      
+ html += '</div>';
+ 
+    $searchDropdown.html(html).removeClass('hidden');
+    } else {
+                // No results
+  var noResultHtml = '<div class="p-6 text-center">';
+      noResultHtml += '<i class="fas fa-search text-gray-300 text-3xl mb-2"></i>';
+       noResultHtml += '<p class="text-gray-500 text-sm">Không tìm thấy sản phẩm</p>';
+                noResultHtml += '</div>';
+          $searchDropdown.html(noResultHtml).removeClass('hidden');
+   }
+  },
+   error: function(xhr, status, error) {
+         console.error('Search error:', error);
+   $searchDropdown.addClass('hidden').empty();
+        }
+     });
+    }, 300); // Debounce 300ms
+    });
+
+    // User Dropdown Menu Toggle
+    $('.group > a').on('click', function(e) {
+        e.preventDefault();
+        var dropdown = $(this).siblings('div');
+        dropdown.toggleClass('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    $(document).on('click', function(e) {
+  if (!$(e.target).closest('.group').length) {
+            $('.group > div').addClass('hidden');
+        }
+    });
+
+    // Format price
+ function formatPrice(price) {
+        if (!price) return '0';
+ return Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+  var map = {
+     '&': '&amp;',
+            '<': '&lt;',
+'>': '&gt;',
+ '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+ </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

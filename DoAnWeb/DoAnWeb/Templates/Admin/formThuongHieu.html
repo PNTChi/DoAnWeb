@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="Admin.css" rel="stylesheet" />
+    <link href="../bootstrap-5.0.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+</head>
+<body>
+
+    <form action="/brands/save" method="POST" enctype="multipart/form-data" class="p-4">
+        <input type="hidden" id="brandId" name="brandId">
+
+        <h3 id="formBrandTitle">Thêm thương hiệu mới</h3>
+        <hr>
+
+        <div class="mb-3">
+            <label for="brandName" class="form-label">Tên thương hiệu</label>
+            <input type="text" class="form-control" id="brandName" name="brandName" required>
+        </div>
+        <div class="mb-3">
+            <label for="brandDesc" class="form-label">Mô tả</label>
+            <textarea class="form-control" id="brandDesc" name="brandDesc"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="brandLogo" class="form-label">Logo</label>
+            <input type="file" class="form-control" id="brandLogo" name="brandLogo">
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Lưu thương hiệu</button>
+            <a href="/#brands" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+﻿@model List<DoAnWeb.tb_TinTuc>
+
+@{
+    ViewBag.Title = "Tin tức";
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+     <li class="inline-flex items-center">
+   <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+         <i class="fas fa-home mr-2"></i>
+      Trang chủ
+   </a>
+        </li>
+  <li aria-current="page">
+   <div class="flex items-center">
+     <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+     <span class="text-sm font-medium text-gray-500">Tin tức</span>
+ </div>
+        </li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg shadow-lg p-8 mb-6 text-white">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+  <div>
+  <h1 class="text-4xl font-bold mb-2 flex items-center">
+         <i class="fas fa-newspaper mr-3"></i>
+       TIN TỨC & SỰ KIỆN
+    </h1>
+   <p class="text-lg opacity-90">
+    Cập nhật tin tức công nghệ mới nhất | Tìm thấy <strong>@ViewBag.TotalNews</strong> bài viết
+  </p>
+ </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Main Content (3/4) -->
+    <div class="lg:col-span-3">
+        <!-- Filter & Sort Bar -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+   <div class="flex items-center justify-between flex-wrap gap-4">
+    <!-- Category Filter -->
+          <div class="flex items-center space-x-3">
+        <label class="text-sm font-semibold text-gray-700">
+   <i class="fas fa-filter mr-2"></i>Danh mục:
+     </label>
+         <select id="danhMucFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        <option value="0" @(ViewBag.DanhMucId == 0 ? "selected" : "")>Tất cả</option>
+      @if (ViewBag.DanhMucTinList != null)
+     {
+        foreach (var dm in (List<DoAnWeb.tb_DanhMucTin>)ViewBag.DanhMucTinList)
+      {
+       <option value="@dm.Id" @(ViewBag.DanhMucId == dm.Id ? "selected" : "")>
+             @dm.TenDanhMuc
+   </option>
+           }
+    }
+        </select>
+       </div>
+
+   <!-- Sort Options -->
+   <div class="flex items-center space-x-3">
+    <label class="text-sm font-semibold text-gray-700">
+     <i class="fas fa-sort mr-2"></i>Sắp xếp:
+   </label>
+       <select id="sortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+       <option value="newest" @(ViewBag.SortBy == "newest" ? "selected" : "")>Mới nhất</option>
+     <option value="oldest" @(ViewBag.SortBy == "oldest" ? "selected" : "")>Cũ nhất</option>
+     <option value="popular" @(ViewBag.SortBy == "popular" ? "selected" : "")>Xem nhiều</option>
+ <option value="title_asc" @(ViewBag.SortBy == "title_asc" ? "selected" : "")>Tiêu đề A-Z</option>
+     <option value="title_desc" @(ViewBag.SortBy == "title_desc" ? "selected" : "")>Tiêu đề Z-A</option>
+    </select>
+   </div>
+      </div>
+  </div>
+
+        <!-- News Grid -->
+  @if (Model.Any())
+      {
+   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      @foreach (var tin in Model)
+     {
+       <a href="@Url.Action("ChiTiet", "TinTuc", new { id = tin.Id })" 
+         class="group block bg-white rounded-lg overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+        
+      <!-- Image -->
+       <div class="aspect-video overflow-hidden bg-gray-100 relative">
+        @if (!string.IsNullOrEmpty(tin.HinhAnh))
+     {
+       <img src="@Url.Content("~/Content/Images/" + tin.HinhAnh)" 
+    alt="@tin.TieuDe" 
+           class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+           }
+       else
+   {
+        <img src="@Url.Content("~/Content/Images/no-image.png")" 
+ alt="No Image" 
+class="w-full h-full object-contain opacity-30" />
+     }
+         
+      <!-- Category Badge -->
+    @if (tin.tb_DanhMucTin != null)
+    {
+      <div class="absolute top-3 left-3">
+       <span class="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+        @tin.tb_DanhMucTin.TenDanhMuc
+      </span>
+    </div>
+ }
+      </div>
+
+       <!-- Content -->
+       <div class="p-5">
+         <!-- Date -->
+ <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+      <span>
+        <i class="far fa-calendar mr-1"></i>
+ @(tin.NgayTao?.ToString("dd/MM/yyyy") ?? "N/A")
+</span>
+     <span>
+        <i class="far fa-user mr-1"></i>
+       @(tin.NguoiTao ?? "Admin")
+      </span>
+        </div>
+
+     <!-- Title -->
+   <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+    @tin.TieuDe
+  </h3>
+
+      <!-- Summary -->
+    @if (!string.IsNullOrEmpty(tin.MoTa))
+          {
+         <p class="text-sm text-gray-600 line-clamp-3 mb-4">
+  @tin.MoTa
+    </p>
+}
+
+    <!-- Read More -->
+           <div class="flex items-center text-blue-600 font-semibold text-sm">
+      <span class="group-hover:mr-2 transition-all">Đọc thêm</span>
+ <i class="fas fa-arrow-right opacity-0 group-hover:opacity-100 transition-opacity"></i>
+      </div>
+  </div>
+      </a>
+   }
+       </div>
+
+         <!-- Pagination -->
+  if (ViewBag.TotalPages > 1)
+    {
+       <div class="flex justify-center items-center space-x-2">
+      <!-- Previous -->
+       if (ViewBag.CurrentPage > 1)
+     {
+    <a href="?danhMucId=@ViewBag.DanhMucId&sortBy=@ViewBag.SortBy&page=@(ViewBag.CurrentPage - 1)" 
+     class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500">
+ <i class="fas fa-chevron-left"></i>
+          </a>
+  }
+
+     <!-- Page Numbers -->
+      for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+     {
+  <a href="?danhMucId=@ViewBag.DanhMucId&sortBy=@ViewBag.SortBy&page=@i" 
+   class="px-4 py-2 rounded-lg @(i == ViewBag.CurrentPage ? "bg-blue-500 text-white" : "bg-white border border-gray-300 hover:bg-blue-50")">
+            @i
+    </a>
+     }
+
+       <!-- Next -->
+    if (ViewBag.CurrentPage < ViewBag.TotalPages)
+       {
+       <a href="?danhMucId=@ViewBag.DanhMucId&sortBy=@ViewBag.SortBy&page=@(ViewBag.CurrentPage + 1)" 
+class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500">
+     <i class="fas fa-chevron-right"></i>
+       </a>
+        }
+      </div>
+  }
+        }
+  else
+ {
+   <!-- Empty State -->
+     <div class="bg-white rounded-lg shadow-md p-12 text-center">
+    <i class="fas fa-newspaper text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">Chưa có tin tức</h3>
+     <p class="text-gray-600">Vui lòng quay lại sau</p>
+   </div>
+        }
+    </div>
+
+    <!-- Sidebar (1/4) -->
+    <div class="lg:col-span-1 space-y-6">
+    <!-- Search Box -->
+  <div class="bg-white rounded-lg shadow-md p-5">
+   <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+    <i class="fas fa-search mr-2 text-blue-600"></i>
+     Tìm kiếm
+</h3>
+       <form action="@Url.Action("TimKiem", "TinTuc")" method="get">
+     <div class="relative">
+  <input type="text" 
+ name="q" 
+   placeholder="Nhập từ khóa..." 
+        class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+         required>
+   <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700">
+            <i class="fas fa-search text-xl"></i>
+      </button>
+        </div>
+       </form>
+  </div>
+
+        <!-- Tin nổi bật -->
+        @if (ViewBag.TinNoiBat != null && ((List<DoAnWeb.tb_TinTuc>)ViewBag.TinNoiBat).Any())
+  {
+   <div class="bg-white rounded-lg shadow-md p-5">
+    <h3 class="text-lg font-bold text-gray-900 mb-4 pb-3 border-b flex items-center">
+     <i class="fas fa-star mr-2 text-yellow-500"></i>
+     Tin nổi bật
+    </h3>
+     <div class="space-y-4">
+        @foreach (var tin in (List<DoAnWeb.tb_TinTuc>)ViewBag.TinNoiBat)
+  {
+       <a href="@Url.Action("ChiTiet", "TinTuc", new { id = tin.Id })" 
+      class="flex items-start space-x-3 group">
+       @if (!string.IsNullOrEmpty(tin.HinhAnh))
+ {
+     <img src="@Url.Content("~/Content/Images/" + tin.HinhAnh)" 
+        alt="@tin.TieuDe" 
+     class="w-20 h-20 object-cover rounded flex-shrink-0" />
+ }
+    <div class="flex-1 min-w-0">
+     <h4 class="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 mb-1">
+     @tin.TieuDe
+ </h4>
+        <p class="text-xs text-gray-500">
+     <i class="far fa-calendar mr-1"></i>
+        @(tin.NgayTao?.ToString("dd/MM/yyyy") ?? "")
+      </p>
+      </div>
+      </a>
+   }
+      </div>
+       </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+<script>
+    // Filter & sort change handler
+    $('#danhMucFilter, #sortBy').on('change', function() {
+  var danhMucId = $('#danhMucFilter').val();
+        var sortBy = $('#sortBy').val();
+        
+        var url = '@Url.Action("Index", "TinTuc")';
+        url += '?danhMucId=' + danhMucId;
+  url += '&sortBy=' + sortBy;
+        
+   window.location.href = url;
+    });
+</script>
+}

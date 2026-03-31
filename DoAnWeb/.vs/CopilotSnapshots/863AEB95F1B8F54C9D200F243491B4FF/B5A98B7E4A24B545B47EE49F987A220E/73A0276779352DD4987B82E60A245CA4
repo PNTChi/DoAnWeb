@@ -1,0 +1,201 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller x? lý ??ng nh?p, ??ng ký, ??ng xu?t
+    /// </summary>
+    public class AccountController : Controller
+ {
+        // Kh?i t?o DbContext
+        private WebBanHangDienTuEntities db = new WebBanHangDienTuEntities();
+
+#region ??ng nh?p
+
+        /// <summary>
+        /// GET: Hi?n th? trang ??ng nh?p
+        /// </summary>
+        [HttpGet]
+        public ActionResult Login(string returnUrl)
+        {
+            // N?u ?ã ??ng nh?p r?i thì redirect v? trang ch?
+       if (Session["User"] != null)
+            {
+      return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+   /// <summary>
+      /// POST: X? lý ??ng nh?p
+     /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(LoginViewModel model, string returnUrl)
+        {
+     if (ModelState.IsValid)
+  {
+                // Tìm user trong database theo email
+        var user = db.tb_TaiKhoan
+   .FirstOrDefault(u => u.Email == model.Email && u.HoatDong == true);
+
+         if (user != null)
+    {
+  // Ki?m tra m?t kh?u (nên dùng hash, nh?ng ? ?ây demo ??n gi?n)
+      if (user.MatKhau == model.Password)
+     {
+                  // L?u thông tin user vào session
+    var userSession = new UserSessionViewModel
+      {
+   Id = user.Id,
+   HoTen = user.HoTen,
+       Email = user.Email,
+             LaQuanTri = user.LaQuanTri ?? false
+          };
+
+       Session["User"] = userSession;
+       Session["UserId"] = user.Id;
+         Session["UserName"] = user.HoTen;
+     Session["IsAdmin"] = user.LaQuanTri ?? false;
+
+      // Redirect v? trang tr??c ?ó ho?c trang ch?
+  if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+      {
+         return Redirect(returnUrl);
+             }
+
+     // N?u là admin thì v? trang admin, user thì v? trang ch?
+         if (user.LaQuanTri == true)
+         {
+        return RedirectToAction("Index", "Admin");
+      }
+
+        return RedirectToAction("Index", "Home");
+         }
+else
+       {
+    ModelState.AddModelError("", "M?t kh?u không ?úng");
+       }
+ }
+       else
+      {
+        ModelState.AddModelError("", "Email không t?n t?i ho?c tài kho?n ?ã b? khóa");
+    }
+         }
+
+       ViewBag.ReturnUrl = returnUrl;
+            return View(model);
+        }
+
+        #endregion
+
+        #region ??ng ký
+
+        /// <summary>
+        /// POST: X? lý ??ng ký tài kho?n m?i
+   /// </summary>
+    [HttpPost]
+      [ValidateAntiForgeryToken]
+    public ActionResult Register(RegisterViewModel model)
+        {
+     if (ModelState.IsValid)
+      {
+       // Ki?m tra email ?ã t?n t?i ch?a
+          var existingUser = db.tb_TaiKhoan.FirstOrDefault(u => u.Email == model.Email);
+  if (existingUser != null)
+     {
+        ModelState.AddModelError("Email", "Email này ?ã ???c ??ng ký");
+     return View("Login", model);
+                }
+
+       // T?o tài kho?n m?i
+    var newUser = new tb_TaiKhoan
+              {
+    HoTen = model.FullName,
+      Email = model.Email,
+         TenDangNhap = model.Email, // Dùng email làm tên ??ng nh?p
+                    MatKhau = model.Password, // Nên hash m?t kh?u trong th?c t?
+ SoDienThoai = model.PhoneNumber,
+ LaQuanTri = false, // User th??ng
+        HoatDong = true // Kích ho?t ngay
+        };
+
+    try
+       {
+          db.tb_TaiKhoan.Add(newUser);
+  db.SaveChanges();
+
+             // Thông báo thành công
+     TempData["SuccessMessage"] = "??ng ký thành công! Vui lòng ??ng nh?p.";
+             return RedirectToAction("Login");
+  }
+                catch (Exception ex)
+                {
+        ModelState.AddModelError("", "Có l?i x?y ra: " + ex.Message);
+      }
+  }
+
+     // N?u có l?i, tr? v? view Login v?i d? li?u ?ã nh?p
+   return View("Login");
+   }
+
+        #endregion
+
+        #region ??ng xu?t
+
+        /// <summary>
+        /// ??ng xu?t - Clear session
+        /// </summary>
+        public ActionResult Logout()
+        {
+ // Xóa t?t c? session
+            Session.Clear();
+    Session.Abandon();
+
+            // Redirect v? trang ??ng nh?p
+  return RedirectToAction("Login", "Account");
+        }
+
+        #endregion
+
+     #region Helpers
+
+        /// <summary>
+        /// Ki?m tra user ?ã ??ng nh?p ch?a (dùng cho các action c?n authentication)
+        /// </summary>
+      protected bool IsAuthenticated()
+        {
+       return Session["User"] != null;
+        }
+
+   /// <summary>
+      /// L?y thông tin user hi?n t?i t? session
+        /// </summary>
+        protected UserSessionViewModel GetCurrentUser()
+ {
+            return Session["User"] as UserSessionViewModel;
+        }
+
+  #endregion
+
+     /// <summary>
+        /// Dispose DbContext
+        /// </summary>
+ protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+    {
+   db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}

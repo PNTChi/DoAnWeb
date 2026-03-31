@@ -1,0 +1,414 @@
+﻿# Hoàn Thiện Tính Năng Thương Hiệu Trên Trang Chủ
+
+## Tổng Quan
+Đã hoàn thiện tính năng **Thương hiệu nổi bật** trên trang chủ, cho phép người dùng click vào thương hiệu và được chuyển đến trang danh sách sản phẩm của thương hiệu đó.
+
+---
+
+## 📋 Những Gì Đã Được Thực Hiện
+
+### 1. ✅ View Trang Chủ (`Views\Home\Index.cshtml`)
+**Đã có sẵn và hoạt động đúng:**
+
+```razor
+<!-- Thương hiệu nổi bật -->
+@if (Model.ThuongHieu != null && Model.ThuongHieu.Any())
+{
+    <div class="mb-10">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+            <i class="fas fa-medal text-yellow-500 mr-3"></i> Thương hiệu nổi bật
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            @foreach (var thuongHieu in Model.ThuongHieu)
+            {
+                <a href="@Url.Action("Index", "SanPham", new { thuongHieuId = thuongHieu.Id })" 
+                   class="brand-card bg-white rounded-lg shadow p-6 flex items-center justify-center hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group"
+                   title="Xem sản phẩm của @thuongHieu.TenThuongHieu">
+                    <div class="text-center w-full">
+                        @if (!string.IsNullOrEmpty(thuongHieu.HinhAnh))
+                        {
+                            <img src="@Url.Content("~/Content/Images/" + thuongHieu.HinhAnh)" 
+                                 alt="@thuongHieu.TenThuongHieu" 
+                                 class="h-12 mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
+                        }
+                        else
+                        {
+                            <div class="h-12 flex items-center justify-center">
+                                <span class="text-lg font-bold text-gray-700 group-hover:text-blue-600 transition-colors">
+                                    @thuongHieu.TenThuongHieu
+                                </span>
+                            </div>
+                        }
+                        <p class="text-xs text-gray-500 mt-2 group-hover:text-blue-600 transition-colors">
+                            @thuongHieu.TenThuongHieu
+                        </p>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+}
+```
+
+**Điểm nổi bật:**
+- ✅ Link chuyển hướng đến `/SanPham?thuongHieuId={Id}`
+- ✅ Hiển thị logo/hình ảnh thương hiệu
+- ✅ Fallback text nếu không có hình ảnh
+- ✅ Hover effects đẹp mắt (scale, shadow, color transition)
+- ✅ Responsive grid: 2 cols (mobile) → 6 cols (desktop)
+- ✅ Tooltip hiển thị tên thương hiệu khi hover
+
+---
+
+### 2. ✅ Controller (`Controllers\SanPhamController.cs`)
+**Đã cập nhật:**
+
+#### **Action Index - Xử lý filter theo thương hiệu:**
+```csharp
+public ActionResult Index(int? danhMucId, int? thuongHieuId, decimal? giaMin, decimal? giaMax,
+    string loc, string search, int? page)
+{
+    var query = db.tb_SanPham.Where(sp => sp.HienThi == true);
+    
+    string categoryName = "Tất cả sản phẩm";
+
+    // Filter theo danh mục
+    if (danhMucId.HasValue)
+    {
+        query = query.Where(sp => sp.DanhMucId == danhMucId.Value);
+        var danhMuc = db.tb_DanhMuc.Find(danhMucId.Value);
+        if (danhMuc != null)
+        {
+            categoryName = danhMuc.TenDanhMuc;
+        }
+    }
+
+    // Filter theo thương hiệu
+    if (thuongHieuId.HasValue)
+    {
+        query = query.Where(sp => sp.ThuongHieuId == thuongHieuId.Value);
+        
+        var thuongHieu = db.tb_ThuongHieu.Find(thuongHieuId.Value);
+        if (thuongHieu != null)
+        {
+            categoryName = danhMucId.HasValue 
+                ? $"{categoryName} - {thuongHieu.TenThuongHieu}" 
+                : thuongHieu.TenThuongHieu;
+        }
+    }
+    
+    // ... (các filter khác: giá, search, pagination)
+    
+    // ✨ MỚI: Lưu thông tin vào ViewBag cho breadcrumb
+    ViewBag.DanhMucId = danhMucId;
+    ViewBag.ThuongHieuId = thuongHieuId;
+    
+    if (danhMucId.HasValue)
+    {
+        var danhMuc = db.tb_DanhMuc.Find(danhMucId.Value);
+        ViewBag.TenDanhMuc = danhMuc?.TenDanhMuc;
+    }
+    
+    if (thuongHieuId.HasValue)
+    {
+        var thuongHieu = db.tb_ThuongHieu.Find(thuongHieuId.Value);
+        ViewBag.TenThuongHieu = thuongHieu?.TenThuongHieu;
+    }
+
+    return View(viewModel);
+}
+```
+
+**Những gì đã cải thiện:**
+- ✅ Xử lý tham số `thuongHieuId` từ URL
+- ✅ Filter sản phẩm theo thương hiệu
+- ✅ Hiển thị tên thương hiệu trong tiêu đề trang
+- ✅ Kết hợp filter: danh mục + thương hiệu (ví dụ: "Điện thoại - Samsung")
+- ✅ **MỚI:** Truyền `ViewBag.TenThuongHieu` để hiển thị trong breadcrumb
+
+---
+
+### 3. ✅ View Danh Sách Sản Phẩm (`Views\SanPham\Index.cshtml`)
+**Đã cập nhật breadcrumb:**
+
+```razor
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+            <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                <i class="fas fa-home mr-2"></i>
+                Trang chủ
+            </a>
+        </li>
+        
+        <!-- Hiển thị danh mục nếu có -->
+        @if (ViewBag.TenDanhMuc != null)
+        {
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <a href="@Url.Action("Index", "SanPham", new { danhMucId = ViewBag.DanhMucId })" 
+                       class="text-sm font-medium text-gray-700 hover:text-blue-600">
+                        @ViewBag.TenDanhMuc
+                    </a>
+                </div>
+            </li>
+        }
+        
+        <!-- ✨ MỚI: Hiển thị thương hiệu nếu có -->
+        @if (ViewBag.TenThuongHieu != null)
+        {
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    @if (ViewBag.TenDanhMuc != null)
+                    {
+                        <a href="@Url.Action("Index", "SanPham", new { thuongHieuId = ViewBag.ThuongHieuId })" 
+                           class="text-sm font-medium text-gray-700 hover:text-blue-600">
+                            @ViewBag.TenThuongHieu
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-sm font-medium text-gray-500">@ViewBag.TenThuongHieu</span>
+                    }
+                </div>
+            </li>
+        }
+        
+        <!-- Hiển thị tên trang hiện tại nếu không có thương hiệu -->
+        @if (ViewBag.TenThuongHieu == null)
+        {
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="text-sm font-medium text-gray-500">@Model.CurrentCategoryName</span>
+                </div>
+            </li>
+        }
+    </ol>
+</nav>
+```
+
+**Những gì đã cải thiện:**
+- ✅ Hiển thị breadcrumb theo thứ tự: `Trang chủ > Danh mục > Thương hiệu`
+- ✅ Link clickable cho từng cấp breadcrumb
+- ✅ Xử lý trường hợp chỉ có thương hiệu (không có danh mục)
+- ✅ Responsive và đẹp mắt với icons
+
+---
+
+## 🎯 Luồng Hoạt Động
+
+### **Scenario 1: Người dùng click vào thương hiệu từ trang chủ**
+
+```
+1. Trang chủ → Click vào card "Samsung"
+   URL: /
+
+2. Chuyển đến trang sản phẩm
+   URL: /SanPham?thuongHieuId=1
+
+3. Controller xử lý:
+   - Filter: sp.ThuongHieuId == 1
+   - Lấy tên: ViewBag.TenThuongHieu = "Samsung"
+   - Tiêu đề: CurrentCategoryName = "Samsung"
+
+4. View hiển thị:
+   - Breadcrumb: Trang chủ > Samsung
+   - Tiêu đề: "Samsung"
+   - Danh sách sản phẩm Samsung
+   - Pagination với filter thuongHieuId
+```
+
+### **Scenario 2: Người dùng filter theo danh mục + thương hiệu**
+
+```
+1. Menu → Click "Điện thoại"
+   URL: /SanPham?danhMucId=1
+
+2. Sidebar → Click "Samsung"
+   URL: /SanPham?danhMucId=1&thuongHieuId=1
+
+3. Controller xử lý:
+   - Filter: sp.DanhMucId == 1 AND sp.ThuongHieuId == 1
+   - ViewBag.TenDanhMuc = "Điện thoại"
+   - ViewBag.TenThuongHieu = "Samsung"
+   - CurrentCategoryName = "Điện thoại - Samsung"
+
+4. View hiển thị:
+   - Breadcrumb: Trang chủ > Điện thoại > Samsung
+   - Tiêu đề: "Điện thoại - Samsung"
+   - Danh sách điện thoại Samsung
+```
+
+---
+
+## 📊 URL Patterns
+
+### **Chỉ thương hiệu:**
+```
+/SanPham?thuongHieuId=1         → Samsung
+/SanPham?thuongHieuId=2         → Apple
+/SanPham?thuongHieuId=3         → Xiaomi
+```
+
+### **Danh mục + Thương hiệu:**
+```
+/SanPham?danhMucId=1&thuongHieuId=1    → Điện thoại Samsung
+/SanPham?danhMucId=2&thuongHieuId=2    → Laptop Apple
+/SanPham?danhMucId=1&thuongHieuId=3    → Điện thoại Xiaomi
+```
+
+### **Với Pagination:**
+```
+/SanPham?thuongHieuId=1&page=2
+/SanPham?danhMucId=1&thuongHieuId=1&page=3
+```
+
+---
+
+## 🎨 UI/UX Features
+
+### **1. Card Design (Trang chủ)**
+- ✅ Grid responsive: 2-6 columns
+- ✅ Logo thương hiệu (height: 48px)
+- ✅ Fallback text nếu không có logo
+- ✅ Hover effects:
+  - Shadow tăng (shadow → shadow-2xl)
+  - Transform lên trên (-translate-y-1)
+  - Logo scale (scale-110)
+  - Text màu xanh (text-blue-600)
+- ✅ Tooltip với tên thương hiệu
+
+### **2. Breadcrumb (Trang sản phẩm)**
+- ✅ Icons: Home, chevron-right
+- ✅ Clickable links
+- ✅ Hover effect (text-blue-600)
+- ✅ Current page: màu xám (text-gray-500)
+- ✅ Responsive
+
+### **3. Page Header (Trang sản phẩm)**
+- ✅ Hiển thị tên thương hiệu rõ ràng
+- ✅ Số sản phẩm tìm thấy
+- ✅ Sort options (dropdown)
+
+---
+
+## 🔍 Test Cases
+
+### ✅ Test 1: Click vào thương hiệu từ trang chủ
+```
+Input: Click vào "Samsung" trong phần Thương hiệu nổi bật
+Expected: 
+- URL: /SanPham?thuongHieuId=1
+- Tiêu đề: "Samsung"
+- Breadcrumb: Trang chủ > Samsung
+- Hiển thị tất cả sản phẩm Samsung
+```
+
+### ✅ Test 2: Click vào thương hiệu không có sản phẩm
+```
+Input: Click vào thương hiệu "Nokia" (giả sử không có sản phẩm)
+Expected:
+- URL: /SanPham?thuongHieuId=5
+- Tiêu đề: "Nokia"
+- Message: "Không tìm thấy sản phẩm nào"
+```
+
+### ✅ Test 3: Filter kết hợp danh mục + thương hiệu
+```
+Input: 
+1. Click menu "Điện thoại"
+2. Click thương hiệu "Samsung" trong sidebar
+Expected:
+- URL: /SanPham?danhMucId=1&thuongHieuId=1
+- Tiêu đề: "Điện thoại - Samsung"
+- Breadcrumb: Trang chủ > Điện thoại > Samsung
+- Chỉ hiển thị điện thoại Samsung
+```
+
+### ✅ Test 4: Pagination với filter thương hiệu
+```
+Input: Ở trang /SanPham?thuongHieuId=1&page=2
+Expected:
+- Link "Trang trước" về page=1 và giữ thuongHieuId=1
+- Link "Trang sau" đến page=3 và giữ thuongHieuId=1
+- Tất cả page links giữ thuongHieuId=1
+```
+
+### ✅ Test 5: Breadcrumb navigation
+```
+Input: Click vào "Điện thoại" trong breadcrumb
+Expected:
+- URL: /SanPham?danhMucId=1
+- Loại bỏ filter thuongHieuId
+- Hiển thị tất cả điện thoại
+```
+
+---
+
+## 🌟 Ưu Điểm
+
+### **1. User Experience**
+- ✅ Người dùng dễ dàng tìm sản phẩm theo thương hiệu yêu thích
+- ✅ Breadcrumb giúp điều hướng dễ dàng
+- ✅ Hover effects tăng tính tương tác
+- ✅ Responsive trên mọi thiết bị
+
+### **2. Code Quality**
+- ✅ Code sạch, dễ đọc, dễ bảo trì
+- ✅ Tách biệt logic: Controller xử lý data, View hiển thị UI
+- ✅ Tái sử dụng ViewBag cho nhiều mục đích
+- ✅ URL parameters rõ ràng
+
+### **3. Performance**
+- ✅ Filter trực tiếp trên database (LINQ)
+- ✅ Pagination giảm tải dữ liệu
+- ✅ Không load thêm hình ảnh không cần thiết
+
+### **4. SEO Friendly**
+- ✅ URL có ý nghĩa: `/SanPham?thuongHieuId=1`
+- ✅ Breadcrumb tốt cho SEO
+- ✅ Title tag động theo thương hiệu
+
+---
+
+## 📁 Files Đã Thay Đổi
+
+### **1. Controller**
+- ✅ `DoAnWeb\Controllers\SanPhamController.cs`
+  - Thêm logic truyền `ViewBag.TenThuongHieu`
+
+### **2. View**
+- ✅ `DoAnWeb\Views\SanPham\Index.cshtml`
+  - Cập nhật breadcrumb để hiển thị thương hiệu
+  - Xử lý trường hợp có/không có danh mục
+
+### **3. Không thay đổi (đã có sẵn)**
+- ✅ `DoAnWeb\Views\Home\Index.cshtml` - Đã có link thương hiệu
+- ✅ `DoAnWeb\Controllers\HomeController.cs` - Đã load thương hiệu
+
+---
+
+## 🚀 Kết Luận
+
+✅ **Tính năng thương hiệu đã hoàn thiện 100%**
+
+Người dùng có thể:
+1. Xem danh sách thương hiệu nổi bật trên trang chủ
+2. Click vào thương hiệu để xem tất cả sản phẩm
+3. Kết hợp filter danh mục + thương hiệu
+4. Điều hướng dễ dàng qua breadcrumb
+5. Phân trang với filter được giữ nguyên
+
+**Build Status:** ✅ Successful  
+**Test Status:** ✅ Ready for Testing  
+**Documentation:** ✅ Complete
+
+---
+
+**Ngày hoàn thành:** 2024  
+**Tác giả:** GitHub Copilot  
+**Status:** ✅ HOÀN THÀNH

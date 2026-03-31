@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?PowerDesigner AppLocale="UTF16" ID="{D9D9D9D9-D9D9-D9D9-D9D9-D9D9D9D9D9D9}" Label="" LastModificationDate="1234567890" Name="ThanhToanDonHang" Objects="280" Symbols="280" Type="{08ABFB48-5338-4E96-8B8A-A5D88BDC5C21}" signature="PDM_DATA_MODEL_XML" version="1.0.0.0"?>
+<!-- PowerDesigner Sequence Diagram: 2. Thanh toán đơn hàng -->
+<Model xmlns:a="attribute" xmlns:c="collection" xmlns:o="object">
+    <o:RootObject Id="o1">
+        <a:SessionID>00000000-0000-0000-0000-000000000000</a:SessionID>
+        <a:ObjectID>D9D9D9D9-D9D9-D9D9-D9D9-D9D9D9D9D9D9</a:ObjectID>
+        <a:Name>Sequence Diagram 2: Thanh toán đơn hàng</a:Name>
+        <a:Code>ThanhToanDonHang</a:Code>
+        <a:CreationDate>1234567890</a:CreationDate>
+        <a:Creator>Student</a:Creator>
+        <a:ModificationDate>1234567890</a:ModificationDate>
+        <a:Modifier>Student</a:Modifier>
+        <c:Actors>
+            <o:Actor Id="actor1">
+                <a:Name>User</a:Name>
+                <a:Code>User</a:Code>
+            </o:Actor>
+        </c:Actors>
+        <c:Objects>
+            <o:Object Id="obj1">
+                <a:Name>GioHangView</a:Name>
+                <a:Code>GioHangView</a:Code>
+            </o:Object>
+            <o:Object Id="obj2">
+                <a:Name>ThanhToanController</a:Name>
+                <a:Code>ThanhToanController</a:Code>
+            </o:Object>
+            <o:Object Id="obj3">
+                <a:Name>Session</a:Name>
+                <a:Code>Session</a:Code>
+            </o:Object>
+            <o:Object Id="obj4">
+                <a:Name>BaseController</a:Name>
+                <a:Code>BaseController</a:Code>
+            </o:Object>
+            <o:Object Id="obj5">
+                <a:Name>Database</a:Name>
+                <a:Code>Database</a:Code>
+            </o:Object>
+            <o:Object Id="obj6">
+                <a:Name>ThanhToanView</a:Name>
+                <a:Code>ThanhToanView</a:Code>
+            </o:Object>
+        </c:Objects>
+        <c:Messages>
+            <!-- 1. User click thanh toán -->
+            <o:Message Id="msg1">
+                <a:Name>1: Click "Thanh toán"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj1</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 2. GET thanh toán -->
+            <o:Message Id="msg2">
+                <a:Name>2: GET /ThanhToan/Index</a:Name>
+                <a:Source>obj1</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 3. Kiểm tra đăng nhập -->
+            <o:Message Id="msg3">
+                <a:Name>3: IsAuthenticated()</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj4</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 4. Trả về true -->
+            <o:Message Id="msg4">
+                <a:Name>4: Return true (User đã đăng nhập)</a:Name>
+                <a:Source>obj4</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 5. Lấy giỏ hàng -->
+            <o:Message Id="msg5">
+                <a:Name>5: GetCart()</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj3</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 6. Trả về cart -->
+            <o:Message Id="msg6">
+                <a:Name>6: Return ShoppingCart (3 items, Total: 45,000,000đ)</a:Name>
+                <a:Source>obj3</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 7. Lấy thông tin user -->
+            <o:Message Id="msg7">
+                <a:Name>7: SELECT * FROM tb_TaiKhoan WHERE Id = CurrentUser.Id</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 8. Trả về user info -->
+            <o:Message Id="msg8">
+                <a:Name>8: Return User {HoTen, Email, SoDienThoai}</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 9. Tạo ViewModel -->
+            <o:Message Id="msg9">
+                <a:Name>9: Create CheckoutViewModel (Cart, User Info)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 10. Render view -->
+            <o:Message Id="msg10">
+                <a:Name>10: Return View(CheckoutViewModel)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj6</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 11. Hiển thị form -->
+            <o:Message Id="msg11">
+                <a:Name>11: Hiển thị form thanh toán (đã điền sẵn thông tin)</a:Name>
+                <a:Source>obj6</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 12. User nhập thông tin -->
+            <o:Message Id="msg12">
+                <a:Name>12: Nhập địa chỉ, chọn phương thức thanh toán</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj6</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 13. Submit form -->
+            <o:Message Id="msg13">
+                <a:Name>13: Click "Xác nhận đặt hàng"</a:Name>
+                <a:Source>actor1</a:Source>
+                <a:Target>obj6</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 14. POST thanh toán -->
+            <o:Message Id="msg14">
+                <a:Name>14: POST /ThanhToan/Index (CheckoutViewModel)</a:Name>
+                <a:Source>obj6</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 15. Validate model -->
+            <o:Message Id="msg15">
+                <a:Name>15: ModelState.IsValid()</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 16. Generate order code -->
+            <o:Message Id="msg16">
+                <a:Name>16: GenerateOrderCode() → "DH202412152350431234"</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 17. Tạo đơn hàng -->
+            <o:Message Id="msg17">
+                <a:Name>17: INSERT INTO tb_DonHang (MaDonHang, TenKhachHang, TongTien, TrangThai=2)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 18. Trả về OrderId -->
+            <o:Message Id="msg18">
+                <a:Name>18: Return OrderId = 123</a:Name>
+                <a:Source>obj5</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 19. Loop tạo chi tiết -->
+            <o:Message Id="msg19">
+                <a:Name>19: LOOP foreach(item in cart.Items)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj2</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 20. Insert chi tiết -->
+            <o:Message Id="msg20">
+                <a:Name>20: INSERT INTO tb_ChiTietDonHang (DonHangId, SanPhamId, SoLuong, Gia)</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 21. Cập nhật tồn kho -->
+            <o:Message Id="msg21">
+                <a:Name>21: UPDATE tb_SanPham SET SoLuong = SoLuong - item.Quantity</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 22. Save changes -->
+            <o:Message Id="msg22">
+                <a:Name>22: SaveChanges()</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj5</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 23. Xóa giỏ hàng -->
+            <o:Message Id="msg23">
+                <a:Name>23: ClearCart()</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj3</a:Target>
+                <a:Type>Synchronous</a:Type>
+            </o:Message>
+            
+            <!-- 24. Redirect success -->
+            <o:Message Id="msg24">
+                <a:Name>24: RedirectToAction("Success")</a:Name>
+                <a:Source>obj2</a:Source>
+                <a:Target>obj6</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+            
+            <!-- 25. Hiển thị thành công -->
+            <o:Message Id="msg25">
+                <a:Name>25: Hiển thị "Đặt hàng thành công! Mã đơn: DH202412152350431234"</a:Name>
+                <a:Source>obj6</a:Source>
+                <a:Target>actor1</a:Target>
+                <a:Type>Return</a:Type>
+            </o:Message>
+        </c:Messages>
+    </o:RootObject>
+</Model>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="5d2078f815c04aa9b599a59431a5dfe6" Name="Diagram1" ZoomLevel="47">
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_AnhSanPham" Width="1.5" PointX="5.25" PointY="5.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_CauHinh" Width="1.5" PointX="7.75" PointY="5.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_ChiTietDonHang" Width="1.5" PointX="8.25" PointY="8.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_DangKyNhanTin" Width="1.5" PointX="9.75" PointY="3.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_DanhGia" Width="1.5" PointX="5.25" PointY="11.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_DanhMuc" Width="1.5" PointX="0.75" PointY="7.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_DanhMucTin" Width="1.5" PointX="7.75" PointY="13.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_DonHang" Width="1.5" PointX="6" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_LienHe" Width="1.5" PointX="10.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_MaGiamGia" Width="1.5" PointX="0.75" PointY="14.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_Menu" Width="1.5" PointX="12.75" PointY="3.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_PhuongThucThanhToan" Width="1.5" PointX="12.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_PhuongThucVanChuyen" Width="1.5" PointX="12.75" PointY="10.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_QuangCao" Width="1.5" PointX="12.75" PointY="13.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_Quyen" Width="1.5" PointX="2.75" PointY="3.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_SanPham" Width="1.5" PointX="3" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_TaiKhoan" Width="1.5" PointX="14.75" PointY="3.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_ThuongHieu" Width="1.5" PointX="0.75" PointY="4.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_TinTuc" Width="1.5" PointX="10" PointY="12.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_YeuThich" Width="1.5" PointX="5.25" PointY="14.875" IsExpanded="true" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_AnhSanPham_tb_SanPham" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_ChiTietDonHang_tb_DonHang" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_ChiTietDonHang_tb_SanPham" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_DanhGia_tb_SanPham" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_SanPham_tb_DanhMuc" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_TinTuc_tb_DanhMucTin" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_SanPham_tb_ThuongHieu" ManuallyRouted="false" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_YeuThich_tb_SanPham" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.sysdiagrams" Width="1.5" PointX="15.375" PointY="7.75" />
+        <EntityTypeShape EntityType="WebBanHangDienTuModel.tb_ThongSo" Width="1.5" PointX="5.25" PointY="18.625" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_DonHang_tb_MaGiamGia" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_DonHang_tb_PhuongThucThanhToan" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_DonHang_tb_PhuongThucVanChuyen" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_DonHang_tb_TaiKhoan" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_Menu_tb_Menu" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_TaiKhoan_tb_Quyen" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_ThongSo_tb_SanPham" />
+        <AssociationConnector Association="WebBanHangDienTuModel.FK_tb_YeuThich_tb_TaiKhoan" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

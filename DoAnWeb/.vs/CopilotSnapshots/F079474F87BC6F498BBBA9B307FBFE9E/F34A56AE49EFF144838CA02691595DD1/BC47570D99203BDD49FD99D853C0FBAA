@@ -1,0 +1,118 @@
+﻿@model List<tb_TaiKhoan>
+@{
+    ViewBag.Title = "KhachHang";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="customers" class="tab-content active">
+    <h1 class="mb-4">Quản lý khách hàng</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimKhachHang" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timkh" name="timkh" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <a href="@Url.Action("formThemKH", "Admin")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm khách hàng
+            </a>
+        </div>
+        <table class="table table-bordered table-hover" id="customerTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="customerTableBody">
+                @foreach (var item in Model)
+                {
+                    <tr id="customer-@item.Id" class="@(item.HoatDong == false ? "table-danger" : "")">
+                        <td>@item.Id</td>
+                        <td>
+                            <strong>@item.TenDangNhap</strong>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle bg-primary text-white me-2">
+                                    @item.HoTen.Substring(0, 1).ToUpper()
+                                </div>
+                                <span>@item.HoTen</span>
+                            </div>
+                        </td>
+                        <td>
+                            <i class="fas fa-envelope text-muted me-1"></i>
+                            @item.Email
+                        </td>
+                        <td>
+                            <i class="fas fa-phone text-muted me-1"></i>
+                            @item.SoDienThoai
+                        </td>
+                        <td id="status-@item.Id">
+                            @if (item.HoatDong == true)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-lock me-1"></i>Đã khóa
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("formSuaKH", "Admin", new { id = item.Id })" 
+                                   class="btn btn-sm btn-warning" 
+                                   title="Sửa thông tin">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <button type="button" 
+                                        class="btn btn-sm @(item.HoatDong == true ? "btn-danger" : "btn-success") btn-toggle-lock" 
+                                        data-id="@item.Id" 
+                                        data-name="@item.HoTen"
+                                        data-status="@item.HoatDong"
+                                        title="@(item.HoatDong == true ? "Khóa tài khoản" : "Mở khóa tài khoản")">
+                                    <i class="fas @(item.HoatDong == true ? "fa-lock" : "fa-unlock")"></i>
+                                    @(item.HoatDong == true ? "Khóa" : "Mở")
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "KhachHang" : "TimKhachHang",
+                    new { timkh = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "KhachHang" : "TimKhachHang",
+                        new { timkh = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "KhachHang" : "TimKhachHang",
+                    new { timkh = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

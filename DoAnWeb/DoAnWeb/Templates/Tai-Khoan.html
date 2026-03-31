@@ -1,0 +1,373 @@
+﻿
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Các thẻ meta cơ bản -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài khoản của tôi</title>
+    <link href="bootstrap-5.0.2/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Tải Font Awesome (bộ icon) từ CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tải Google Fonts (Roboto) -->
+    <link rel="preconnect" href="https://fonts.googleapis">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- CSS tùy chỉnh cho trang -->
+    <style>
+        /* --- Cài đặt Biến Màu và Chung --- */
+        :root {
+            --theme-color: #088178; /* Màu xanh mòng két (Teal) làm màu chủ đạo */
+            --theme-color-darker: #066a63;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        /* Tùy chỉnh màu sắc chính của Bootstrap */
+        .btn-primary {
+            background-color: var(--theme-color);
+            border-color: var(--theme-color);
+        }
+
+            .btn-primary:hover {
+                background-color: var(--theme-color-darker);
+                border-color: var(--theme-color-darker);
+            }
+
+        .text-primary {
+            color: var(--theme-color) !important;
+        }
+
+        .breadcrumb-item a {
+            color: var(--theme-color);
+            text-decoration: none;
+        }
+
+        /* --- Menu Tài khoản --- */
+        .account-nav .list-group-item {
+            border: none;
+            font-weight: 500;
+            color: #495057;
+        }
+
+            .account-nav .list-group-item i {
+                width: 25px;
+            }
+
+            .account-nav .list-group-item.active {
+                background-color: var(--theme-color);
+                color: #fff;
+                border-radius: 8px;
+            }
+
+            .account-nav .list-group-item:not(.active):hover {
+                background-color: #e9ecef;
+                border-radius: 8px;
+            }
+
+        /* --- Nội dung chính --- */
+        .account-content {
+            background-color: #fff;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+
+            .account-content h3 {
+                font-weight: 700;
+                border-bottom: 2px solid #f0f2f5;
+                padding-bottom: 1rem;
+                margin-bottom: 2rem;
+            }
+
+        /* --- Thẻ trên Bảng điều khiển --- */
+        .dashboard-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+            .dashboard-card i {
+                font-size: 2.5rem;
+                color: var(--theme-color);
+            }
+
+            .dashboard-card .stat-number {
+                font-size: 2rem;
+                font-weight: 700;
+            }
+
+        /* --- Lịch sử đơn hàng --- */
+        .order-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+            .order-item .order-status {
+                font-weight: 500;
+            }
+
+        .order-status.processing {
+            color: #ffc107;
+        }
+
+        .order-status.completed {
+            color: #198754;
+        }
+
+        .order-status.cancelled {
+            color: #dc3545;
+        }
+
+        /* --- Thẻ Địa chỉ --- */
+        .address-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+            .address-card .badge {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+            }
+    </style>
+</head>
+<body>
+    <!-- Nội dung chính của trang tài khoản -->
+    <div class="container my-4">
+        <div class="row">
+            <!-- Cột trái: Menu điều hướng -->
+            <div class="col-lg-3">
+                <div class="list-group account-nav" id="list-tab" role="tablist">
+                    <a class="list-group-item list-group-item-action active" id="list-dashboard-list" data-bs-toggle="list" href="#list-dashboard" role="tab" aria-controls="list-dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="list-orders-list" data-bs-toggle="list" href="#list-orders" role="tab" aria-controls="list-orders">
+                        <i class="fas fa-box"></i> Lịch sử đơn hàng
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="list-profile-list" data-bs-toggle="list" href="#list-profile" role="tab" aria-controls="list-profile">
+                        <i class="fas fa-user-edit"></i> Thông tin cá nhân
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="list-addresses-list" data-bs-toggle="list" href="#list-addresses" role="tab" aria-controls="list-addresses">
+                        <i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="list-wishlist-list" data-bs-toggle="list" href="#list-wishlist" role="tab" aria-controls="list-wishlist">
+                        <i class="fas fa-heart"></i> Sản phẩm yêu thích
+                    </a>
+                    <a class="list-group-item list-group-item-action" href="#">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cột phải: Nội dung chi tiết -->
+            <div class="col-lg-9 mt-4 mt-lg-0">
+                <div class="tab-content" id="nav-tabContent">
+                    <!-- Bảng điều khiển -->
+                    <div class="tab-pane fade show active" id="list-dashboard" role="tabpanel" aria-labelledby="list-dashboard-list">
+                        <div class="account-content">
+                            <h3>Bảng điều khiển</h3>
+                            <p>Xin chào, <strong>Nguyễn Văn A</strong>!</p>
+                            <p>Từ bảng điều khiển, bạn có thể dễ dàng xem và quản lý các đơn hàng gần đây, địa chỉ giao hàng và chỉnh sửa thông tin tài khoản.</p>
+                            <div class="row mt-4">
+                                <div class="col-md-4 mb-3">
+                                    <div class="dashboard-card">
+                                        <i class="fas fa-box"></i>
+                                        <div class="stat-number">5</div>
+                                        <p class="text-muted mb-0">Tổng đơn hàng</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="dashboard-card">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <div class="stat-number">2</div>
+                                        <p class="text-muted mb-0">Địa chỉ đã lưu</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="dashboard-card">
+                                        <i class="fas fa-heart"></i>
+                                        <div class="stat-number">8</div>
+                                        <p class="text-muted mb-0">Sản phẩm yêu thích</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Lịch sử đơn hàng -->
+                    <div class="tab-pane fade" id="list-orders" role="tabpanel" aria-labelledby="list-orders-list">
+                        <div class="account-content">
+                            <h3>Lịch sử đơn hàng</h3>
+                            <div class="order-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="fw-bold mb-0">Mã đơn: #12345</p>
+                                        <p class="text-muted small mb-0">Ngày đặt: 05/10/2025</p>
+                                    </div>
+                                    <div>
+                                        <span class="order-status completed"><i class="fas fa-check-circle"></i> Đã giao thành công</span>
+                                    </div>
+                                    <div>
+                                        <p class="fw-bold mb-0">2.500.000₫</p>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="fw-bold mb-0">Mã đơn: #12344</p>
+                                        <p class="text-muted small mb-0">Ngày đặt: 01/10/2025</p>
+                                    </div>
+                                    <div>
+                                        <span class="order-status processing"><i class="fas fa-sync-alt"></i> Đang xử lý</span>
+                                    </div>
+                                    <div>
+                                        <p class="fw-bold mb-0">45.880.000₫</p>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="fw-bold mb-0">Mã đơn: #12300</p>
+                                        <p class="text-muted small mb-0">Ngày đặt: 15/09/2025</p>
+                                    </div>
+                                    <div>
+                                        <span class="order-status cancelled"><i class="fas fa-times-circle"></i> Đã hủy</span>
+                                    </div>
+                                    <div>
+                                        <p class="fw-bold mb-0">990.000₫</p>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Thông tin cá nhân -->
+                    <div class="tab-pane fade" id="list-profile" role="tabpanel" aria-labelledby="list-profile-list">
+                        <div class="account-content">
+                            <h3>Thông tin cá nhân</h3>
+                            <form>
+                                <div class="mb-3">
+                                    <label for="fullName" class="form-label">Họ và tên</label>
+                                    <input type="text" class="form-control" id="fullName" value="Nguyễn Văn A">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Địa chỉ email</label>
+                                    <input type="email" class="form-control" id="email" value="nguyenvana@email.com" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="tel" class="form-control" id="phone" value="0123456789">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                            </form>
+                            <hr class="my-4">
+                            <h4>Đổi mật khẩu</h4>
+                            <form>
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                                    <input type="password" class="form-control" id="currentPassword">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="newPassword">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="confirmPassword">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Địa chỉ giao hàng -->
+                    <div class="tab-pane fade" id="list-addresses" role="tabpanel" aria-labelledby="list-addresses-list">
+                        <div class="account-content">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h3>Địa chỉ giao hàng</h3>
+                                <button class="btn btn-primary"><i class="fas fa-plus"></i> Thêm địa chỉ mới</button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="address-card h-100">
+                                        <span class="badge bg-primary">Mặc định</span>
+                                        <h5 class="fw-bold">Nhà riêng</h5>
+                                        <p class="mb-1">123 Đường ABC, Phường 4, Quận 5, TP. Hồ Chí Minh</p>
+                                        <p class="text-muted">0123456789</p>
+                                        <div>
+                                            <a href="#" class="text-primary text-decoration-none">Chỉnh sửa</a> |
+                                            <a href="#" class="text-danger text-decoration-none">Xóa</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="address-card h-100">
+                                        <h5 class="fw-bold">Văn phòng</h5>
+                                        <p class="mb-1">Tầng 10, Tòa nhà XYZ, 456 Đường DEF, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</p>
+                                        <p class="text-muted">0123456789</p>
+                                        <div>
+                                            <a href="#" class="text-primary text-decoration-none">Chỉnh sửa</a> |
+                                            <a href="#" class="text-danger text-decoration-none">Xóa</a> |
+                                            <a href="#" class="text-success text-decoration-none"> Đặt làm mặc định</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sản phẩm yêu thích -->
+                    <div class="tab-pane fade" id="list-wishlist" role="tabpanel" aria-labelledby="list-wishlist-list">
+                        <div class="account-content">
+                            <h3>Sản phẩm yêu thích</h3>
+                            <div class="row">
+                                <!-- Sản phẩm 1 -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <img src="https://placehold.co/300x200/EFEFEF/333?text=MacBook+Pro" class="card-img-top" alt="Product">
+                                        <div class="card-body">
+                                            <h6 class="card-title">MacBook Pro 14 inch M3</h6>
+                                            <p class="card-text text-danger fw-bold">39.990.000₫</p>
+                                            <button class="btn btn-sm btn-primary w-100">Thêm vào giỏ</button>
+                                            <a href="#" class="btn btn-sm btn-outline-danger w-100 mt-2">Xóa</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Sản phẩm 2 -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <img src="https://placehold.co/300x200/EFEFEF/333?text=AirPods" class="card-img-top" alt="Product">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Apple AirPods Pro 2</h6>
+                                            <p class="card-text text-danger fw-bold">5.890.000₫</p>
+                                            <button class="btn btn-sm btn-primary w-100">Thêm vào giỏ</button>
+                                            <a href="#" class="btn btn-sm btn-outline-danger w-100 mt-2">Xóa</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascrip -->
+    <script src="bootstrap-5.0.2/js/bootstrap.bundle.min.js"></script>
+    <script src="bootstrap-5.0.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

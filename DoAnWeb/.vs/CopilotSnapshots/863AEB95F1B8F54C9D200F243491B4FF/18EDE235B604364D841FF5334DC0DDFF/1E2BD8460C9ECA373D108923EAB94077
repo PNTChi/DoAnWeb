@@ -1,0 +1,456 @@
+﻿@model DoAnWeb.Models.ProductDetailViewModel
+
+@{
+    ViewBag.Title = Model.SanPham.TenSanPham;
+}
+
+@* Success Message *@
+@if (TempData["SuccessMessage"] != null)
+{
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+  <strong class="font-bold">Thành công!</strong>
+<span class="block sm:inline">@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+ <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+  <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+    <i class="fas fa-home mr-2"></i>
+Trang chủ
+  </a>
+ </li>
+  @if (ViewBag.TenDanhMuc != null)
+{
+    <li>
+  <div class="flex items-center">
+    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+         <a href="@Url.Action("Index", "SanPham", new { danhMucId = ViewBag.DanhMucId })" class="text-sm font-medium text-gray-700 hover:text-blue-600">
+     @ViewBag.TenDanhMuc
+</a>
+    </div>
+ </li>
+}
+        <li aria-current="page">
+   <div class="flex items-center">
+   <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+     <span class="text-sm font-medium text-gray-500">@Model.SanPham.TenSanPham</span>
+   </div>
+ </li>
+    </ol>
+</nav>
+
+<!-- Product Detail Section -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+  <!-- Left: Product Image -->
+     <div class="space-y-4">
+  <!-- Main Image -->
+   <div class="aspect-square overflow-hidden rounded-lg border-2 border-gray-200">
+@if (!string.IsNullOrEmpty(Model.SanPham.HinhAnh))
+       {
+       <img src="@Url.Content("~/Content/Images/" + Model.SanPham.HinhAnh)" 
+    alt="@Model.SanPham.TenSanPham" 
+      class="w-full h-full object-contain hover:scale-110 transition-transform duration-300" />
+     }
+  else
+    {
+  <img src="@Url.Content("~/Content/Images/no-image.png")" 
+           alt="No Image" 
+    class="w-full h-full object-contain" />
+ }
+   </div>
+
+    @* Gallery Thumbnails (nếu có nhiều ảnh) *@
+   @if (Model.DanhSachAnh != null && Model.DanhSachAnh.Any())
+  {
+ <div class="grid grid-cols-4 gap-2">
+       @foreach (var anh in Model.DanhSachAnh.Take(4))
+   {
+     <div class="aspect-square overflow-hidden rounded border border-gray-200 cursor-pointer hover:border-blue-500">
+    <img src="@Url.Content("~/Content/Images/" + anh.HinhAnh)" 
+   alt="@Model.SanPham.TenSanPham" 
+     class="w-full h-full object-cover" />
+   </div>
+       }
+      </div>
+  }
+  </div>
+   
+ <!-- Right: Product Info -->
+  <div class="space-y-6">
+      <!-- Product Name -->
+      <h1 class="text-3xl font-bold text-gray-900">@Model.SanPham.TenSanPham</h1>
+     
+    <!-- Rating & Views -->
+   <div class="flex items-center space-x-4">
+  @if (Model.TongSoDanhGia > 0)
+{
+   <div class="flex items-center">
+@for (int i = 1; i <= 5; i++)
+      {
+    if (i <= Model.DiemTrungBinh)
+    {
+          <i class="fas fa-star text-yellow-400"></i>
+}
+     else
+         {
+ <i class="far fa-star text-gray-300"></i>
+  }
+ }
+    <span class="ml-2 text-sm text-gray-600">(@Model.TongSoDanhGia đánh giá)</span>
+  </div>
+       }
+       <div class="text-sm text-gray-600">
+       <i class="fas fa-eye mr-1"></i>
+     @(Model.SanPham.LuotXem ?? 0) lượt xem
+       </div>
+      </div>
+
+   <!-- Price -->
+<div class="space-y-2">
+    @if (Model.SanPham.GiaKhuyenMai.HasValue && Model.SanPham.GiaKhuyenMai < Model.SanPham.Gia)
+        {
+       <div class="flex items-center space-x-3">
+         <span class="text-4xl font-bold text-red-600">@Model.SanPham.GiaKhuyenMai.Value.ToString("#,##0") ₫</span>
+    <span class="text-xl text-gray-500 line-through">@Model.SanPham.Gia.Value.ToString("#,##0") ₫</span>
+   <span class="bg-red-500 text-white text-sm font-semibold px-2 py-1 rounded">
+  -@Math.Round((decimal)(1 - (Model.SanPham.GiaKhuyenMai.Value / Model.SanPham.Gia.Value)) * 100)%
+        </span>
+ </div>
+        }
+    else
+  {
+   <span class="text-4xl font-bold text-blue-600">@(Model.SanPham.Gia.HasValue ? Model.SanPham.Gia.Value.ToString("#,##0") : "0") ₫</span>
+        }
+  </div>
+
+       <!-- Short Description -->
+@if (!string.IsNullOrEmpty(Model.SanPham.MoTa))
+  {
+ <div class="prose prose-sm">
+  <h3 class="text-lg font-semibold mb-2">Mô tả ngắn:</h3>
+ <p class="text-gray-700">@Model.SanPham.MoTa</p>
+        </div>
+     }
+
+ <!-- Stock Status -->
+      <div class="flex items-center space-x-2">
+    @if (Model.SanPham.SoLuong.HasValue && Model.SanPham.SoLuong > 0)
+   {
+   <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+        <i class="fas fa-check-circle mr-2"></i>
+   Còn hàng (@Model.SanPham.SoLuong sản phẩm)
+  </span>
+       }
+   else
+   {
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+    <i class="fas fa-times-circle mr-2"></i>
+   Hết hàng
+    </span>
+     }
+   </div>
+
+       <!-- Add to Cart Form -->
+@using (Html.BeginForm("ThemVaoGioHang", "SanPham", FormMethod.Post))
+     {
+   @Html.AntiForgeryToken()
+    <input type="hidden" name="sanPhamId" value="@Model.SanPham.Id" />
+  
+<div class="flex items-center space-x-4">
+  <!-- Quantity -->
+    <div class="flex items-center border border-gray-300 rounded">
+ <button type="button" class="px-4 py-2 hover:bg-gray-100" onclick="decrementQty()">
+      <i class="fas fa-minus"></i>
+        </button>
+    <input type="number" 
+   name="soLuong" 
+  id="quantity" 
+   value="1" 
+          min="1" 
+max="@(Model.SanPham.SoLuong ?? 1)" 
+class="w-16 text-center border-x border-gray-300 py-2" 
+    readonly />
+   <button type="button" class="px-4 py-2 hover:bg-gray-100" onclick="incrementQty()">
+      <i class="fas fa-plus"></i>
+  </button>
+     </div>
+    
+   <!-- Add to Cart Button -->
+    @if (Model.SanPham.SoLuong.HasValue && Model.SanPham.SoLuong > 0)
+   {
+<button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center">
+     <i class="fas fa-shopping-cart mr-2"></i>
+      Thêm vào giỏ hàng
+      </button>
+  }
+  else
+         {
+    <button type="button" disabled class="flex-1 bg-gray-400 text-white font-bold py-3 px-6 rounded-lg cursor-not-allowed">
+      Hết hàng
+    </button>
+      }
+       </div>
+}
+
+<!-- Action Buttons -->
+   <div class="flex space-x-4">
+ <button class="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-2 px-4 rounded-lg transition">
+  <i class="fas fa-bolt mr-2"></i>
+  Mua ngay
+    </button>
+       <button class="border-2 border-gray-300 hover:border-red-500 hover:text-red-500 p-2 rounded-lg transition">
+   <i class="far fa-heart text-xl"></i>
+    </button>
+      </div>
+
+   <!-- Product Meta -->
+    <div class="border-t pt-4 space-y-2 text-sm text-gray-600">
+    <div class="flex items-center">
+           <span class="font-semibold w-32">Danh mục:</span>
+    <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.SanPham.DanhMucId })" class="text-blue-600 hover:underline">
+@Model.SanPham.tb_DanhMuc?.TenDanhMuc
+ </a>
+   </div>
+        @if (Model.SanPham.tb_ThuongHieu != null)
+      {
+  <div class="flex items-center">
+   <span class="font-semibold w-32">Thương hiệu:</span>
+     <a href="@Url.Action("Index", "SanPham", new { thuongHieuId = Model.SanPham.ThuongHieuId })" class="text-blue-600 hover:underline">
+@Model.SanPham.tb_ThuongHieu.TenThuongHieu
+    </a>
+         </div>
+     }
+ <div class="flex items-center">
+   <span class="font-semibold w-32">Mã SP:</span>
+  <span>@Model.SanPham.MaSanPham</span>
+    </div>
+</div>
+     </div>
+    </div>
+</div>
+
+<!-- Product Details Tabs -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <div class="border-b border-gray-200">
+  <nav class="-mb-px flex space-x-8">
+   <button class="tab-button active border-b-2 border-blue-600 py-4 px-1 text-sm font-medium text-blue-600" data-tab="details">
+   Chi tiết sản phẩm
+      </button>
+     <button class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="specs">
+   Thông số kỹ thuật
+     </button>
+    <button class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="reviews">
+     Đánh giá (@Model.TongSoDanhGia)
+  </button>
+    </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="mt-6">
+   <!-- Details Tab -->
+        <div id="details-tab" class="tab-content">
+   @if (!string.IsNullOrEmpty(Model.SanPham.ChiTiet))
+ {
+  <div class="prose max-w-none">
+  @Html.Raw(Model.SanPham.ChiTiet)
+    </div>
+     }
+  else
+{
+  <p class="text-gray-500 italic">Chưa có thông tin chi tiết</p>
+ }
+        </div>
+
+        <!-- Specs Tab -->
+    <div id="specs-tab" class="tab-content hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div class="bg-gray-50 p-4 rounded">
+   <h4 class="font-semibold mb-2">Thông tin cơ bản</h4>
+          <ul class="space-y-2 text-sm">
+<li><span class="font-medium">Tên sản phẩm:</span> @Model.SanPham.TenSanPham</li>
+         <li><span class="font-medium">Danh mục:</span> @Model.SanPham.tb_DanhMuc?.TenDanhMuc</li>
+    @if (Model.SanPham.tb_ThuongHieu != null)
+    {
+          <li><span class="font-medium">Thương hiệu:</span> @Model.SanPham.tb_ThuongHieu.TenThuongHieu</li>
+    }
+  <li><span class="font-medium">Mã sản phẩm:</span> @Model.SanPham.MaSanPham</li>
+   <li><span class="font-medium">Giá:</span> @(Model.SanPham.Gia.HasValue ? Model.SanPham.Gia.Value.ToString("#,##0") : "0") ₫</li>
+       </ul>
+      </div>
+   @* Thêm thông số kỹ thuật khác nếu có *@
+ </div>
+     </div>
+
+     <!-- Reviews Tab -->
+  <div id="reviews-tab" class="tab-content hidden">
+  @if (Model.TongSoDanhGia > 0)
+         {
+   <div class="space-y-4">
+  @foreach (var danhGia in Model.DanhSachDanhGia.Take(5))
+      {
+ <div class="border-b pb-4">
+        <div class="flex items-center mb-2">
+    @* Display rating stars *@
+     @{
+   var diemDanhGia = 5; // Default nếu không có property Diem
+      // Nếu có property Diem trong tb_DanhGia, uncomment dòng dưới
+     // var diemDanhGia = danhGia.Diem ?? 5;
+        }
+     @for (int i = 1; i <= 5; i++)
+     {
+   if (i <= diemDanhGia)
+   {
+      <i class="fas fa-star text-yellow-400"></i>
+   }
+    else
+          {
+    <i class="far fa-star text-gray-300"></i>
+   }
+   }
+       <span class="ml-2 font-semibold">Khách hàng</span>
+              <span class="ml-2 text-sm text-gray-500">@DateTime.Now.ToString("dd/MM/yyyy")</span>
+    </div>
+   <p class="text-gray-700">Đánh giá tốt</p>
+  </div>
+  }
+   </div>
+    }
+     else
+         {
+ <p class="text-gray-500 italic">Chưa có đánh giá nào</p>
+    }
+</div>
+    </div>
+</div>
+
+<!-- Related Products -->
+@if (Model.SanPhamLienQuan != null && Model.SanPhamLienQuan.Any())
+{
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h2 class="text-2xl font-bold mb-6 flex items-center">
+  <i class="fas fa-box-open mr-3 text-blue-600"></i>
+ Sản phẩm liên quan
+</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+@foreach (var sp in Model.SanPhamLienQuan)
+   {
+     <a href="@Url.Action("ChiTietSP", "SanPham", new { id = sp.Id })" class="group block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+     <!-- Product Image -->
+  <div class="aspect-square overflow-hidden bg-gray-100">
+    @if (!string.IsNullOrEmpty(sp.HinhAnh))
+   {
+<img src="@Url.Content("~/Content/Images/" + sp.HinhAnh)" 
+    alt="@sp.TenSanPham" 
+   class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" />
+     }
+        else
+ {
+    <img src="@Url.Content("~/Content/Images/no-image.png")" 
+  alt="No Image" 
+  class="w-full h-full object-contain" />
+   }
+     </div>
+
+         <!-- Product Info -->
+           <div class="p-4">
+          <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600">
+     @sp.TenSanPham
+   </h3>
+
+ <!-- Price -->
+      @if (sp.GiaKhuyenMai.HasValue && sp.GiaKhuyenMai < sp.Gia)
+   {
+         <div class="space-y-1">
+        <div class="text-lg font-bold text-red-600">
+      @sp.GiaKhuyenMai.Value.ToString("#,##0") ₫
+ </div>
+         <div class="text-sm text-gray-500 line-through">
+    @(sp.Gia.HasValue ? sp.Gia.Value.ToString("#,##0") : "0") ₫
+</div>
+       </div>
+        }
+ else
+       {
+   <div class="text-lg font-bold text-blue-600">
+  @(sp.Gia.HasValue ? sp.Gia.Value.ToString("#,##0") : "0") ₫
+        </div>
+            }
+
+   <!-- Rating -->
+  <div class="flex items-center mt-2 text-sm text-gray-600">
+      <i class="fas fa-star text-yellow-400 mr-1"></i>
+     <span>4.5</span>
+<span class="mx-2">•</span>
+    <span>@(sp.LuotXem ?? 0) lượt xem</span>
+    </div>
+     </div>
+  </a>
+     }
+        </div>
+  </div>
+}
+
+@section scripts {
+<script>
+        // Quantity increment/decrement
+        function incrementQty() {
+      var input = document.getElementById('quantity');
+   var max = parseInt(input.max);
+  var current = parseInt(input.value);
+   if (current < max) {
+  input.value = current + 1;
+    }
+     }
+
+     function decrementQty() {
+         var input = document.getElementById('quantity');
+     var min = parseInt(input.min);
+var current = parseInt(input.value);
+     if (current > min) {
+         input.value = current - 1;
+     }
+     }
+
+    // Tabs functionality
+ document.querySelectorAll('.tab-button').forEach(button => {
+ button.addEventListener('click', function() {
+// Remove active class from all buttons
+  document.querySelectorAll('.tab-button').forEach(btn => {
+   btn.classList.remove('active', 'border-blue-600', 'text-blue-600');
+         btn.classList.add('border-transparent', 'text-gray-500');
+       });
+
+       // Add active class to clicked button
+    this.classList.add('active', 'border-blue-600', 'text-blue-600');
+    this.classList.remove('border-transparent', 'text-gray-500');
+
+        // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+           content.classList.add('hidden');
+     });
+
+// Show selected tab content
+    var tabId = this.getAttribute('data-tab') + '-tab';
+document.getElementById(tabId).classList.remove('hidden');
+     });
+      });
+
+ // Auto-hide success message after 3 seconds
+  setTimeout(function() {
+         var alert = document.querySelector('[role="alert"]');
+   if (alert) {
+  alert.style.transition = 'opacity 0.5s';
+       alert.style.opacity = '0';
+       setTimeout(function() {
+      alert.remove();
+   }, 500);
+  }
+        }, 3000);
+    </script>
+}

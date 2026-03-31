@@ -1,0 +1,370 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Text;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller xử lý đăng nhập, đăng ký, đăng xuất, quên mật khẩu
+    /// </summary>
+    public class AccountController : Controller
+    {
+        // Khởi tạo DbContext
+        private WebBanHangDienTuEntities db = new WebBanHangDienTuEntities();
+
+        #region Đăng nhập
+
+        /// <summary>
+        /// GET: Hiển thị trang đăng nhập
+        /// </summary>
+        [HttpGet]
+        public ActionResult Login(string returnUrl)
+        {
+            // Nếu đã đăng nhập rồi thì redirect về trang chủ
+            if (Session["User"] != null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+        /// <summary>
+        /// POST: Xử lý đăng nhập
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(LoginViewModel model, string returnUrl)
+        {
+            if (ModelState.IsValid)
+            {
+                // Tìm user trong database theo email
+                var user = db.tb_TaiKhoan
+                    .FirstOrDefault(u => u.Email == model.Email && u.HoatDong == true);
+
+                if (user != null)
+                {
+                    // Kiểm tra mật khẩu (nên dùng hash, nhưng ở đây demo đơn giản)
+                    if (user.MatKhau == model.Password)
+                    {
+                        // Lưu thông tin user vào session
+                        var userSession = new UserSessionViewModel
+                        {
+                            Id = user.Id,
+                            HoTen = user.HoTen,
+                            Email = user.Email,
+                            LaQuanTri = user.LaQuanTri ?? false
+                        };
+
+                        Session["User"] = userSession;
+                        Session["UserId"] = user.Id;
+                        Session["UserName"] = user.HoTen;
+                        Session["IsAdmin"] = user.LaQuanTri ?? false;
+                        
+                        // Store user's role ID for RBAC (Role-Based Access Control)
+                        // Default: Admin users get role 1, regular users get role 2 (Staff)
+                        int roleId = user.QuyenId ?? (user.LaQuanTri == true ? 1 : 2);
+                        Session["Role"] = roleId;
+                        
+                        // Debug: Log role assignment
+                        System.Diagnostics.Debug.WriteLine($"Login Success - User: {user.HoTen}, Role: {roleId}, QuyenId: {user.QuyenId}, IsAdmin: {user.LaQuanTri}");
+
+                        // Redirect logic based on returnUrl and user role
+                        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        {
+                            return Redirect(returnUrl);
+                        }
+                        
+                        // Check if user is Admin or Staff
+                        if (user.LaQuanTri == true)
+                        {
+                            // Admin/Staff users go directly to Admin Dashboard
+                            // Role 1 (Admin) → TongQuan (Dashboard with full features)
+                            // Role 2 (Staff) → TongQuan (Dashboard, but limited by RBAC filter)
+                            return RedirectToAction("TongQuan", "Admin");
+                        }
+                        
+                        // Default for Customers → Home page
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Mật khẩu không đúng");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Email không tồn tại hoặc tài khoản đã bị khóa");
+                }
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View(model);
+        }
+
+        #endregion
+
+        #region Đăng ký
+
+        /// <summary>
+        /// POST: Xử lý đăng ký tài khoản mới
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Register(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Kiểm tra email đã tồn tại chưa
+                var existingUser = db.tb_TaiKhoan.FirstOrDefault(u => u.Email == model.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Email", "Email này đã được đăng ký");
+                    return View("Login", model);
+                }
+
+                // Tạo tài khoản mới
+                var newUser = new tb_TaiKhoan
+                {
+                    HoTen = model.FullName,
+                    Email = model.Email,
+                    TenDangNhap = model.Email, // Dùng email làm tên đăng nhập
+                    MatKhau = model.Password, // Nên hash mật khẩu trong thực tế
+                    SoDienThoai = model.PhoneNumber,
+                    LaQuanTri = false, // User thường
+                    HoatDong = true // Kích hoạt ngay
+                };
+
+                try
+                {
+                    db.tb_TaiKhoan.Add(newUser);
+                    db.SaveChanges();
+
+                    // Thông báo thành công
+                    TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+                    return RedirectToAction("Login");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
+                }
+            }
+
+            // Nếu có lỗi, trả về view Login với dữ liệu đã nhập
+            return View("Login");
+        }
+
+        #endregion
+
+        #region Quên mật khẩu
+
+        /// <summary>
+        /// GET: Hiển thị trang quên mật khẩu
+        /// </summary>
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// POST: Xử lý quên mật khẩu - Gửi mật khẩu mới qua email
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Tìm user theo email
+                var user = db.tb_TaiKhoan.FirstOrDefault(u => u.Email == model.Email);
+
+                if (user == null)
+                {
+                    ModelState.AddModelError("", "Email không tồn tại trong hệ thống");
+                    return View(model);
+                }
+
+                // Tạo mật khẩu mới ngẫu nhiên
+                string newPassword = GenerateRandomPassword(8);
+
+                // Cập nhật mật khẩu mới vào database
+                user.MatKhau = newPassword; // Nên hash nếu dùng hashing
+                db.SaveChanges();
+
+                // Gửi email chứa mật khẩu mới
+                try
+                {
+                    SendPasswordResetEmail(user.Email, user.HoTen, newPassword);
+
+                    TempData["SuccessMessage"] = "Mật khẩu mới đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!";
+                    return RedirectToAction("Login");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Không thể gửi email. Lỗi: " + ex.Message);
+                    // Rollback password nếu gửi email thất bại
+                    user.MatKhau = user.MatKhau; // Giữ nguyên mật khẩu cũ
+                    db.SaveChanges();
+                }
+            }
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// Tạo mật khẩu ngẫu nhiên
+        /// </summary>
+        private string GenerateRandomPassword(int length)
+        {
+            const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%";
+            StringBuilder password = new StringBuilder();
+            Random random = new Random();
+
+            for (int i = 0; i < length; i++)
+            {
+                password.Append(validChars[random.Next(validChars.Length)]);
+            }
+
+            return password.ToString();
+        }
+
+        /// <summary>
+        /// Gửi email chứa mật khẩu mới
+        /// </summary>
+        private void SendPasswordResetEmail(string toEmail, string userName, string newPassword)
+        {
+            // Cấu hình SMTP (Gmail example - bạn cần bật "Less secure app access")
+            // Hoặc dùng App Password nếu bật 2FA
+            string fromEmail = "your-email@gmail.com"; // Thay bằng email của bạn
+            string fromPassword = "your-app-password"; // Thay bằng app password
+
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress(fromEmail, "TECH SHOP");
+            mail.To.Add(toEmail);
+            mail.Subject = "Khôi phục mật khẩu - TECH SHOP";
+            mail.IsBodyHtml = true;
+
+            // Email body với HTML đẹp
+            mail.Body = $@"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
+                    .content {{ background: #f9f9f9; padding: 30px; }}
+                    .password-box {{ background: white; border: 2px solid #667eea; padding: 15px; margin: 20px 0; text-align: center; font-size: 24px; font-weight: bold; color: #667eea; }}
+                    .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h1>Khôi phục mật khẩu</h1>
+                    </div>
+                    <div class='content'>
+                        <p>Xin chào <strong>{userName}</strong>,</p>
+                        <p>Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn.</p>
+                        <p>Mật khẩu mới của bạn là:</p>
+                        <div class='password-box'>{newPassword}</div>
+                        <p><strong>Lưu ý quan trọng:</strong></p>
+                        <ul>
+                            <li>Vui lòng đăng nhập và đổi mật khẩu mới ngay sau khi nhận được email này.</li>
+                            <li>Không chia sẻ mật khẩu này với bất kỳ ai.</li>
+                            <li>Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng liên hệ với chúng tôi ngay.</li>
+                        </ul>
+                        <p>Trân trọng,<br><strong>TECH SHOP Team</strong></p>
+                    </div>
+                    <div class='footer'>
+                        <p>Email này được gửi tự động, vui lòng không reply.</p>
+                        <p>&copy; 2025 TECH SHOP. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            ";
+
+            // Cấu hình SMTP client
+            SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
+            smtp.EnableSsl = true;
+            smtp.Credentials = new NetworkCredential(fromEmail, fromPassword);
+
+            // Gửi email
+            smtp.Send(mail);
+        }
+
+        #endregion
+
+        #region Đăng xuất
+
+        /// <summary>
+        /// Đăng xuất - Clear session
+        /// </summary>
+        public ActionResult Logout()
+        {
+            // Xóa tất cả session
+            Session.Clear();
+            Session.Abandon();
+
+            // Redirect về trang chủ
+            return RedirectToAction("Index", "Home");
+        }
+
+        #endregion
+
+        #region Access Denied
+
+        /// <summary>
+        /// GET: Hiển thị trang từ chối truy cập (403)
+        /// </summary>
+        [HttpGet]
+        public ActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Kiểm tra user đã đăng nhập chưa (dùng cho các action cần authentication)
+        /// </summary>
+        protected bool IsAuthenticated()
+        {
+            return Session["User"] != null;
+        }
+
+        /// <summary>
+        /// Lấy thông tin user hiện tại từ session
+        /// </summary>
+        protected UserSessionViewModel GetCurrentUser()
+        {
+            return Session["User"] as UserSessionViewModel;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Dispose DbContext
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}

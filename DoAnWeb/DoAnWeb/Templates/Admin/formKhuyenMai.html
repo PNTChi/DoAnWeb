@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <form action="/promotions/save" method="POST" class="p-4">
+        <input type="hidden" id="promoId" name="promoId">
+
+        <h3 id="formPromotionTitle">Thêm khuyến mãi mới</h3>
+        <hr>
+
+        <div class="mb-3">
+            <label for="promoCode" class="form-label">Mã giảm giá</label>
+            <input type="text" class="form-control" id="promoCode" name="promoCode" required>
+        </div>
+        <div class="mb-3">
+            <label for="promoValue" class="form-label">Giá trị (% hoặc số tiền)</label>
+            <input type="text" class="form-control" id="promoValue" name="promoValue" required>
+        </div>
+        <div class="mb-3">
+            <label for="promoStart" class="form-label">Thời gian bắt đầu</label>
+            <input type="date" class="form-control" id="promoStart" name="promoStart">
+        </div>
+        <div class="mb-3">
+            <label for="promoEnd" class="form-label">Thời gian kết thúc</label>
+            <input type="date" class="form-control" id="promoEnd" name="promoEnd">
+        </div>
+        <div class="mb-3">
+            <label for="promoCondition" class="form-label">Điều kiện sử dụng</label>
+            <textarea class="form-control" id="promoCondition" name="promoCondition"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="promoUsage" class="form-label">Lượt sử dụng</label>
+            <input type="number" class="form-control" id="promoUsage" name="promoUsage">
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Lưu khuyến mãi</button>
+            <a href="/#promotions" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+
+
+</body>
+</html>

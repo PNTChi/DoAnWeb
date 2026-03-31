@@ -1,0 +1,157 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+  /// Controller xử lý trang tin tức
+ /// </summary>
+    public class TinTucController : BaseController
+    {
+        /// <summary>
+        /// GET: Danh sách tin tức
+        /// </summary>
+      public ActionResult Index(int? danhMucId, string sortBy = "newest", int page = 1, int pageSize = 9)
+        {
+            // Query tin tức
+            var query = db.tb_TinTuc
+     .Where(tt => tt.HienThi == true);
+
+       // Lọc theo danh mục tin
+        if (danhMucId.HasValue && danhMucId.Value > 0)
+    {
+            query = query.Where(tt => tt.DanhMucTinId == danhMucId.Value);
+            }
+
+    // Sắp xếp
+   switch (sortBy)
+    {
+        case "newest":
+             query = query.OrderByDescending(tt => tt.NgayTao);
+               break;
+        case "oldest":
+        query = query.OrderBy(tt => tt.NgayTao);
+        break;
+case "popular":
+   query = query.OrderByDescending(tt => tt.LuotXem);
+ break;
+                case "title_asc":
+     query = query.OrderBy(tt => tt.TieuDe);
+         break;
+        case "title_desc":
+       query = query.OrderByDescending(tt => tt.TieuDe);
+   break;
+        default:
+   query = query.OrderByDescending(tt => tt.NgayTao);
+        break;
+            }
+
+            // Tổng số tin
+  var totalNews = query.Count();
+        ViewBag.TotalNews = totalNews;
+
+          // Pagination
+      var totalPages = (int)Math.Ceiling((double)totalNews / pageSize);
+        ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+  ViewBag.PageSize = pageSize;
+
+            // Lấy tin cho trang hiện tại
+     var news = query
+         .Skip((page - 1) * pageSize)
+      .Take(pageSize)
+ .ToList();
+
+   // ViewBag cho filters
+   ViewBag.DanhMucId = danhMucId ?? 0;
+            ViewBag.SortBy = sortBy;
+ ViewBag.DanhMucTinList = db.tb_DanhMucTin.Where(dm => dm.HienThi == true).ToList();
+
+   // Tin nổi bật (sidebar)
+    ViewBag.TinNoiBat = db.tb_TinTuc
+     .Where(tt => tt.HienThi == true && tt.NoiBat == true)
+    .OrderByDescending(tt => tt.NgayTao)
+             .Take(5)
+        .ToList();
+
+       return View(news);
+        }
+
+        /// <summary>
+        /// GET: Chi tiết tin tức
+        /// </summary>
+    public ActionResult ChiTiet(int id)
+    {
+         var tinTuc = db.tb_TinTuc.Find(id);
+
+       if (tinTuc == null || tinTuc.HienThi == false)
+            {
+                TempData["ErrorMessage"] = "Tin tức không tồn tại";
+     return RedirectToAction("Index");
+ }
+
+            // Tăng lượt xem
+          tinTuc.LuotXem = (tinTuc.LuotXem ?? 0) + 1;
+       db.SaveChanges();
+
+     // Tin liên quan (cùng danh mục)
+  ViewBag.TinLienQuan = db.tb_TinTuc
+   .Where(tt => tt.HienThi == true && 
+    tt.Id != id && 
+                tt.DanhMucTinId == tinTuc.DanhMucTinId)
+        .OrderByDescending(tt => tt.NgayTao)
+  .Take(4)
+    .ToList();
+
+       // Tin mới nhất (sidebar)
+            ViewBag.TinMoiNhat = db.tb_TinTuc
+          .Where(tt => tt.HienThi == true && tt.Id != id)
+  .OrderByDescending(tt => tt.NgayTao)
+         .Take(5)
+ .ToList();
+
+   return View(tinTuc);
+        }
+
+        /// <summary>
+  /// GET: Tìm kiếm tin tức
+        /// </summary>
+        public ActionResult TimKiem(string q, int page = 1, int pageSize = 9)
+  {
+    if (string.IsNullOrWhiteSpace(q))
+            {
+        return RedirectToAction("Index");
+       }
+
+       ViewBag.SearchKeyword = q.Trim();
+
+            var keyword = q.Trim();
+         var query = db.tb_TinTuc
+            .Where(tt => tt.HienThi == true &&
+   (tt.TieuDe.Contains(keyword) ||
+    tt.TomTat.Contains(keyword) ||
+      (tt.NoiDung != null && tt.NoiDung.Contains(keyword))));
+
+       // Tổng số kết quả
+            var totalResults = query.Count();
+          ViewBag.TotalResults = totalResults;
+
+            // Pagination
+  var totalPages = (int)Math.Ceiling((double)totalResults / pageSize);
+ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+
+  var results = query
+      .OrderByDescending(tt => tt.NgayTao)
+    .Skip((page - 1) * pageSize)
+     .Take(pageSize)
+                .ToList();
+
+return View(results);
+        }
+    }
+}

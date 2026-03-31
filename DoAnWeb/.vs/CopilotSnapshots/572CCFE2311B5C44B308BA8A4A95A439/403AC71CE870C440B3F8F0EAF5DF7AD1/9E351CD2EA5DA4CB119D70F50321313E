@@ -1,0 +1,67 @@
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DoAnWeb.Models
+{
+    /// <summary>
+    /// Entity cho bảng tb_QuangCao (Banner/Quảng cáo)
+    /// </summary>
+    [Table("tb_QuangCao")]
+    public partial class tb_QuangCao
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tiêu đề")]
+        [StringLength(200)]
+        [Display(Name = "Tiêu đề")]
+        public string TieuDe { get; set; }
+
+        [StringLength(500)]
+        [Display(Name = "Mô tả")]
+        public string MoTa { get; set; }
+
+        [StringLength(255)]
+        [Display(Name = "Hình ảnh")]
+        public string HinhAnh { get; set; }
+
+        [StringLength(500)]
+        [Display(Name = "Liên kết")]
+        [Column("LienKet")]
+        public string Link { get; set; }
+        
+        // Alias for compatibility
+        [NotMapped]
+        public string LienKet
+        {
+            get { return Link; }
+            set { Link = value; }
+        }
+
+        [Display(Name = "Thứ tự")]
+        public int ThuTu { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Vị trí")]
+        public string ViTri { get; set; }
+
+        [Display(Name = "Hiển thị")]
+        public bool HienThi { get; set; }
+
+        [Display(Name = "Ngày tạo")]
+        public DateTime? NgayTao { get; set; }
+
+        [Display(Name = "Ngày cập nhật")]
+        public DateTime? NgayCapNhat { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Người tạo")]
+        public string NguoiTao { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Người cập nhật")]
+        public string NguoiCapNhat { get; set; }
+    }
+}

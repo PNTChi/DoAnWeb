@@ -1,0 +1,258 @@
+﻿@model DoAnWeb.tb_DanhMuc
+@{
+    ViewBag.Title = "formThemDM";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemDM", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCategoryTitle">Thêm danh mục mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+
+    <div class="mb-3">
+        @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDanhMuc, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenDanhMuc)
+    </div>
+    <div class="mb-3">
+        @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.BiDanh)
+    </div>
+    <div class="mb-3">
+        @Html.Label("Icon", "Icon / Hình ảnh danh mục", htmlAttributes: new { @class = "form-label" })
+        
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="iconTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="icon-tab" data-bs-toggle="tab" data-bs-target="#icon-panel" type="button" role="tab">
+                            <i class="fas fa-icons"></i> Chọn Icon
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-panel" type="button" role="tab">
+                            <i class="fas fa-upload"></i> Tải ảnh lên
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="iconTabContent">
+                    <!-- Tab 1: Icon Picker -->
+                    <div class="tab-pane fade show active" id="icon-panel" role="tabpanel">
+                        <div class="mb-3">
+                            <input type="text" id="iconSearch" class="form-control" placeholder="Tìm kiếm icon (ví dụ: mobile, laptop, phone...)">
+                        </div>
+                        <div id="iconGrid" class="row g-2" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Icons will be populated here by JavaScript -->
+                        </div>
+                        <input type="hidden" name="selectedIcon" id="selectedIcon" value="">
+                        <div id="selectedIconPreview" class="mt-3 text-center" style="display: none;">
+                            <label class="form-label">Icon đã chọn:</label>
+                            <div>
+                                <i id="selectedIconDisplay" class="fa-3x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab 2: Image Upload -->
+                    <div class="tab-pane fade" id="upload-panel" role="tabpanel">
+                        <input type="file" name="iconFile" id="iconFile" class="form-control mb-2" accept="image/*">
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Chọn file ảnh (PNG, JPG, SVG). Kích thước khuyến nghị: 64x64px
+                        </small>
+                        
+                        <div id="imagePreview" class="mt-3" style="display: none;">
+                            <label class="form-label">Xem trước:</label>
+                            <div class="text-center">
+                                <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px; object-fit: contain;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        @Html.ValidationMessageFor(model => model.Icon, "", new { @class = "text-danger" })
+    </div>
+    <div class="mb-3">
+        @Html.Label("ThuTu", "Thứ tự", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.ThuTu, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ThuTu)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HienThi, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu danh mục</button>
+        <a href="@Url.Action("DanhMuc", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}
+
+@section scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Hybrid icon/image selector loaded');
+        
+        // Font Awesome icons for categories
+        const categoryIcons = [
+            'fa-mobile-alt', 'fa-laptop', 'fa-tablet-alt', 'fa-desktop', 
+            'fa-headphones', 'fa-keyboard', 'fa-mouse', 'fa-gamepad',
+            'fa-camera', 'fa-tv', 'fa-microchip', 'fa-memory',
+            'fa-hdd', 'fa-plug', 'fa-battery-full', 'fa-wifi',
+            'fa-bluetooth', 'fa-usb', 'fa-sd-card', 'fa-sim-card',
+            'fa-print', 'fa-fax', 'fa-phone', 'fa-mobile',
+            'fa-watch', 'fa-clock', 'fa-home', 'fa-building'
+        ];
+        
+        // Populate icon grid
+        const iconGrid = document.getElementById('iconGrid');
+        categoryIcons.forEach(icon => {
+            const col = document.createElement('div');
+            col.className = 'col-2';
+            col.innerHTML = `
+                <div class="icon-item text-center p-2 border rounded cursor-pointer hover-bg-light" 
+                     data-icon="${icon}" style="cursor: pointer;">
+                    <i class="fas ${icon} fa-2x text-primary"></i>
+                </div>
+            `;
+            iconGrid.appendChild(col);
+        });
+        
+        // Icon selection
+        document.querySelectorAll('.icon-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.icon-item').forEach(i => i.classList.remove('border-primary', 'bg-light'));
+                
+                // Highlight selected
+                this.classList.add('border-primary', 'bg-light');
+                
+                const selectedIcon = this.getAttribute('data-icon');
+                document.getElementById('selectedIcon').value = selectedIcon;
+                document.getElementById('selectedIconDisplay').className = `fas ${selectedIcon} fa-3x text-primary`;
+                document.getElementById('selectedIconPreview').style.display = 'block';
+                
+                // Clear file upload if icon is selected
+                document.getElementById('iconFile').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+            });
+        });
+        
+        // Icon search
+        document.getElementById('iconSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.icon-item').forEach(item => {
+                const icon = item.getAttribute('data-icon').toLowerCase();
+                item.parentElement.style.display = icon.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+        
+        // Image upload preview
+        document.getElementById('iconFile').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Vui lòng chọn file ảnh (JPG, PNG, SVG, GIF)',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Kích thước file không được vượt quá 2MB',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    this.value = '';
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                
+                // Clear icon selection if file is uploaded
+                document.getElementById('selectedIcon').value = '';
+                document.getElementById('selectedIconPreview').style.display = 'none';
+                document.querySelectorAll('.icon-item').forEach(i => i.classList.remove('border-primary', 'bg-light'));
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        });
+        
+        // Manual Tab Switching Logic (replaces Bootstrap data-api)
+        const tabLinks = document.querySelectorAll('#iconTabs .nav-link');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 1. Deactivate all tabs
+                tabLinks.forEach(t => t.classList.remove('active'));
+                tabPanes.forEach(p => {
+                    p.classList.remove('show', 'active');
+                    p.style.display = 'none'; // Force hide
+                });
+                
+                // 2. Activate clicked tab
+                this.classList.add('active');
+                
+                // 3. Show target pane
+                const targetId = this.getAttribute('data-bs-target');
+                const targetPane = document.querySelector(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                    targetPane.style.display = 'block'; // Force show
+                }
+                
+                // 4. Clear the other input when switching tabs
+                if (this.id === 'icon-tab') {
+                    // Switched to Icon tab - clear file upload
+                    document.getElementById('iconFile').value = '';
+                    document.getElementById('imagePreview').style.display = 'none';
+                } else if (this.id === 'upload-tab') {
+                    // Switched to Upload tab - clear icon selection
+                    document.getElementById('selectedIcon').value = '';
+                    document.getElementById('selectedIconPreview').style.display = 'none';
+                    document.querySelectorAll('.icon-item').forEach(i => i.classList.remove('border-primary', 'bg-light'));
+                }
+            });
+        });
+        
+        console.log('Hybrid selector initialization complete');
+    });
+</script>
+<style>
+    .hover-bg-light:hover {
+        background-color: #f8f9fa !important;
+    }
+    .icon-item {
+        transition: all 0.2s ease;
+    }
+    .icon-item:hover {
+        transform: scale(1.1);
+    }
+</style>
+}

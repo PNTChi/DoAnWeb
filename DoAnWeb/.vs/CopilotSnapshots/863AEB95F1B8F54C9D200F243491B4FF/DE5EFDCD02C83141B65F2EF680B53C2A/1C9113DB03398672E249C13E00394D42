@@ -1,0 +1,56 @@
+﻿@* Partial View: Sidebar danh mục sản phẩm bên trái *@
+
+<!--Sidebar - Danh mục bên trái -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h1 class="text-xl font-bold text-center font-size-3">Danh mục</h1>
+    </div>
+    <div class="sidebar-menu">
+        <!-- Danh mục Điện thoại -->
+        <a href="#" class="toggle-category"><i class="fas fa-mobile-alt"></i> Điện thoại</a>
+        <ul class="category-list">
+            <li><a href="#">Tất cả điện thoại</a></li>
+            <li><a href="#">iPhone</a></li>
+            <li><a href="#">Samsung</a></li>
+          <li><a href="#">Xiaomi</a></li>
+ <li><a href="#">Oppo</a></li>
+            <li><a href="#">Dưới 5 triệu</a></li>
+        </ul>
+        
+    <!-- Danh mục Laptop -->
+        <a href="#" class="toggle-category"><i class="fas fa-laptop"></i> Laptop</a>
+        <ul class="category-list">
+       <li><a href="#">Tất cả laptop</a></li>
+    <li><a href="#">Dell</a></li>
+         <li><a href="#">HP</a></li>
+   <li><a href="#">MacBook</a></li>
+            <li><a href="#">Laptop gaming</a></li>
+            <li><a href="#">Dưới 15 triệu</a></li>
+        </ul>
+        
+ <!-- Danh mục Tablet -->
+        <a href="#" class="toggle-category"><i class="fas fa-tablet-alt"></i> Tablet</a>
+        <ul class="category-list">
+            <li><a href="#">Tất cả tablet</a></li>
+<li><a href="#">Samsung</a></li>
+        <li><a href="#">Apple iPad</a></li>
+    <li><a href="#">Xiaomi</a></li>
+   <li><a href="#">Tablet 10 inch</a></li>
+            <li><a href="#">Dưới 10 triệu</a></li>
+  </ul>
+        
+        <!-- Danh mục Phụ kiện -->
+        <a href="#" class="toggle-category"><i class="fas fa-headphones"></i> Phụ kiện</a>
+        <ul class="category-list">
+ <li><a href="#">Tất cả phụ kiện</a></li>
+       <li><a href="#">Tai nghe</a></li>
+   <li><a href="#">Sạc và cáp</a></li>
+      <li><a href="#">Ốp lưng</a></li>
+    <li><a href="#">Thẻ nhớ</a></li>
+ <li><a href="#">Dưới 500k</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Lớp phủ mờ khi sidebar mở -->
+<div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>

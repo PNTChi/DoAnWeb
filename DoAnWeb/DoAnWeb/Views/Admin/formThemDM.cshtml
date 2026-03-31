@@ -1,0 +1,108 @@
+﻿@model DoAnWeb.tb_DanhMuc
+@{
+    ViewBag.Title = "formThemDM";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemDM", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCategoryTitle">Thêm danh mục mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+
+    <div class="mb-3">
+        @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDanhMuc, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenDanhMuc)
+    </div>
+    <div class="mb-3">
+        @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.BiDanh)
+    </div>
+    <div class="mb-3">
+        @Html.Label("Icon", "Hình ảnh danh mục", htmlAttributes: new { @class = "form-label" })
+        
+        <input type="file" name="iconFile" id="iconFile" class="form-control" accept="image/*">
+        <small class="form-text text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            Chọn file ảnh (PNG, JPG, JPEG, GIF, SVG). Kích thước khuyến nghị: 64x64px. Dung lượng tối đa: 2MB
+        </small>
+        
+        <div id="imagePreview" class="mt-3" style="display: none;">
+            <label class="form-label">Xem trước:</label>
+            <div class="text-center">
+                <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px; object-fit: contain;">
+            </div>
+        </div>
+        
+        @Html.ValidationMessageFor(model => model.Icon, "", new { @class = "text-danger" })
+    </div>
+    <div class="mb-3">
+        @Html.Label("ThuTu", "Thứ tự", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.ThuTu, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ThuTu)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HienThi, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu danh mục</button>
+        <a href="@Url.Action("DanhMuc", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}
+
+@section scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Image uploader loaded');
+        
+        // Image upload preview
+        document.getElementById('iconFile').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Vui lòng chọn file ảnh (JPG, PNG, SVG, GIF)',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Kích thước file không được vượt quá 2MB',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    this.value = '';
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        });
+        
+        console.log('Image uploader initialization complete');
+    });
+</script>
+}

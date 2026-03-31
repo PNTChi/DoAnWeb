@@ -1,0 +1,302 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller x? lý trang tài kho?n ng??i dùng
+    /// </summary>
+    public class TaiKhoanController : BaseController
+    {
+        /// <summary>
+        /// GET: Thông tin tài kho?n
+        /// </summary>
+        public ActionResult Index()
+        {
+    if (!IsAuthenticated)
+ {
+              return RedirectToAction("Login", "Account");
+  }
+
+       var taiKhoan = db.tb_TaiKhoan.Find(CurrentUser.Id);
+            if (taiKhoan == null)
+     {
+        return RedirectToAction("Logout", "Account");
+     }
+
+return View(taiKhoan);
+        }
+
+        /// <summary>
+   /// POST: C?p nh?t thông tin tài kho?n
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+    public ActionResult CapNhat(string hoTen, string email, string soDienThoai)
+        {
+  if (!IsAuthenticated)
+  {
+         return Json(new { success = false, message = "Vui lòng ??ng nh?p" });
+   }
+
+     // Validate
+if (string.IsNullOrWhiteSpace(hoTen) || string.IsNullOrWhiteSpace(email))
+{
+   TempData["ErrorMessage"] = "Vui lòng ?i?n ??y ?? thông tin b?t bu?c";
+            return RedirectToAction("Index");
+        }
+
+  try
+   {
+    var taiKhoan = db.tb_TaiKhoan.Find(CurrentUser.Id);
+          if (taiKhoan == null)
+      {
+TempData["ErrorMessage"] = "Không tìm th?y tài kho?n";
+  return RedirectToAction("Index");
+     }
+
+        // C?p nh?t thông tin
+   taiKhoan.HoTen = hoTen.Trim();
+     taiKhoan.Email = email.Trim();
+         taiKhoan.SoDienThoai = soDienThoai?.Trim();
+
+db.SaveChanges();
+
+  // C?p nh?t session
+       var userSession = new UserSessionViewModel
+     {
+ Id = taiKhoan.Id,
+      HoTen = taiKhoan.HoTen,
+       Email = taiKhoan.Email,
+      LaQuanTri = taiKhoan.LaQuanTri ?? false
+         };
+   Session["CurrentUser"] = userSession;
+
+                TempData["SuccessMessage"] = "C?p nh?t thông tin thành công";
+    return RedirectToAction("Index");
+            }
+     catch (Exception ex)
+     {
+         TempData["ErrorMessage"] = "Có l?i x?y ra. Vui lòng th? l?i sau.";
+        return RedirectToAction("Index");
+  }
+        }
+
+        /// <summary>
+        /// GET: Trang ??i m?t kh?u
+   /// </summary>
+        public ActionResult DoiMatKhau()
+        {
+            if (!IsAuthenticated)
+          {
+     return RedirectToAction("Login", "Account");
+          }
+
+    return View();
+        }
+
+        /// <summary>
+   /// POST: ??i m?t kh?u
+        /// </summary>
+     [HttpPost]
+        [ValidateAntiForgeryToken]
+      public ActionResult DoiMatKhau(string matKhauCu, string matKhauMoi, string xacNhanMatKhau)
+{
+  if (!IsAuthenticated)
+  {
+    return RedirectToAction("Login", "Account");
+     }
+
+     // Validate
+ if (string.IsNullOrWhiteSpace(matKhauCu) || 
+  string.IsNullOrWhiteSpace(matKhauMoi) || 
+ string.IsNullOrWhiteSpace(xacNhanMatKhau))
+  {
+      TempData["ErrorMessage"] = "Vui lòng ?i?n ??y ?? thông tin";
+      return View();
+}
+
+      if (matKhauMoi != xacNhanMatKhau)
+     {
+      TempData["ErrorMessage"] = "M?t kh?u xác nh?n không kh?p";
+    return View();
+    }
+
+            if (matKhauMoi.Length < 6)
+    {
+   TempData["ErrorMessage"] = "M?t kh?u m?i ph?i có ít nh?t 6 ký t?";
+        return View();
+ }
+
+      try
+{
+         var taiKhoan = db.tb_TaiKhoan.Find(CurrentUser.Id);
+      if (taiKhoan == null)
+       {
+       TempData["ErrorMessage"] = "Không tìm th?y tài kho?n";
+  return View();
+    }
+
+      // Ki?m tra m?t kh?u c? (PLAIN TEXT - vì DB l?u plain text)
+       // NOTE: Trong th?c t? nên dùng hash ?? b?o m?t!
+       if (taiKhoan.MatKhau != matKhauCu)
+   {
+TempData["ErrorMessage"] = "M?t kh?u c? không ?úng";
+   return View();
+      }
+
+   // C?p nh?t m?t kh?u m?i (PLAIN TEXT)
+      taiKhoan.MatKhau = matKhauMoi;
+
+db.SaveChanges();
+
+      TempData["SuccessMessage"] = "??i m?t kh?u thành công";
+     return RedirectToAction("Index");
+            }
+         catch (Exception ex)
+   {
+      TempData["ErrorMessage"] = "Có l?i x?y ra. Vui lòng th? l?i sau.";
+return View();
+   }
+  }
+
+        /// <summary>
+        /// GET: Danh sách ??n hàng
+        /// </summary>
+        public ActionResult DonHang(int page = 1, int pageSize = 10)
+        {
+   if (!IsAuthenticated)
+          {
+        return RedirectToAction("Login", "Account");
+        }
+
+            var query = db.tb_DonHang
+                .Where(dh => dh.TaiKhoanId == CurrentUser.Id)
+    .OrderByDescending(dh => dh.NgayTao);
+
+       // Pagination
+            var totalOrders = query.Count();
+      var totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+            ViewBag.CurrentPage = page;
+    ViewBag.TotalPages = totalPages;
+  ViewBag.TotalOrders = totalOrders;
+
+   var orders = query
+         .Skip((page - 1) * pageSize)
+         .Take(pageSize)
+   .ToList();
+
+   return View(orders);
+      }
+
+        /// <summary>
+        /// GET: Chi tiết đơn hàng
+        /// </summary>
+        public ActionResult ChiTietDonHang(int id)
+        {
+            if (!IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var donHang = db.tb_DonHang
+                .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+            if (donHang == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng";
+                return RedirectToAction("DonHang");
+            }
+
+            try
+            {
+                // Lấy chi tiết đơn hàng kèm thông tin sản phẩm
+                var chiTiet = db.tb_ChiTietDonHang
+                    .Where(ct => ct.DonHangId == id)
+                    .ToList() // Execute query first
+                    .Select(ct => new ChiTietDonHangViewModel
+                    {
+                        SanPhamId = ct.SanPhamId,
+                        TenSanPham = ct.tb_SanPham != null ? ct.tb_SanPham.TenSanPham : "Sản phẩm không tồn tại",
+                        HinhAnh = ct.tb_SanPham != null ? ct.tb_SanPham.HinhAnh : "",
+                        SoLuong = ct.SoLuong,
+                        Gia = ct.Gia,
+                        ThanhTien = ct.SoLuong * ct.Gia
+                    })
+                    .ToList();
+
+                ViewBag.ChiTiet = chiTiet;
+                
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"Order ID: {id}, Chi tiet count: {chiTiet.Count}");
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                System.Diagnostics.Debug.WriteLine($"Error loading order details: {ex.Message}");
+                ViewBag.ChiTiet = new List<ChiTietDonHangViewModel>();
+                TempData["ErrorMessage"] = "Có lỗi khi tải chi tiết đơn hàng";
+            }
+
+            return View(donHang);
+        }
+
+        /// <summary>
+        /// POST: H?y ??n hàng
+        /// </summary>
+    [HttpPost]
+ [ValidateAntiForgeryToken]
+     public JsonResult HuyDonHang(int id)
+        {
+       if (!IsAuthenticated)
+{
+      return Json(new { success = false, message = "Vui lòng ??ng nh?p" });
+            }
+
+     try
+            {
+       var donHang = db.tb_DonHang
+     .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+       if (donHang == null)
+              {
+                    return Json(new { success = false, message = "Không tìm th?y ??n hàng" });
+                }
+
+         // Ch? cho phép h?y ??n hàng ? tr?ng thái "Ch? xác nh?n" ho?c "?ã xác nh?n"
+  if (donHang.TrangThai > 2)
+             {
+      return Json(new { success = false, message = "Không th? h?y ??n hàng này" });
+        }
+
+    // C?p nh?t tr?ng thái
+       donHang.TrangThai = 5; // 5 = ?ã h?y
+    donHang.NgayCapNhat = DateTime.Now;
+
+         // Hoàn l?i s? l??ng s?n ph?m
+       var chiTiet = db.tb_ChiTietDonHang.Where(ct => ct.DonHangId == id).ToList();
+             foreach (var item in chiTiet)
+       {
+  var sanPham = db.tb_SanPham.Find(item.SanPhamId);
+             if (sanPham != null && sanPham.SoLuong.HasValue)
+  {
+          sanPham.SoLuong += item.SoLuong;
+             }
+            }
+
+          db.SaveChanges();
+
+        return Json(new { success = true, message = "H?y ??n hàng thành công" });
+          }
+       catch (Exception ex)
+            {
+    return Json(new { success = false, message = "Có l?i x?y ra. Vui lòng th? l?i sau." });
+        }
+        }
+    }
+}

@@ -1,0 +1,241 @@
+﻿@model DoAnWeb.tb_DanhMuc
+@{
+    ViewBag.Title = "formThemDM";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("ThemDM", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCategoryTitle">Thêm danh mục mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+
+    <div class="mb-3">
+        @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDanhMuc, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenDanhMuc)
+    </div>
+    <div class="mb-3">
+        @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.BiDanh)
+    </div>
+    <div class="mb-3">
+        @Html.Label("Icon", "Icon / Hình ảnh", htmlAttributes: new { @class = "form-label" })
+        
+        <!-- Tab chọn Icon hoặc Upload hình -->
+        <ul class="nav nav-tabs" id="iconTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="icon-tab" data-bs-toggle="tab" data-bs-target="#icon-panel" type="button" role="tab">
+                    <i class="fas fa-icons me-1"></i> Chọn Icon
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="image-tab" data-bs-toggle="tab" data-bs-target="#image-panel" type="button" role="tab">
+                    <i class="fas fa-image me-1"></i> Upload Hình
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content border border-top-0 p-3" id="iconTabContent">
+            <!-- Tab 1: Chọn Icon Font Awesome -->
+            <div class="tab-pane fade show active" id="icon-panel" role="tabpanel">
+                <input type="text" id="iconSearch" class="form-control mb-3" placeholder="Tìm kiếm icon... (vd: laptop, phone, tv)">
+                
+                <div id="iconGrid" class="row g-2" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Icons sẽ được load bằng JavaScript -->
+                </div>
+                
+                @Html.TextBoxFor(model => model.Icon, new { @class = "form-control mt-2", id = "selectedIcon", placeholder = "Icon class (vd: fa-laptop)" })
+            </div>
+            
+            <!-- Tab 2: Upload Hình -->
+            <div class="tab-pane fade" id="image-panel" role="tabpanel">
+                <input type="file" name="iconFile" id="iconFile" class="form-control" accept="image/*">
+                <small class="form-text text-muted">Chọn file ảnh (PNG, JPG, SVG). Kích thước khuyến nghị: 64x64px</small>
+                
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                    <label class="form-label">Xem trước:</label>
+                    <div>
+                        <img id="previewImg" src="" alt="Preview" style="width: 100px; height: 100px; object-fit: contain; border: 1px solid #ddd; padding: 5px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        @Html.ValidationMessageFor(model => model.Icon, "", new { @class = "text-danger" })
+    </div>
+    <div class="mb-3">
+        @Html.Label("ThuTu", "Thứ tự", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.ThuTu, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ThuTu)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HienThi, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu danh mục</button>
+        <a href="@Url.Action("DanhMuc", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}
+
+@section scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Icon picker loaded');
+        
+        // Danh sách icons Font Awesome phổ biến cho danh mục
+        const categoryIcons = [
+        'fa-laptop', 'fa-mobile-alt', 'fa-tablet-alt', 'fa-desktop',
+        'fa-tv', 'fa-keyboard', 'fa-mouse', 'fa-headphones',
+        'fa-camera', 'fa-video', 'fa-gamepad', 'fa-microphone',
+        'fa-speaker', 'fa-volume-up', 'fa-wifi', 'fa-bluetooth',
+        'fa-usb', 'fa-memory', 'fa-hdd', 'fa-save',
+        'fa-plug', 'fa-battery-full', 'fa-print', 'fa-fax',
+        'fa-router', 'fa-server', 'fa-database', 'fa-cloud',
+        'fa-shopping-cart', 'fa-shopping-bag', 'fa-gift', 'fa-box',
+        'fa-cube', 'fa-cubes', 'fa-tag', 'fa-tags',
+        'fa-star', 'fa-heart', 'fa-bookmark', 'fa-flag',
+        'fa-home', 'fa-building', 'fa-store', 'fa-warehouse',
+        'fa-cog', 'fa-cogs', 'fa-wrench', 'fa-tools',
+        'fa-screwdriver', 'fa-hammer', 'fa-paint-brush', 'fa-pen',
+        'fa-pencil-alt', 'fa-eraser', 'fa-palette', 'fa-lightbulb',
+        'fa-bolt', 'fa-fire', 'fa-snowflake', 'fa-sun',
+        'fa-moon', 'fa-star-half-alt', 'fa-bars', 'fa-list'
+    ];
+    
+    // Load icons vào grid
+    function loadIcons(filter = '') {
+        const iconGrid = document.getElementById('iconGrid');
+        iconGrid.innerHTML = '';
+        
+        const filteredIcons = filter 
+            ? categoryIcons.filter(icon => icon.toLowerCase().includes(filter.toLowerCase()))
+            : categoryIcons;
+        
+        filteredIcons.forEach(icon => {
+            const col = document.createElement('div');
+            col.className = 'col-2 text-center';
+            col.innerHTML = `
+                <div class="icon-item p-2 border rounded" style="cursor: pointer;" data-icon="${icon}" title="${icon}">
+                    <i class="fas ${icon} fs-4"></i>
+                    <small class="d-block mt-1">${icon.replace('fa-', '')}</small>
+                </div>
+            `;
+            iconGrid.appendChild(col);
+        });
+        
+        // Add click event
+        document.querySelectorAll('.icon-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const selectedIcon = this.getAttribute('data-icon');
+                document.getElementById('selectedIcon').value = selectedIcon;
+                
+                // Highlight selected
+                document.querySelectorAll('.icon-item').forEach(i => i.classList.remove('bg-primary', 'text-white'));
+                this.classList.add('bg-primary', 'text-white');
+                
+                // Clear file input when icon is selected
+                document.getElementById('iconFile').value = '';
+            });
+        });
+    }
+    
+    // Search icons
+    document.getElementById('iconSearch').addEventListener('input', function() {
+        loadIcons(this.value);
+    });
+    
+    // Image preview
+    document.getElementById('iconFile').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            
+            // Clear icon selection when file is uploaded
+            document.getElementById('selectedIcon').value = '';
+        } else {
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+    });
+    
+        // Tab switch handling
+        const iconTab = document.getElementById('icon-tab');
+        const imageTab = document.getElementById('image-tab');
+        const iconPanel = document.getElementById('icon-panel');
+        const imagePanel = document.getElementById('image-panel');
+        
+        iconTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active from all tabs
+            iconTab.classList.add('active');
+            imageTab.classList.remove('active');
+            
+            // Show icon panel
+            iconPanel.classList.add('show', 'active');
+            imagePanel.classList.remove('show', 'active');
+            
+            // Clear file input
+            document.getElementById('iconFile').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        });
+        
+        imageTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active from all tabs
+            imageTab.classList.add('active');
+            iconTab.classList.remove('active');
+            
+            // Show image panel
+            imagePanel.classList.add('show', 'active');
+            iconPanel.classList.remove('show', 'active');
+        });
+        
+        // Load icons on page load
+        loadIcons();
+        
+        console.log('Icon picker initialization complete');
+    }); // End DOMContentLoaded
+</script>
+
+<style>
+    .icon-item {
+        transition: all 0.3s;
+    }
+    
+    .icon-item:hover {
+        background-color: #f0f0f0;
+        transform: scale(1.1);
+    }
+    
+    .icon-item.bg-primary:hover {
+        background-color: #0056b3 !important;
+    }
+    
+    #iconGrid {
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #495057;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #007bff;
+        font-weight: 600;
+    }
+</style>
+}

@@ -1,0 +1,51 @@
+﻿@model DoAnWeb.tb_MaGiamGia
+@{
+    ViewBag.Title = "formSuaKM";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("SuaKM", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    <h3 id="formPromotionTitle">Thêm khuyến mãi mới</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="mb-3">
+        @Html.Label("MaCode", "Mã khuyến mãi", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.MaCode, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.MaCode)
+    </div>
+    <div class="mb-3">
+        @Html.Label("SoTienGiam", "Số tiền giảm", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.SoTienGiam, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.SoTienGiam)
+    </div>
+    <div class="mb-3">
+        @Html.Label("PhanTramGiam", "Phần trăm giảm", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.PhanTramGiam, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.PhanTramGiam)
+    </div>
+    <div class="mb-3">
+        @Html.Label("NgayKetThuc", "Ngày kết thúc", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.NgayKetThuc, new { htmlAttributes = new { @class = "form-control", type = "date" } })
+        @Html.ValidationMessageFor(model => model.NgayKetThuc)
+    </div>
+    <div class="mb-3">
+        @Html.Label("SoLuong", "Số lượng", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.SoLuong, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.SoLuong)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HienThi, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu khuyến mãi</button>
+        <a href="@Url.Action("KhuyenMai", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}

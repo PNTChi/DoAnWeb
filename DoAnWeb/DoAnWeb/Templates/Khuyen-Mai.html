@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <!-- Các thẻ meta cơ bản -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khuyến mãi</title>
+    <link href="bootstrap-5.0.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+    <link href="bootstrap-5.0.2/Web-Ban-Hang.css" rel="stylesheet" />
+   
+    <!-- Tải Font Awesome (bộ icon) từ CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tải Google Fonts (Roboto) -->
+    <link rel="preconnect" href="https://fonts.googleapis">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Nội dung chính của trang khuyến mãi -->
+    <div class="container my-5">
+        <!-- Banner sự kiện chính -->
+        <div class="main-promo-banner text-center mb-5">
+            <h1 class="text-uppercase">Back To School Sale</h1>
+            <p class="lead">Sắm đồ công nghệ tựu trường - Giảm giá kịch sàn lên đến 40%</p>
+            <div id="countdown-timer">
+                <div class="time-box">
+                    <span id="days">00</span>
+                    <p>Ngày</p>
+                </div>
+                <div class="time-box">
+                    <span id="hours">00</span>
+                    <p>Giờ</p>
+                </div>
+                <div class="time-box">
+                    <span id="minutes">00</span>
+                    <p>Phút</p>
+                </div>
+                <div class="time-box">
+                    <span id="seconds">00</span>
+                    <p>Giây</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bộ lọc danh mục -->
+        <ul class="nav nav-pills justify-content-center mb-5 filter-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" data-filter="all">Tất cả</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-filter="laptop">Laptop</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-filter="phone">Điện thoại</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-filter="accessory">Phụ kiện</a>
+            </li>
+        </ul>
+
+        <!-- Danh sách khuyến mãi -->
+        <div class="row g-4" id="promo-list">
+            <!-- Thẻ khuyến mãi 1: Laptop -->
+            <div class="col-lg-4 col-md-6 promo-item" data-category="laptop">
+                <div class="card promo-card h-100">
+                    <img src="https://placehold.co/600x400/343A40/FFFFFF?text=Laptop" class="card-img-top" alt="Laptop Promotion">
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2"><span class="badge bg-danger">Giảm 20%</span></div>
+                        <h5 class="card-title">MacBook Pro M3 - Hiệu năng đỉnh cao</h5>
+                        <p class="card-text">Giảm giá cực sốc cho dòng MacBook Pro M3, lựa chọn hàng đầu cho sinh viên ngành sáng tạo.</p>
+                        <p class="expiry-date mt-auto"><i class="far fa-clock"></i> Hết hạn: 30/10/2025</p>
+                        <a href="#" class="btn btn-primary mt-3">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Thẻ khuyến mãi 2: Phụ kiện -->
+            <div class="col-lg-4 col-md-6 promo-item" data-category="accessory">
+                <div class="card promo-card h-100">
+                    <img src="https://placehold.co/600x400/6C757D/FFFFFF?text=Phụ+Kiện" class="card-img-top" alt="Accessory Promotion">
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2"><span class="badge bg-success">Mua 1 Tặng 1</span></div>
+                        <h5 class="card-title">Phụ kiện chất - Deal hời</h5>
+                        <p class="card-text">Mua bất kỳ tai nghe không dây nào, tặng ngay một củ sạc nhanh 20W chính hãng.</p>
+                        <p class="expiry-date mt-auto"><i class="far fa-clock"></i> Hết hạn: 15/11/2025</p>
+                        <a href="#" class="btn btn-primary mt-3">Mua ngay</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Thẻ khuyến mãi 3: Điện thoại (Mã giảm giá) -->
+            <div class="col-lg-4 col-md-6 promo-item" data-category="phone">
+                <div class="card promo-card h-100">
+                    <img src="https://placehold.co/600x400/0D6EFD/FFFFFF?text=Điện+Thoại" class="card-img-top" alt="Phone Promotion">
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2"><span class="badge bg-info text-dark">Mã Giảm Giá</span></div>
+                        <h5 class="card-title">Giảm ngay 500K cho Galaxy S25</h5>
+                        <p class="card-text">Nhập mã bên dưới để được giảm trực tiếp 500.000đ khi mua siêu phẩm Galaxy S25 series.</p>
+                        <div class="promo-code-area mt-auto">
+                            <span class="fw-bold">Mã: <strong id="promo-code-1">GALAXY500</strong></span>
+                            <button class="btn btn-sm btn-outline-dark copy-code-btn ms-2" data-clipboard-target="#promo-code-1">
+                                <i class="far fa-copy"></i>
+                                <span class="tooltip-text">Đã sao chép!</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Thẻ khuyến mãi 4 (ẩn) -->
+            <div class="col-lg-4 col-md-6 promo-item hidden" data-category="accessory">
+                <div class="card promo-card h-100">
+                    <img src="https://placehold.co/600x400/FFC107/FFFFFF?text=Sạc+Dự+Phòng" class="card-img-top" alt="Sạc dự phòng">
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2"><span class="badge bg-warning text-dark">Flash Sale</span></div>
+                        <h5 class="card-title">Sạc dự phòng Anker giảm 40%</h5>
+                        <p class="card-text">Chỉ trong 3 ngày, sạc dự phòng Anker PowerCore 20.000mAh giá chỉ còn 599.000đ.</p>
+                        <p class="expiry-date mt-auto"><i class="far fa-clock"></i> Hết hạn: 10/10/2025</p>
+                        <a href="#" class="btn btn-primary mt-3">Xem ngay</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Thẻ khuyến mãi 5 (ẩn) -->
+            <div class="col-lg-4 col-md-6 promo-item hidden" data-category="laptop">
+                <div class="card promo-card h-100">
+                    <img src="https://placehold.co/600x400/DC3545/FFFFFF?text=Gaming+Laptop" class="card-img-top" alt="Laptop Gaming">
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2"><span class="badge bg-dark">Online Exclusive</span></div>
+                        <h5 class="card-title">Tặng Chuột Gaming Khi Mua Laptop Acer</h5>
+                        <p class="card-text">Ưu đãi độc quyền khi mua online: Tặng ngay chuột gaming Logitech G502 cho đơn hàng laptop Acer Predator.</p>
+                        <p class="expiry-date mt-auto"><i class="far fa-clock"></i> Hết hạn: 31/12/2025</p>
+                        <a href="#" class="btn btn-primary mt-3">Xem Laptop</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút Xem Thêm -->
+        <div class="text-center mt-5" id="load-more-container">
+            <button class="btn btn-outline-primary btn-lg" id="load-more-btn">Xem thêm khuyến mãi</button>
+        </div>
+    </div>
+
+    <!-- Khung đăng ký nhận tin -->
+    <div class="container my-5">
+        <div class="newsletter-section text-center">
+            <h2 class="fw-bold">Đừng Bỏ Lỡ Ưu Đãi!</h2>
+            <p class="lead text-muted mb-4">Đăng ký để nhận tin tức khuyến mãi mới nhất và các ưu đãi độc quyền từ nhóm.</p>
+            <div class="row justify-content-center">
+                <div class="col-lg-6b">
+                    <form class="d-flex">
+                        <input type="email" class="form-control form-control-lg me-2" placeholder="Nhập địa chỉ email của bạn..." required>
+                        <button class="btn btn-primary btn-lg" type="submit">Đăng ký</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Tải Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript  -->
+    <script src="bootstrap-5.0.2/js/bootstrap.min.js"></script>
+    <script src="bootstrap-5.0.2/Web-Bang-Hang.js"></script>
+</body>
+</html>
+

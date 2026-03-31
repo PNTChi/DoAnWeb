@@ -1,0 +1,465 @@
+﻿# Chatbot Category & Brand Navigation
+
+## Tổng quan
+
+Tính năng mới cho phép chatbot **nhận diện và chuyển hướng** người dùng đến trang danh mục hoặc thương hiệu khi họ hỏi về các từ khóa liên quan.
+
+## Tính năng chính
+
+### 1. **Category Navigation (Điều hướng Danh mục)**
+
+#### Các intent được hỗ trợ:
+- "Danh mục điện thoại"
+- "Xem danh mục"
+- "Có những danh mục nào"
+- "Loại sản phẩm"
+- "Category"
+
+#### Chức năng:
+✅ **Hiển thị danh sách tất cả danh mục**
+- Tên danh mục
+- Icon danh mục
+- Số lượng sản phẩm
+- Link trực tiếp đến trang danh mục
+
+✅ **Tìm kiếm danh mục cụ thể**
+- Người dùng gõ tên danh mục → Chatbot tự động nhận diện
+- Ví dụ: "Điện thoại Samsung" → Redirect đến danh mục điện thoại
+- Hiển thị 5 sản phẩm nổi bật trong danh mục
+- Nút "Xem danh mục {Tên}" để redirect
+
+#### Code Implementation:
+
+```csharp
+private ChatbotResponse GetCategoryList()
+{
+    var categories = db.tb_DanhMuc
+        .Where(dm => dm.HienThi == true)
+        .OrderBy(dm => dm.ThuTu)
+        .ToList();
+
+    response.CategoryLinks = categories
+        .Select(dm => new CategoryLinkViewModel
+        {
+            Id = dm.Id,
+            Name = dm.TenDanhMuc,
+            Alias = dm.BiDanh,
+            Icon = dm.Icon,
+            ProductCount = dm.tb_SanPham.Count(sp => sp.HienThi == true)
+        })
+        .ToList();
+    
+    return response;
+}
+```
+
+### 2. **Brand Navigation (Điều hướng Thương hiệu)**
+
+#### Các intent được hỗ trợ:
+- "Thương hiệu điện thoại"
+- "Hãng nào"
+- "Xem thương hiệu"
+- "Brand"
+- "Xem hãng"
+
+#### Chức năng:
+✅ **Hiển thị danh sách tất cả thương hiệu**
+- Tên thương hiệu
+- Logo thương hiệu
+- Số lượng sản phẩm
+- Link trực tiếp đến trang thương hiệu
+
+✅ **Tìm kiếm thương hiệu cụ thể**
+- Hỗ trợ nhiều cách gọi: "iPhone", "Apple", "IP"
+- Brand mapping tự động
+- Ví dụ: "Samsung" → Redirect đến trang thương hiệu Samsung
+- Hiển thị 5 sản phẩm nổi bật của thương hiệu
+- Nút "Xem thương hiệu {Tên}" để redirect
+
+#### Brand Mappings:
+
+```csharp
+var brandMappings = new Dictionary<string, string>
+{
+    { "iphone", "Apple" },
+    { "apple", "Apple" },
+    { "ip", "Apple" },
+    { "samsung", "Samsung" },
+    { "ss", "Samsung" },
+    { "xiaomi", "Xiaomi" },
+    { "mi", "Xiaomi" },
+    { "oppo", "OPPO" },
+    { "vivo", "Vivo" },
+    { "realme", "Realme" },
+    { "nokia", "Nokia" }
+};
+```
+
+### 3. **Smart Intent Detection**
+
+#### Priority Order:
+```
+0. Category/Brand Intent ⭐ HIGHEST
+   ↓
+1. Multi-criteria Search
+   ↓
+2. Product Comparison
+   ↓
+3. Specific Product Search
+   ↓
+...
+```
+
+#### Logic Flow:
+
+```csharp
+private ChatbotResponse ProcessIntent(string message)
+{
+    // Priority 0: Check Category or Brand Intent
+    var categoryOrBrandResponse = CheckCategoryOrBrandIntent(message);
+    if (categoryOrBrandResponse != null)
+    {
+        return categoryOrBrandResponse; // ✅ Return immediately
+    }
+
+    // Continue with other intents...
+    if (IsMultiCriteriaSearch(message))
+    {
+        return ProcessMultiCriteriaSearch(message);
+    }
+    
+    // ... other intents
+}
+```
+
+### 4. **Response Structure**
+
+#### New Properties in `ChatbotResponse`:
+
+```csharp
+public class ChatbotResponse
+{
+    public string Message { get; set; }
+    public List<ProductChatbotViewModel> Products { get; set; }
+    public List<string> Suggestions { get; set; }
+    
+    // ⭐ NEW PROPERTIES
+    public string RedirectUrl { get; set; }           // URL để redirect
+    public string RedirectText { get; set; }         // Text cho button redirect
+    public List<CategoryLinkViewModel> CategoryLinks { get; set; }  // Danh sách category links
+    public List<BrandLinkViewModel> BrandLinks { get; set; }        // Danh sách brand links
+}
+```
+
+#### New ViewModels:
+
+```csharp
+public class CategoryLinkViewModel
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Alias { get; set; }
+    public string Icon { get; set; }
+    public int ProductCount { get; set; }
+}
+
+public class BrandLinkViewModel
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Alias { get; set; }
+    public string Image { get; set; }
+    public int ProductCount { get; set; }
+}
+```
+
+## UI/UX Implementation
+
+### 1. **Redirect Button**
+
+```html
+<a href="/san-pham?danhmuc=dien-thoai" 
+   class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-full">
+    <i class="fas fa-external-link-alt"></i>
+    <span>Xem danh mục Điện thoại</span>
+</a>
+```
+
+**Features:**
+- ✅ Gradient background (blue-600 → blue-700)
+- ✅ Hover effect (shadow + darker)
+- ✅ Icon + Text
+- ✅ Opens in new tab (`target="_blank"`)
+
+### 2. **Category Links Card**
+
+```html
+<a href="/san-pham?danhmuc=dien-thoai" 
+   class="flex items-center space-x-3 bg-white hover:bg-blue-50 p-3 rounded-xl border">
+    <div class="w-10 h-10 bg-blue-100 rounded-lg">
+        <i class="fas fa-mobile-alt text-blue-600"></i>
+    </div>
+    <div class="flex-1">
+        <h4 class="text-sm font-semibold">Điện thoại</h4>
+        <p class="text-xs text-gray-500">150 sản phẩm</p>
+    </div>
+    <i class="fas fa-chevron-right text-gray-400"></i>
+</a>
+```
+
+**Features:**
+- ✅ Card-style design
+- ✅ Icon với background màu
+- ✅ Hiển thị số sản phẩm
+- ✅ Hover effect (bg-blue-50)
+- ✅ Chevron indicator
+
+### 3. **Brand Links Card**
+
+```html
+<a href="/san-pham?thuonghieu=samsung" 
+   class="flex items-center space-x-3 bg-white hover:bg-blue-50 p-3 rounded-xl border">
+    <div class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden">
+        <img src="/Content/Images/samsung-logo.png" alt="Samsung" />
+    </div>
+    <div class="flex-1">
+        <h4 class="text-sm font-semibold">Samsung</h4>
+        <p class="text-xs text-gray-500">85 sản phẩm</p>
+    </div>
+    <i class="fas fa-chevron-right text-gray-400"></i>
+</a>
+```
+
+**Features:**
+- ✅ Logo thương hiệu
+- ✅ Fallback icon nếu không có logo
+- ✅ Card-style design
+- ✅ Hover effect
+
+## JavaScript Handler
+
+### Key Functions:
+
+#### 1. `addRedirectButton(url, text)`
+```javascript
+function addRedirectButton(url, text) {
+    const buttonHtml = `
+        <a href="${url}" 
+           class="... bg-gradient-to-r from-blue-600 to-blue-700 ..."
+           target="_blank">
+            <i class="fas fa-external-link-alt"></i>
+            <span>${escapeHtml(text)}</span>
+        </a>
+    `;
+    chatMessages.append(buttonHtml);
+    scrollToBottom();
+}
+```
+
+#### 2. `addCategoryLinks(categories)`
+```javascript
+function addCategoryLinks(categories) {
+    categories.forEach(function(cat) {
+        const categoryUrl = `/san-pham?danhmuc=${cat.Alias || cat.Id}`;
+        const icon = cat.Icon || 'fa-folder';
+        
+        // Generate card HTML...
+    });
+}
+```
+
+#### 3. `addBrandLinks(brands)`
+```javascript
+function addBrandLinks(brands) {
+    brands.forEach(function(brand) {
+        const brandUrl = `/san-pham?thuonghieu=${brand.Alias || brand.Id}`;
+        const imageUrl = brand.Image ? '...' : null;
+        
+        // Generate card HTML with image or fallback icon...
+    });
+}
+```
+
+## Test Cases
+
+### ✅ Test 1: Xem danh sách danh mục
+```
+User: "Xem danh mục"
+Bot: 
+📂 Danh sách danh mục sản phẩm:
+• Điện thoại (150 sản phẩm)
+• Tablet (45 sản phẩm)
+• Laptop (80 sản phẩm)
+
+[Card links hiển thị dưới dạng danh sách]
+```
+
+### ✅ Test 2: Tìm danh mục cụ thể
+```
+User: "Danh mục điện thoại"
+Bot:
+📂 Điện thoại
+
+Có 150 sản phẩm trong danh mục này.
+
+👉 Click vào nút 'Xem danh mục' bên dưới để xem tất cả sản phẩm!
+
+[5 sản phẩm nổi bật]
+[Nút: "Xem danh mục Điện thoại"]
+```
+
+### ✅ Test 3: Xem danh sách thương hiệu
+```
+User: "Xem thương hiệu"
+Bot:
+🏢 Danh sách thương hiệu:
+• Apple (65 sản phẩm)
+• Samsung (85 sản phẩm)
+• Xiaomi (70 sản phẩm)
+• OPPO (40 sản phẩm)
+
+[Card links với logo]
+```
+
+### ✅ Test 4: Tìm thương hiệu cụ thể
+```
+User: "Samsung"
+Bot:
+🏢 Samsung
+
+Có 85 sản phẩm của thương hiệu này.
+
+👉 Click vào nút 'Xem thương hiệu' bên dưới để xem tất cả sản phẩm!
+
+[5 sản phẩm Samsung nổi bật]
+[Nút: "Xem thương hiệu Samsung"]
+```
+
+### ✅ Test 5: Brand mapping
+```
+User: "iPhone"
+Bot: [Tự động map "iPhone" → "Apple"]
+🏢 Apple
+
+Có 65 sản phẩm của thương hiệu này.
+[...]
+```
+
+### ✅ Test 6: Không conflict với product search
+```
+User: "iPhone 15 Pro Max"
+Bot: [Vẫn search sản phẩm, KHÔNG redirect đến brand]
+Tôi tìm thấy 1 sản phẩm iPhone 15 Pro Max:
+[Sản phẩm iPhone 15 Pro Max]
+```
+
+## URL Patterns
+
+### Category URL:
+```
+/san-pham?danhmuc={BiDanh hoặc Id}
+
+Examples:
+/san-pham?danhmuc=dien-thoai
+/san-pham?danhmuc=5
+```
+
+### Brand URL:
+```
+/san-pham?thuonghieu={BiDanh hoặc Id}
+
+Examples:
+/san-pham?thuonghieu=samsung
+/san-pham?thuonghieu=apple
+/san-pham?thuonghieu=3
+```
+
+## Benefits
+
+### 1. **Better User Experience**
+- ✅ Người dùng có thể dễ dàng khám phá danh mục
+- ✅ Truy cập nhanh đến thương hiệu yêu thích
+- ✅ Visual cards thay vì text đơn giản
+
+### 2. **SEO Friendly**
+- ✅ Direct links đến category/brand pages
+- ✅ Tăng internal linking
+- ✅ Better navigation
+
+### 3. **Smart Intent Detection**
+- ✅ Phân biệt "Samsung" (brand) vs "Samsung S24" (product)
+- ✅ Priority order đúng
+- ✅ Không conflict với search hiện tại
+
+### 4. **Scalable**
+- ✅ Tự động lấy danh sách từ database
+- ✅ Dễ dàng thêm category/brand mới
+- ✅ Brand mapping linh hoạt
+
+## Future Enhancements
+
+### 1. **Category Hierarchy**
+```
+User: "Danh mục con của điện thoại"
+Bot: 
+📂 Danh mục con của Điện thoại:
+• Điện thoại gaming
+• Điện thoại phổ thông
+• Điện thoại cao cấp
+```
+
+### 2. **Filter Combinations**
+```
+User: "Samsung trong danh mục điện thoại dưới 10 triệu"
+Bot: [Combine category + brand + price filter]
+```
+
+### 3. **Analytics**
+```
+Track:
+- Most viewed categories
+- Most clicked brands
+- Popular navigation paths
+```
+
+## Code Files Modified
+
+### Backend:
+1. ✅ `ChatbotController.cs`
+   - Added `CheckCategoryOrBrandIntent()`
+   - Added `FindCategoryByName()`
+   - Added `FindBrandByName()`
+   - Added `GetCategoryList()`
+   - Added `GetBrandList()`
+   - Added `GetCategoryDetails()`
+   - Added `GetBrandDetails()`
+   - Updated `ProcessIntent()` with Priority 0
+   - Added new ViewModels
+
+### Frontend:
+2. ✅ `_ChatbotWidget.cshtml`
+   - Added `addRedirectButton()` function
+   - Added `addCategoryLinks()` function
+   - Added `addBrandLinks()` function
+   - Updated AJAX response handler
+
+### Documentation:
+3. ✅ `CHATBOT_CATEGORY_BRAND_NAVIGATION.md` (this file)
+
+## Summary
+
+✅ **Đã triển khai thành công** tính năng điều hướng danh mục và thương hiệu trong chatbot
+
+✅ **Smart detection** - Phân biệt intent category/brand vs product search
+
+✅ **Rich UI** - Card-based design với icons, logos, product counts
+
+✅ **Direct navigation** - One-click redirect đến trang category/brand
+
+✅ **Backward compatible** - Không ảnh hưởng đến các tính năng hiện có
+
+---
+
+**Version:** 3.0  
+**Last Updated:** 2024  
+**Status:** ✅ IMPLEMENTED & TESTED

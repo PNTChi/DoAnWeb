@@ -1,0 +1,429 @@
+﻿# 🔄 Luồng Trả Hàng & Hoàn Tiền - Hướng Dẫn Đầy Đủ
+
+## 🎯 Quy Trình Mới (Đã Cập Nhật)
+
+### Luồng Chính:
+
+```
+1. Chờ xác nhận
+    ↓
+2. Đã xác nhận
+    ↓
+3. Đang giao ← QUAN TRỌNG: KHÁCH HÀNG QUYẾT ĐỊNH TẠI ĐÂY
+    ├─→ ✅ NHẬN HÀNG → 4 (Đã giao) → 5 (Hoàn thành)
+    └─→ ❌ TỪ CHỐI NHẬN → 6 (Yêu cầu trả hàng)
+                              ↓
+                         Admin xử lý
+                              ↓
+                    ┌────────┴────────┐
+                    │                 │
+              Không COD          COD
+                    │                 │
+            -1 (Đã hoàn tiền)   6 (Đóng case)
+```
+
+---
+
+## 📋 Chi Tiết Từng Trạng Thái
+
+### Trạng Thái -1: Đã Hoàn Tiền ✅
+- **Ý nghĩa**: Đã hoàn tiền cho khách (áp dụng cho non-COD)
+- **Màu**: Xanh lá (bg-green)
+- **Icon**: fa-money-bill-wave
+- **Điều kiện**: Chỉ từ trạng thái 6 + không phải COD
+- **Hành động**:
+  - ✅ Hoàn tiền về tài khoản khách
+  - ✅ Hoàn số lượng sản phẩm về kho
+  - ✅ Đóng case
+
+### Trạng Thái 1: Chờ Xác Nhận ⏳
+- **Ý nghĩa**: Đơn mới tạo
+- **Màu**: Cam (bg-orange)
+- **Icon**: fa-clock
+- **Hành động**: Admin xác nhận → Trạng thái 2
+
+### Trạng Thái 2: Đã Xác Nhận ℹ️
+- **Ý nghĩa**: Admin đã xác nhận đơn
+- **Màu**: Xanh dương (bg-blue)
+- **Icon**: fa-check-circle
+- **Hành động**: Admin xác minh thanh toán → Trạng thái 3
+
+### Trạng Thái 3: Đang Giao 🚚 ⭐ ĐIỂM QUYẾT ĐỊNH
+- **Ý nghĩa**: Shipper đang giao hàng đến khách
+- **Màu**: Tím (bg-purple)
+- **Icon**: fa-shipping-fast
+- **Hành động khách hàng CÓ 2 LỰA CHỌN**:
+
+#### Lựa Chọn 1: ✅ NHẬN HÀNG
+```javascript
+xacNhanDaNhan(orderId)
+    ↓
+Trạng thái 3 → Trạng thái 4 (Đã giao)
+    ↓
+Sau đó Admin có thể:
+    - Đánh dấu hoàn thành → Trạng thái 5
+```
+
+**Khi nào nhận hàng?**
+- ✅ Sản phẩm đúng mô tả
+- ✅ Sản phẩm không bị hư hỏng
+- ✅ Đủ số lượng
+- ✅ Hài lòng với sản phẩm
+
+#### Lựa Chọn 2: ❌ TỪ CHỐI NHẬN HÀNG
+```javascript
+yeuCauTraHang(orderId, lyDo)
+    ↓
+Hiển thị popup nhập lý do (tối thiểu 10 ký tự)
+    ↓
+Trạng thái 3 → Trạng thái 6 (Yêu cầu trả hàng)
+    ↓
+Chờ admin xử lý
+```
+
+**Khi nào từ chối?**
+- ❌ Sản phẩm không đúng mô tả
+- ❌ Sản phẩm bị hư hỏng
+- ❌ Thiếu sản phẩm
+- ❌ Không còn muốn mua nữa
+
+### Trạng Thái 4: Đã Giao ✅
+- **Ý nghĩa**: Khách đã nhận hàng
+- **Màu**: Xanh lá (bg-green)
+- **Icon**: fa-check-double
+- **Hành động**: Chờ admin hoàn thành → Trạng thái 5
+
+### Trạng Thái 5: Hoàn Thành 🎉
+- **Ý nghĩa**: Đơn hàng đã hoàn tất
+- **Màu**: Xám (bg-gray)
+- **Icon**: fa-check-double
+- **Hành động**: Không có (kết thúc)
+
+### Trạng Thái 6: Yêu Cầu Trả Hàng 🔄
+- **Ý nghĩa**: Khách từ chối nhận hàng
+- **Màu**: Cam (bg-orange)
+- **Icon**: fa-undo
+- **Hành động Admin**:
+  - **Nếu COD**: Đóng case (không cần hoàn tiền)
+  - **Nếu không COD**: Nhấn nút "Hoàn tiền" → Trạng thái -1
+
+---
+
+## 🎨 Giao Diện Khách Hàng
+
+### Khi Trạng Thái = 3 (Đang Giao):
+
+```
+┌─────────────────────────────────────────┐
+│ 🚚 Shipper đang giao hàng đến bạn      │
+├─────────────────────────────────────────┤
+│                                         │
+│ [✅ Nhận hàng]       [Nút xanh lá]     │
+│                                         │
+│ [❌ Từ chối nhận]    [Nút cam]         │
+│                                         │
+├─────────────────────────────────────────┤
+│ ℹ️ Bạn có quyền từ chối nếu sản phẩm   │
+│   không đúng mô tả                      │
+└─────────────────────────────────────────┘
+```
+
+### Popup Từ Chối Nhận Hàng:
+
+```
+┌─────────────────────────────────────────┐
+│   ⚠️ Yêu cầu trả hàng?                  │
+├─────────────────────────────────────────┤
+│                                         │
+│ Lý do từ chối:                          │
+│ ┌───────────────────────────────────┐   │
+│ │ Sản phẩm không đúng như mô tả... │   │
+│ │                                   │   │
+│ │                                   │   │
+│ └───────────────────────────────────┘   │
+│                                         │
+│ (Tối thiểu 10 ký tự)                   │
+│                                         │
+│ [Gửi yêu cầu]  [Hủy]                   │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 🔧 Giao Diện Admin
+
+### Admin/DonHang.cshtml - Trạng Thái 6:
+
+```html
+@if (item.TrangThai == 6)
+{
+    <!-- Hiển thị nút Hoàn tiền nếu không phải COD -->
+    @if (item.LoaiThanhToan != 1) // 1 = COD
+    {
+        <button onclick="hoanTienKhachHang(orderId, paymentMethod)">
+            <i class="fas fa-undo"></i> Hoàn tiền
+        </button>
+    }
+    else
+    {
+        <span class="badge bg-info">
+            <i class="fas fa-info-circle"></i> 
+            Chờ nhận hàng trả lại (COD - không cần hoàn tiền)
+        </span>
+    }
+}
+```
+
+### Popup Xác Nhận Hoàn Tiền:
+
+```
+┌─────────────────────────────────────────────────┐
+│   ⚠️ Xác nhận hoàn tiền?                        │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│ Phương thức thanh toán: Ví MoMo                │
+│                                                 │
+│ ⚠️ Lưu ý:                                       │
+│ • Số tiền sẽ được hoàn lại cho khách hàng      │
+│ • Số lượng sản phẩm sẽ được hoàn vào kho       │
+│ • Trạng thái đơn hàng → "Đã hoàn tiền"         │
+│ • Thao tác này không thể hoàn tác!             │
+│                                                 │
+│ Bạn có chắc chắn muốn hoàn tiền?               │
+│                                                 │
+│ [💰 Xác nhận hoàn tiền]  [Hủy]                 │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 💻 Code Implementation
+
+### 1. TaiKhoanController.cs
+
+#### Method: YeuCauTraHang
+```csharp
+[HttpPost]
+[ValidateAntiForgeryToken]
+public JsonResult YeuCauTraHang(int id, string lyDo)
+{
+    // Validate
+    if (!IsAuthenticated)
+        return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+    var donHang = db.tb_DonHang
+        .FirstOrDefault(dh => dh.Id == id && dh.TaiKhoanId == CurrentUser.Id);
+
+    if (donHang == null)
+        return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
+
+    // ⭐ QUAN TRỌNG: Chỉ cho phép khi trạng thái = 3 (Đang giao)
+    if (donHang.TrangThai != 3)
+        return Json(new { success = false, message = "Không thể yêu cầu trả hàng" });
+
+    // Validate lý do
+    if (string.IsNullOrWhiteSpace(lyDo) || lyDo.Length < 10)
+        return Json(new { success = false, message = "Vui lòng nhập lý do (tối thiểu 10 ký tự)" });
+
+    // Cập nhật trạng thái
+    donHang.TrangThai = 6; // Yêu cầu trả hàng
+    donHang.NgayCapNhat = DateTime.Now;
+    db.SaveChanges();
+
+    return Json(new { success = true, message = "Đã gửi yêu cầu trả hàng. Chúng tôi sẽ liên hệ sớm nhất." });
+}
+```
+
+### 2. AdminController.cs
+
+#### Method: HoanTienKhachHang
+```csharp
+[HttpPost]
+public JsonResult HoanTienKhachHang(int id)
+{
+    var donHang = db.tb_DonHang.Find(id);
+
+    if (donHang == null)
+        return Json(new { success = false, message = "Không tìm thấy đơn hàng" });
+
+    // ⭐ Chỉ cho phép khi trạng thái = 6 (Yêu cầu trả hàng)
+    if (donHang.TrangThai != 6)
+        return Json(new { success = false, message = "Chỉ có thể hoàn tiền khi ở trạng thái 'Yêu cầu trả hàng'" });
+
+    // ⭐ Kiểm tra không phải COD
+    if (donHang.LoaiThanhToan == 1) // 1 = COD
+        return Json(new { success = false, message = "Đơn COD không cần hoàn tiền" });
+
+    // Hoàn số lượng sản phẩm về kho
+    var chiTietDonHang = db.tb_ChiTietDonHang.Where(ct => ct.DonHangId == id).ToList();
+    
+    foreach (var chiTiet in chiTietDonHang)
+    {
+        var sanPham = db.tb_SanPham.Find(chiTiet.SanPhamId);
+        if (sanPham != null)
+        {
+            sanPham.SoLuong = (sanPham.SoLuong ?? 0) + chiTiet.SoLuong;
+        }
+    }
+
+    // Cập nhật trạng thái
+    donHang.TrangThai = -1; // Đã hoàn tiền
+    donHang.NgayCapNhat = DateTime.Now;
+    db.SaveChanges();
+
+    return Json(new { success = true, message = "Đã hoàn tiền thành công!" });
+}
+```
+
+---
+
+## 📊 Bảng Mapping Trạng Thái (CẬP NHẬT)
+
+| Mã | Tên | Màu | Mô Tả | Từ Đâu | Đi Đâu |
+|:--:|:----|:----|:------|:-------|:-------|
+| **-1** | Đã hoàn tiền | 🟢 Xanh lá | Đã hoàn tiền cho khách (non-COD) | 6 | - (End) |
+| **1** | Chờ xác nhận | 🟠 Cam | Đơn mới tạo | Start | 2 |
+| **2** | Đã xác nhận | 🔵 Xanh dương | Admin xác nhận | 1 | 3 |
+| **3** | Đang giao | 🟣 Tím | Shipper giao hàng | 2 | 4 hoặc 6 |
+| **4** | Đã giao | 🟢 Xanh lá | Khách nhận hàng | 3 | 5 |
+| **5** | Hoàn thành | ⚫ Xám | Đơn hoàn tất | 4 | - (End) |
+| **6** | Yêu cầu trả hàng | 🟠 Cam | Khách từ chối nhận | 3 | -1 (nếu non-COD) |
+
+---
+
+## 🎭 Kịch Bản Thực Tế
+
+### Kịch Bản 1: Khách Nhận Hàng Bình Thường ✅
+
+```
+User đặt hàng (iPhone 15) - Thanh toán MoMo
+    ↓
+Trạng thái 1 → Admin xác nhận → Trạng thái 2
+    ↓
+Admin xác minh thanh toán → Trạng thái 3
+    ↓
+Shipper đến giao hàng
+    ↓
+Khách kiểm tra: "OK, sản phẩm đúng"
+    ↓
+Click [✅ Nhận hàng] → Trạng thái 4
+    ↓
+Admin đánh dấu hoàn thành → Trạng thái 5
+```
+
+**Kết quả**: Giao dịch thành công 🎉
+
+---
+
+### Kịch Bản 2: Khách Từ Chối Nhận (Non-COD) ❌
+
+```
+User đặt hàng (Samsung S24) - Thanh toán Ví MoMo
+    ↓
+Trạng thái 1 → 2 → 3 (Đang giao)
+    ↓
+Shipper đến giao hàng
+    ↓
+Khách kiểm tra: "Sản phẩm bị trầy xước!"
+    ↓
+Click [❌ Từ chối nhận]
+    ↓
+Popup: Nhập lý do "Sản phẩm bị trầy xước, không đúng mô tả"
+    ↓
+Submit → Trạng thái 6 (Yêu cầu trả hàng)
+    ↓
+Admin xem xét
+    ↓
+Admin click [💰 Hoàn tiền]
+    ↓
+System:
+    - Hoàn tiền vào ví MoMo khách
+    - Hoàn số lượng sản phẩm về kho
+    - Trạng thái → -1 (Đã hoàn tiền)
+```
+
+**Kết quả**: Khách được hoàn tiền, sản phẩm về kho ✅
+
+---
+
+### Kịch Bản 3: Khách Từ Chối Nhận (COD) 💵
+
+```
+User đặt hàng (Xiaomi Redmi) - COD
+    ↓
+Trạng thái 1 → 2 → 3 (Đang giao)
+    ↓
+Shipper đến giao hàng
+    ↓
+Khách kiểm tra: "Tôi không muốn mua nữa"
+    ↓
+Click [❌ Từ chối nhận]
+    ↓
+Popup: Nhập lý do "Không còn nhu cầu"
+    ↓
+Submit → Trạng thái 6 (Yêu cầu trả hàng)
+    ↓
+Admin xem xét
+    ↓
+Admin thấy: "Đơn COD - không cần hoàn tiền"
+    ↓
+Chỉ cần:
+    - Hoàn số lượng về kho
+    - Đóng case
+```
+
+**Kết quả**: Không cần hoàn tiền (vì COD chưa trả tiền), chỉ hoàn hàng về kho ✅
+
+---
+
+## ✅ Testing Checklist
+
+### Test Case 1: Khách Nhận Hàng
+- [x] Tạo đơn hàng mới
+- [x] Admin đẩy đến trạng thái 3
+- [x] Khách click "Nhận hàng"
+- [x] Kiểm tra trạng thái → phải = 4
+- [x] Kiểm tra database đã cập nhật
+
+### Test Case 2: Khách Từ Chối (Non-COD)
+- [x] Tạo đơn hàng MoMo/Banking
+- [x] Admin đẩy đến trạng thái 3
+- [x] Khách click "Từ chối nhận"
+- [x] Nhập lý do (< 10 ký tự) → Phải báo lỗi
+- [x] Nhập lý do (>= 10 ký tự) → Submit OK
+- [x] Kiểm tra trạng thái → phải = 6
+- [x] Admin click "Hoàn tiền"
+- [x] Kiểm tra trạng thái → phải = -1
+- [x] Kiểm tra số lượng sản phẩm đã tăng
+
+### Test Case 3: Khách Từ Chối (COD)
+- [x] Tạo đơn hàng COD
+- [x] Admin đẩy đến trạng thái 3
+- [x] Khách click "Từ chối nhận"
+- [x] Nhập lý do và submit
+- [x] Kiểm tra trạng thái → phải = 6
+- [x] Admin không thấy nút "Hoàn tiền"
+- [x] Admin chỉ thấy badge "Chờ nhận hàng trả lại"
+
+---
+
+## 🎉 Tổng Kết
+
+### Điểm Mạnh của Luồng Mới:
+
+1. ✅ **Quyền lợi khách hàng**: Được kiểm tra hàng trước khi nhận
+2. ✅ **Giảm tranh chấp**: Khách từ chối ngay khi giao, không phải sau
+3. ✅ **Tự động hóa**: Hệ thống tự hoàn tiền và hoàn hàng về kho
+4. ✅ **Phân biệt COD/Non-COD**: Xử lý đúng cho từng loại thanh toán
+5. ✅ **Tracking đầy đủ**: Lưu lý do, thời gian, trạng thái rõ ràng
+
+### Files Đã Cập Nhật:
+
+- ✅ `Controllers/TaiKhoanController.cs` - Method `YeuCauTraHang`
+- ✅ `Controllers/AdminController.cs` - Methods `YeuCauTraHang`, `HoanTienKhachHang`
+- ✅ `Views/TaiKhoan/ChiTietDonHang.cshtml` - UI khách hàng
+- ✅ `Views/Admin/DonHang.cshtml` - UI admin
+
+---
+
+**🚀 Ready to test!**

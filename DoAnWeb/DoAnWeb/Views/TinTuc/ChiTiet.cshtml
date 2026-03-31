@@ -1,0 +1,99 @@
+@model DoAnWeb.tb_TinTuc
+
+@{
+    ViewBag.Title = Model.TieuDe;
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+  <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+    <i class="fas fa-home mr-2"></i>
+Trang ch?
+</a>
+ </li>
+ <li>
+      <div class="flex items-center">
+       <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+     <a href="@Url.Action("Index", "TinTuc")" class="text-sm font-medium text-gray-700 hover:text-blue-600">
+   Tin t?c
+     </a>
+    </div>
+ </li>
+      <li aria-current="page">
+   <div class="flex items-center">
+      <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+      <span class="text-sm font-medium text-gray-500 line-clamp-1">@Model.TieuDe</span>
+ </div>
+        </li>
+    </ol>
+</nav>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Main Content (3/4) -->
+    <div class="lg:col-span-3">
+  <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+       <!-- Featured Image -->
+     @if (!string.IsNullOrEmpty(Model.HinhAnh))
+      {
+      <div class="w-full aspect-video overflow-hidden bg-gray-100">
+       <img src="@Url.Content("~/Content/Images/" + Model.HinhAnh)" 
+        alt="@Model.TieuDe" 
+    class="w-full h-full object-cover" />
+    </div>
+   }
+
+            <!-- Content -->
+      <div class="p-8">
+   <!-- Category & Date -->
+         <div class="flex items-center space-x-4 mb-4">
+@if (Model.tb_DanhMucTin != null)
+      {
+      <span class="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">
+ @Model.tb_DanhMucTin.TenDanhMuc
+     </span>
+   }
+ </div>
+
+     <!-- Title -->
+   <h1 class="text-4xl font-bold text-gray-900 mb-4">
+       @Model.TieuDe
+    </h1>
+
+    <!-- Meta Info -->
+    <div class="flex items-center space-x-6 text-sm text-gray-600 pb-6 border-b mb-6">
+   <div class="flex items-center">
+      <i class="far fa-calendar mr-2"></i>
+    <span>@(Model.NgayTao?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+         </div>
+    <div class="flex items-center">
+   <i class="far fa-user mr-2"></i>
+      <span>@(Model.NguoiTao ?? "Admin")</span>
+    </div>
+    @if (Model.NgayCapNhat.HasValue)
+     {
+      <div class="flex items-center">
+    <i class="far fa-clock mr-2"></i>
+    <span>C?p nh?t: @Model.NgayCapNhat.Value.ToString("dd/MM/yyyy")</span>
+     </div>
+     }
+      </div>
+
+    <!-- Summary -->
+   @if (!string.IsNullOrEmpty(Model.MoTa))
+       {
+       <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6 rounded">
+     <p class="text-lg text-gray-700 leading-relaxed italic">
+    @Model.MoTa
+   </p>
+       </div>
+        }
+
+     <!-- Main Content -->
+        @if (!string.IsNullOrEmpty(Model.ChiTiet))
+     {
+ <div class="prose prose-lg max-w-none">
+       @Html.Raw(Model.ChiTiet)
+    </div>
+ }

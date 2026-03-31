@@ -1,0 +1,87 @@
+﻿@model List<tb_MaGiamGia>
+
+@{
+    ViewBag.Title = "KhuyenMai";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="promotions" class="tab-content active">
+    <h1 class="mb-4">Quản lý khuyến mãi & mã giảm giá</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimKhuyenMai" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timkm" name="timkm" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <a href="@Url.Action("formThemKM", "Admin")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm khuyến mãi
+            </a>
+        </div>
+        <table class="table table-bordered table-hover" id="promotionTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã giảm giá</th>
+                    <th>Số tiền giảm</th>
+                    <th>Phần trăm giảm</th>
+                    <th>Ngày tạo</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Số lượng</th>
+                    <th>Hiển thị</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="promotionTableBody">
+                @foreach (var item in Model)
+                {
+                    <tr id="promo-1">
+                        <td>@item.Id</td>
+                        <td>@item.MaCode</td>
+                        <td>@item.SoTienGiam</td>
+                        <td>@item.PhanTramGiam</td>
+                        <td>@item.NgayTao</td>
+                        <td>@item.NgayKetThuc</td>
+                        <td>@item.SoLuong</td>
+                        <td>@item.HienThi</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("formSuaKM", "Admin", new { id = item.Id })" class="btn btn-sm btn-warning" title="Sửa khuyến mãi">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="@Url.Action("XoaKM", "Admin", new { id = item.Id })" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa khuyến mãi này?');" title="Xóa khuyến mãi">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "KhuyenMai" : "TimKhuyenMai",
+                    new { timkm = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "KhuyenMai" : "TimKhuyenMai",
+                        new { timkm = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "KhuyenMai" : "TimKhuyenMai",
+                    new { timkm = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

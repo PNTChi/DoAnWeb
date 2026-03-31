@@ -1,0 +1,88 @@
+﻿@model List<tb_DanhMuc>
+
+@{
+    ViewBag.Title = "DanhMuc";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="categories" class="tab-content active">
+    <h1 class="mb-4">Quản lý danh mục</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimDanhMuc" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timdm" name="timdm" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <a href="@Url.Action("formThemDM", "Admin")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm danh mục
+            </a>
+        </div>
+        <table class="table table-bordered table-hover" id="categoryTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên danh mục</th>
+                    <th>Bí danh</th>
+                    <th>Icon</th>
+                    <th>Thứ tự</th>
+                    <th>Ngày tạo</th>
+                    <th>Ngày cập nhật</th>
+                    <th>Hiển thị</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTableBody">
+                @foreach (var item in Model)
+                {
+                    <tr id="category-1">
+                        <td>@item.Id</td>
+                        <td>@item.TenDanhMuc</td>
+                        <td>@item.BiDanh</td>
+                        <td><i class="@item.Icon"></i></td>
+                        @*<td><img data-src="https://placehold.co/50x50/28a745/white?text=Img" alt="Category" class="lazyload"></td>*@
+                        <td>@item.ThuTu</td>
+                        <td>@item.NgayTao</td>
+                        <td>@item.NgayCapNhat</td>
+                        <td>@item.HienThi</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("formSuaDM", "Admin", new { id = item.Id })" class="btn btn-sm btn-warning" title="Sửa danh mục">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="@Url.Action("XoaDM", "Admin", new { id = item.Id })" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');" title="Xóa danh mục">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "DanhMuc" : "TimDanhMuc",
+                    new { timdm = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "DanhMuc" : "TimDanhMuc",
+                        new { timdm = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "DanhMuc" : "TimDanhMuc",
+                    new { timdm = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

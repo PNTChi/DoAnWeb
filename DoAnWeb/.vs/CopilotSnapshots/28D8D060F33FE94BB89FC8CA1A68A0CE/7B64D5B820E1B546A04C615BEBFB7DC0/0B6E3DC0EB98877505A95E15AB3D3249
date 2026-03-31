@@ -1,0 +1,72 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace DoAnWeb.Models
+{
+    /// <summary>
+    /// ViewModel cho trang thanh toán
+    /// </summary>
+    public class CheckoutViewModel
+    {
+    [Required(ErrorMessage = "Vui lòng nh?p h? tên")]
+    [StringLength(100, ErrorMessage = "H? tên không ???c quá 100 ký t?")]
+        [Display(Name = "H? và tên")]
+        public string HoTen { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nh?p s? ?i?n tho?i")]
+        [Phone(ErrorMessage = "S? ?i?n tho?i không h?p l?")]
+        [RegularExpression(@"^(0|\+84)[0-9]{9,10}$", ErrorMessage = "S? ?i?n tho?i không ?úng ??nh d?ng")]
+        [Display(Name = "S? ?i?n tho?i")]
+     public string SoDienThoai { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nh?p email")]
+   [EmailAddress(ErrorMessage = "Email không h?p l?")]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nh?p ??a ch? giao hàng")]
+ [StringLength(500, ErrorMessage = "??a ch? không ???c quá 500 ký t?")]
+        [Display(Name = "??a ch? giao hàng")]
+   public string DiaChi { get; set; }
+
+      [StringLength(1000, ErrorMessage = "Ghi chú không ???c quá 1000 ký t?")]
+        [Display(Name = "Ghi chú")]
+        public string GhiChu { get; set; }
+
+     [Required(ErrorMessage = "Vui lòng ch?n ph??ng th?c thanh toán")]
+      [Display(Name = "Ph??ng th?c thanh toán")]
+        public int PaymentMethod { get; set; }
+
+        [Display(Name = "Ph??ng th?c v?n chuy?n")]
+        public int? ShippingMethod { get; set; }
+
+        /// <summary>
+        /// Gi? hàng (?? hi?n th? trong view)
+        /// </summary>
+     public ShoppingCart Cart { get; set; }
+  }
+
+    /// <summary>
+    /// Enum cho ph??ng th?c thanh toán
+    /// </summary>
+    public enum PaymentMethodEnum
+  {
+        [Display(Name = "Thanh toán khi nh?n hàng (COD)")]
+        COD = 1,
+
+  [Display(Name = "Chuy?n kho?n ngân hàng")]
+        BankTransfer = 2,
+
+        [Display(Name = "Ví ?i?n t? MoMo")]
+        MoMo = 3,
+
+        [Display(Name = "Ví ?i?n t? ZaloPay")]
+        ZaloPay = 4,
+
+     [Display(Name = "Th? tín d?ng/Ghi n?")]
+        CreditCard = 5
+    }
+}

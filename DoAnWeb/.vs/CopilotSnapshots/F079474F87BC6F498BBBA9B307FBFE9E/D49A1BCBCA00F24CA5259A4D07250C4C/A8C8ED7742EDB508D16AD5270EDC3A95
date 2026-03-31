@@ -1,0 +1,277 @@
+﻿/* --- Cài đặt Biến Màu và Chung --- */
+:root {
+    --theme-color: #088178; /* Màu xanh mòng két (Teal) làm màu chủ đạo */
+    --theme-color-darker: #066a63;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
+}
+
+/* Tùy chỉnh màu sắc chính của Bootstrap */
+.btn-primary {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+}
+
+    .btn-primary:hover {
+        background-color: var(--theme-color-darker);
+        border-color: var(--theme-color-darker);
+    }
+
+.text-primary {
+    color: var(--theme-color) !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+}
+
+.page-link {
+    color: var(--theme-color);
+}
+
+.breadcrumb-item a {
+    color: var(--theme-color);
+    text-decoration: none;
+}
+
+/* --- Bài viết nổi bật --- */
+.featured-post {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+    .featured-post .post-image-wrapper {
+        overflow: hidden;
+    }
+
+    .featured-post img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .featured-post:hover img {
+        transform: scale(1.05);
+    }
+
+    .featured-post .card-body {
+        padding: 2rem;
+    }
+
+    .featured-post .category-badge {
+        background-color: var(--theme-color);
+        color: #fff;
+        padding: 0.3em 0.8em;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        text-decoration: none;
+    }
+
+    .featured-post .post-title {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+.post-meta {
+    font-size: 0.9rem;
+    color: #6c757d;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+    .post-meta a {
+        color: #6c757d;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .post-meta a:hover {
+            color: var(--theme-color);
+        }
+
+    .post-meta .separator {
+        display: inline-block;
+    }
+
+/* --- Thẻ bài viết --- */
+.article-card {
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .article-card .card-img-wrapper {
+        overflow: hidden;
+        position: relative;
+    }
+
+    .article-card .card-img-top {
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .article-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .article-card .category-badge-on-img {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background-color: var(--theme-color);
+        color: #fff;
+        padding: 0.3em 0.8em;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+
+    .article-card .card-title {
+        font-weight: 700;
+        color: #212529;
+        text-decoration: none;
+    }
+
+        .article-card .card-title:hover {
+            color: var(--theme-color);
+        }
+
+.post-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .post-author .author-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+/* --- Thanh bên (Sidebar) --- */
+.sidebar-widget {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+    .sidebar-widget .widget-title {
+        font-weight: 700;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--theme-color);
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .sidebar-widget ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar-widget .popular-posts .post-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .sidebar-widget .popular-posts .post-rank {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dee2e6;
+    }
+
+    .sidebar-widget .popular-posts .post-title-small {
+        text-decoration: none;
+        color: #212529;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+        .sidebar-widget .popular-posts .post-title-small:hover {
+            color: var(--theme-color);
+        }
+
+    .sidebar-widget .popular-posts .post-views {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+.tag-cloud a {
+    display: inline-block;
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.3rem 0.8rem;
+    margin: 0.2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+    .tag-cloud a:hover {
+        background-color: var(--theme-color);
+        color: #fff;
+    }
+
+.social-icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    color: #495057;
+    text-decoration: none;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+    .social-icons a:hover {
+        background-color: var(--theme-color);
+        color: #fff;
+    }
+
+/* --- Nút Cuộn lên đầu trang --- */
+#scrollTopBtn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    z-index: 99;
+    border: none;
+    outline: none;
+    background-color: var(--theme-color);
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+    #scrollTopBtn:hover {
+        background-color: var(--theme-color-darker);
+    }

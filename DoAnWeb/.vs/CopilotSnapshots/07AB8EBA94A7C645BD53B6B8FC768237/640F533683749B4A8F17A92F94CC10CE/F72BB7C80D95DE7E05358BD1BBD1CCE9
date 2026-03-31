@@ -1,0 +1,110 @@
+﻿@model List<DoAnWeb.Models.QLThanhToanViewModel>
+
+@{
+    ViewBag.Title = "ThanhToan";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="payments" class="tab-content active">
+    <h1 class="mb-4">Quản lý thanh toán</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimThanhToan" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timtt" name="timtt" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <button class="btn btn-primary">Kết nối cổng thanh toán</button>
+        </div>
+        <table class="table table-bordered table-hover" id="paymentTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã đơn hàng</th>
+                    <th>Phương thức thanh toán</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày thanh toán</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="paymentTableBody">
+                @foreach (var item in Model)
+                {
+                    <tr id="payment-@item.Id">
+                        <td>@item.Id</td>
+                        <td>@item.MaDonHang</td>
+                        <td>@item.TenPhuongThucThanhToan</td>
+                        <td>@String.Format("{0:N0} ₫", item.TongTien)</td>
+                        <td>
+                            @if (item.TrangThai == 1)
+                            {
+                                <span class="badge bg-warning">Chờ xác nhận</span>
+                            }
+                            else if (item.TrangThai == 2)
+                            {
+                                <span class="badge bg-info">Đã xác nhận</span>
+                            }
+                            else if (item.TrangThai == 3)
+                            {
+                                <span class="badge bg-primary">Đang giao</span>
+                            }
+                            else if (item.TrangThai == 4)
+                            {
+                                <span class="badge bg-success">Hoàn thành</span>
+                            }
+                            else if (item.TrangThai == 5)
+                            {
+                                <span class="badge bg-danger">Đã hủy</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@item.TrangThai</span>
+                            }
+                        </td>
+                        <td>@(item.NgayTao.HasValue ? item.NgayTao.Value.ToString("dd/MM/yyyy HH:mm") : "")</td>
+                        <td>
+                            @if (item.TrangThai == 2)
+                            {
+                                <button class="btn btn-sm btn-info" onclick="xacMinhThanhToan(@item.Id)">
+                                    <i class="fas fa-check"></i> Xác minh
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="fas fa-check"></i> Đã xử lý
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "ThanhToan" : "TimThanhToan",
+                    new { timtt = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "ThanhToan" : "TimThanhToan",
+                        new { timtt = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "ThanhToan" : "TimThanhToan",
+                    new { timtt = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

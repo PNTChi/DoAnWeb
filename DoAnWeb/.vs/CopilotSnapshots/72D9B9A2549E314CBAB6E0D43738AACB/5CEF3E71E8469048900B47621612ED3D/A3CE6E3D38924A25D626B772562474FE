@@ -1,0 +1,74 @@
+﻿@model List<tb_ThuongHieu>
+@{
+    ViewBag.Title = "ThuongHieu";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string TuKhoa = ViewBag.TuKhoa;
+}
+
+<div id="brands" class="tab-content active">
+    <h1 class="mb-4">Quản lý thương hiệu</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <form action="TimThuongHieu" method="get" class="input-group w-50">
+                <input type="text" class="form-control" id="timth" name="timth" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <a href="@Url.Action("formThemTH", "Admin")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm thương hiệu
+            </a>
+        </div>
+        <table class="table table-bordered table-hover" id="brandTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên thương hiệu</th>
+                    <th>Bí danh</th>
+                    <th>Ngày tạo</th>
+                    <th>Hiển thị</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="brandTableBody">
+                @foreach (var item in Model)
+                {
+                    <tr id="brand-1">
+                        <td>@item.Id</td>
+                        <td>@item.TenThuongHieu</td>
+                        <td>@item.BiDanh</td>
+                        <td>@item.NgayTao</td>
+                        <td>@item.HienThi</td>
+                        <td>
+                            @Html.ActionLink("Sửa", "formSuaTH", "Admin", new { id = item.Id }, new { @class = "btn btn-sm btn-warning" })
+                            @Html.ActionLink("Xóa", "XoaTH", "Admin", new { id = item.Id }, new { @class = "btn btn-sm btn-danger", onclick = "return confirm('Bạn có chắc chắn muốn xóa?');" })
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "ThuongHieu" : "TimThuongHieu",
+                    new { timth = ViewBag.TuKhoa, page = currentPage - 1 })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action(
+                        String.IsNullOrEmpty(ViewBag.TuKhoa) ? "ThuongHieu" : "TimThuongHieu",
+                        new { timth = ViewBag.TuKhoa, page = i })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action(
+                    String.IsNullOrEmpty(ViewBag.TuKhoa) ? "ThuongHieu" : "TimThuongHieu",
+                    new { timth = ViewBag.TuKhoa, page = currentPage + 1 })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

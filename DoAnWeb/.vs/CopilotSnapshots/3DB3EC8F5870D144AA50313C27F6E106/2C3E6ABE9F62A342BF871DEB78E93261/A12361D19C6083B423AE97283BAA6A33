@@ -1,0 +1,67 @@
+﻿
+@{
+    ViewBag.Title = "HoTroKH";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div id="support" class="tab-content active">
+    <h1 class="mb-4">Hỗ trợ khách hàng</h1>
+    <div class="table-container">
+        <div class="d-flex justify-content-between mb-3">
+            <div class="input-group w-50">
+                <input type="text" class="form-control" placeholder="Tìm kiếm ticket..." id="searchSupport">
+                <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+            </div>
+            <select class="form-select w-25" id="filterSupport">
+                <option value="Tất cả">Trạng thái: Tất cả</option>
+                <option value="Mới">Mới</option>
+                <option value="Đang xử lý">Đang xử lý</option>
+                <option value="Đã đóng">Đã đóng</option>
+            </select>
+        </div>
+        <table class="table table-bordered table-hover" id="supportTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Khách hàng</th>
+                    <th>Câu hỏi/Đánh giá</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="supportTableBody">
+                <tr id="support-1">
+                    <td>1</td>
+                    <td>Nguyễn Văn A</td>
+                    <td>Sản phẩm lỗi</td>
+                    <td><span class="badge bg-warning">Mới</span></td>
+                    <td>2023-10-01</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary"><i class="fas fa-reply"></i> Trả lời</button>
+                        <button class="btn btn-sm btn-success"><i class="fas fa-check"></i> Đóng</button>
+                    </td>
+                </tr>
+                <tr id="support-2">
+                    <td>2</td>
+                    <td>Trần Thị B</td>
+                    <td>Hỏi về bảo hành</td>
+                    <td><span class="badge bg-secondary">Đã đóng</span></td>
+                    <td>2023-10-02</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary"><i class="fas fa-reply"></i> Trả lời</button>
+                        <button class="btn btn-sm btn-success disabled"><i class="fas fa-check"></i> Đóng</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">Sau</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>

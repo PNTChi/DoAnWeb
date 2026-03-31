@@ -1,0 +1,47 @@
+﻿@model DoAnWeb.tb_DanhMuc
+
+@* Partial View: Menu Phụ kiện - Có thể tùy chỉnh riêng cho danh mục này *@
+
+<!-- Danh mục Phụ kiện -->
+<a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })" class="toggle-category">
+    <i class="fas fa-headphones"></i> @Model.TenDanhMuc
+</a>
+
+<ul class="category-list">
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id })">
+Tất cả phụ kiện
+        </a>
+    </li>
+    @* Submenu riêng cho phụ kiện - theo loại *@
+    <li>
+<a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loai = "tainghe" })">
+    Tai nghe
+    </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loai = "sac-cap" })">
+            Sạc và cáp
+  </a>
+</li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loai = "oplung" })">
+   Ốp lưng
+   </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loai = "thenho" })">
+    Thẻ nhớ
+        </a>
+    </li>
+    <li>
+ <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, giaMax = 500000 })">
+      Dưới 500k
+        </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Index", "SanPham", new { danhMucId = Model.Id, loc = "moi" })">
+   Sản phẩm mới
+ </a>
+    </li>
+</ul>

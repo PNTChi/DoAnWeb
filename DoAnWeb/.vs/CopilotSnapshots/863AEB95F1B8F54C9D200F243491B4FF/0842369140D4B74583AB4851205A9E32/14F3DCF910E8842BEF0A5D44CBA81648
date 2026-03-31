@@ -1,0 +1,212 @@
+﻿@model DoAnWeb.Models.HomeViewModel
+@{
+    ViewBag.Title = "Trang Chủ";
+}
+
+<!-- Hero Section hoặc Banner (Có thể thêm sau) -->
+<section class="mb-8">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800">Chào mừng đến với cửa hàng của chúng tôi</h1>
+ </div>
+</section>
+
+<!-- Danh Mục Sản Phẩm -->
+@if (Model.DanhMuc != null && Model.DanhMuc.Any())
+{
+    <section class="mb-12">
+        <div class="container mx-auto px-4">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">Danh Mục Sản Phẩm</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                @foreach (var danhMuc in Model.DanhMuc)
+                {
+    <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-4 text-center">
+    @if (!string.IsNullOrEmpty(danhMuc.Icon))
+           {
+   <div class="mb-3">
+          <i class="@danhMuc.Icon text-4xl text-blue-600"></i>
+         </div>
+       }
+    <h3 class="text-sm font-semibold text-gray-700">@danhMuc.TenDanhMuc</h3>
+      </div>
+      }
+        </div>
+        </div>
+    </section>
+}
+
+<!-- Sản Phẩm Mới -->
+@if (Model.SanPhamMoi != null && Model.SanPhamMoi.Any())
+{
+    <section class="mb-12 bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+             <i class="fas fa-star text-yellow-500 mr-2"></i>Sản Phẩm Mới
+                </h2>
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold">
+   Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+           </a>
+            </div>
+            
+ <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+ @foreach (var sanPham in Model.SanPhamMoi)
+                {
+ <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+          <!-- Hình ảnh sản phẩm -->
+    <div class="relative overflow-hidden aspect-square">
+            @if (!string.IsNullOrEmpty(sanPham.HinhAnh))
+         {
+            <img src="@Url.Content("~/Content/Images/" + sanPham.HinhAnh)" 
+           alt="@sanPham.TenSanPham" 
+               class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+     }
+  else
+   {
+      <img src="@Url.Content("~/Content/Images/no-image.jpg")" 
+  alt="No Image" 
+    class="w-full h-full object-cover" />
+     }
+      
+      <!-- Badge "Mới" -->
+     <span class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+         MỚI
+   </span>
+     </div>
+  
+     <!-- Thông tin sản phẩm -->
+           <div class="p-4">
+        <h3 class="text-sm font-semibold text-gray-800 mb-2 line-clamp-2 h-10">
+                @sanPham.TenSanPham
+   </h3>
+      
+       <!-- Giá sản phẩm -->
+      <div class="flex items-center justify-between mb-3">
+@if (sanPham.GiaKhuyenMai.HasValue && sanPham.GiaKhuyenMai.Value > 0)
+     {
+ <div class="flex flex-col">
+           <span class="text-red-600 font-bold text-lg">
+         @string.Format("{0:N0}₫", sanPham.GiaKhuyenMai)
+           </span>
+      <span class="text-gray-400 text-sm line-through">
+        @string.Format("{0:N0}₫", sanPham.Gia)
+            </span>
+    </div>
+   }
+     else
+             {
+          <span class="text-blue-600 font-bold text-lg">
+   @string.Format("{0:N0}₫", sanPham.Gia.HasValue ? sanPham.Gia.Value : 0)
+</span>
+          }
+     </div>
+                 
+       <!-- Nút xem chi tiết -->
+              <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-300">
+     Xem chi tiết
+    </button>
+          </div>
+  </div>
+       }
+          </div>
+        </div>
+    </section>
+}
+
+<!-- Sản Phẩm Bán Chạy -->
+@if (Model.SanPhamBanChay != null && Model.SanPhamBanChay.Any())
+{
+  <section class="mb-12">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">
+     <i class="fas fa-fire text-orange-500 mr-2"></i>Sản Phẩm Bán Chạy
+          </h2>
+    <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold">
+               Xem tất cả <i class="fas fa-arrow-right ml-1"></i>
+ </a>
+        </div>
+ 
+       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+       @foreach (var sanPham in Model.SanPhamBanChay)
+                {
+          <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+              <!-- Hình ảnh sản phẩm -->
+     <div class="relative overflow-hidden aspect-square">
+     @if (!string.IsNullOrEmpty(sanPham.HinhAnh))
+   {
+ <img src="@Url.Content("~/Content/Images/" + sanPham.HinhAnh)" 
+        alt="@sanPham.TenSanPham" 
+      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+            }
+          else
+        {
+    <img src="@Url.Content("~/Content/Images/no-image.jpg")" 
+      alt="No Image" 
+       class="w-full h-full object-cover" />
+   }
+
+        <!-- Badge "Bán Chạy" -->
+   <span class="absolute top-2 left-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
+      BÁN CHẠY
+             </span>
+     
+  <!-- Hiển thị lượt xem -->
+       @if (sanPham.LuotXem.HasValue)
+       {
+     <span class="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+      <i class="fas fa-eye mr-1"></i>@sanPham.LuotXem.Value
+          </span>
+          }
+          </div>
+    
+            <!-- Thông tin sản phẩm -->
+         <div class="p-4">
+  <h3 class="text-sm font-semibold text-gray-800 mb-2 line-clamp-2 h-10">
+       @sanPham.TenSanPham
+                    </h3>
+           
+    <!-- Giá sản phẩm -->
+         <div class="flex items-center justify-between mb-3">
+             @if (sanPham.GiaKhuyenMai.HasValue && sanPham.GiaKhuyenMai.Value > 0)
+    {
+      <div class="flex flex-col">
+             <span class="text-red-600 font-bold text-lg">
+        @string.Format("{0:N0}₫", sanPham.GiaKhuyenMai)
+             </span>
+     <span class="text-gray-400 text-sm line-through">
+  @string.Format("{0:N0}₫", sanPham.Gia)
+          </span>
+      </div>
+     }
+  else
+          {
+     <span class="text-blue-600 font-bold text-lg">
+               @string.Format("{0:N0}₫", sanPham.Gia.HasValue ? sanPham.Gia.Value : 0)
+ </span>
+      }
+        </div>
+         
+       <!-- Nút xem chi tiết -->
+      <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-300">
+          Xem chi tiết
+      </button>
+           </div>
+        </div>
+      }
+  </div>
+        </div>
+    </section>
+}
+
+<!-- Thông báo nếu không có dữ liệu -->
+@if ((Model.SanPhamMoi == null || !Model.SanPhamMoi.Any()) && 
+   (Model.SanPhamBanChay == null || !Model.SanPhamBanChay.Any()))
+{
+    <section class="py-12">
+        <div class="container mx-auto text-center">
+  <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl text-gray-600">Chưa có sản phẩm nào</h3>
+  <p class="text-gray-500 mt-2">Vui lòng quay lại sau</p>
+        </div>
+    </section>
+}

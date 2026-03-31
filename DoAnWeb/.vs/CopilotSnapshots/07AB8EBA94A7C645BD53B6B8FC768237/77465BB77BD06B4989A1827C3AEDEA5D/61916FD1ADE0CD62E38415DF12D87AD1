@@ -1,0 +1,45 @@
+﻿@model DoAnWeb.tb_DanhMuc
+@{
+    ViewBag.Title = "formSuaDM";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("SuaDM", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formCategoryTitle">Sửa danh mục</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="mb-3">
+        @Html.Label("TenDanhMuc", "Tên danh mục", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDanhMuc, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenDanhMuc)
+    </div>
+    <div class="mb-3">
+        @Html.Label("BiDanh", "Bí danh", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.BiDanh)
+    </div>
+    <div class="mb-3">
+        @Html.Label("Icon", "Icon", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.Icon, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.Icon)
+    </div>
+    <div class="mb-3">
+        @Html.Label("ThuTu", "Thứ tự", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.ThuTu, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ThuTu)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HienThi", "Hiển thị", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HienThi, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HienThi)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu danh mục</button>
+        <a href="@Url.Action("DanhMuc", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}

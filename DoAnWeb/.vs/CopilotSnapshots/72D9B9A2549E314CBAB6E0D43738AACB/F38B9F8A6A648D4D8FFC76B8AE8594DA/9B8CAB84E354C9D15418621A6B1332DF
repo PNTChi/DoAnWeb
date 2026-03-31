@@ -1,0 +1,72 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+  public class HomeController : BaseController  // Kế thừa BaseController thay vì Controller
+    {
+        /// <summary>
+        /// Action hiển thị trang chủ
+   /// Lấy danh sách sản phẩm mới, sản phẩm bán chạy, danh mục và tin tức
+   /// </summary>
+     public ActionResult Index()
+      {
+     // Tạo ViewModel để chứa dữ liệu
+  var viewModel = new HomeViewModel();
+
+    // Lấy top 10 sản phẩm mới (LaSanPhamMoi = true, đang hiển thị)
+            viewModel.SanPhamMoi = db.tb_SanPham
+   .Where(sp => sp.LaSanPhamMoi == true && sp.HienThi == true)
+     .OrderByDescending(sp => sp.NgayTao)
+        .Take(10)
+       .ToList();
+
+   // Lấy top 10 sản phẩm bán chạy (LaSanPhamBanChay = true, đang hiển thị)
+  viewModel.SanPhamBanChay = db.tb_SanPham
+        .Where(sp => sp.LaSanPhamBanChay == true && sp.HienThi == true)
+      .OrderByDescending(sp => sp.LuotXem)
+     .Take(10)
+  .ToList();
+
+      // Lấy tất cả danh mục đang hiển thị
+  viewModel.DanhMuc = db.tb_DanhMuc
+  .Where(dm => dm.HienThi == true)
+          .OrderBy(dm => dm.ThuTu)
+          .ToList();
+
+            // Lấy top 3 tin tức mới nhất
+   viewModel.TinTuc = db.tb_TinTuc
+        .Where(tt => tt.HienThi == true)
+  .OrderByDescending(tt => tt.NgayTao)
+    .Take(3)
+    .ToList();
+
+            // Lấy danh sách thương hiệu nổi bật (đang hiển thị)
+            viewModel.ThuongHieu = db.tb_ThuongHieu
+                .Where(th => th.HienThi == true)
+                .OrderBy(th => th.TenThuongHieu)
+                .ToList();
+
+      // Trả về view với ViewModel
+ return View(viewModel);
+        }
+
+        public ActionResult About()
+        {
+            ViewBag.Message = "Your application description page.";
+
+return View();
+        }
+
+    public ActionResult Contact()
+      {
+      ViewBag.Message = "Your contact page.";
+
+   return View();
+        }
+    }
+}

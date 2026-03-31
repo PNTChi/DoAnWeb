@@ -1,0 +1,229 @@
+﻿@model DoAnWeb.tb_TinTuc
+@{
+    ViewBag.Title = "Sửa tin tức";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("SuaTinTuc", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.NgayTao)
+    @Html.HiddenFor(model => model.NguoiTao)
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>
+            <i class="fas fa-edit text-warning me-2"></i>
+            Sửa tin tức: @Model.TieuDe
+        </h3>
+        <a href="@Url.Action("TinTuc", "Admin")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+    
+    <hr>
+    
+    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin cơ bản</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.Label("TieuDe", "Tiêu đề", htmlAttributes: new { @class = "form-label" })
+                        @Html.EditorFor(model => model.TieuDe, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.TieuDe, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.Label("BiDanh", "Bí danh (URL slug)", htmlAttributes: new { @class = "form-label" })
+                        @Html.EditorFor(model => model.BiDanh, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.BiDanh, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.Label("MoTa", "Mô tả ngắn", htmlAttributes: new { @class = "form-label" })
+                        @Html.TextAreaFor(model => model.MoTa, new { @class = "form-control", rows = 3 })
+                        @Html.ValidationMessageFor(model => model.MoTa, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.Label("NoiDung", "Nội dung", htmlAttributes: new { @class = "form-label" })
+                        @Html.TextAreaFor(model => model.NoiDung, new { @class = "form-control", rows = 10, id = "editor" })
+                        @Html.ValidationMessageFor(model => model.NoiDung, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-4">
+            <!-- Danh mục -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Danh mục</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.Label("DanhMucTinId", "Chọn danh mục", htmlAttributes: new { @class = "form-label" })
+                        @Html.DropDownList("DanhMucTinId", (SelectList)ViewBag.DanhMucTinList, "-- Chọn danh mục --", new { @class = "form-select" })
+                        @Html.ValidationMessageFor(model => model.DanhMucTinId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hình ảnh -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Hình ảnh</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Hình ảnh hiện tại:</label>
+                            <div class="text-center p-3 bg-light rounded">
+                                <img src="@Url.Content("~/Content/Images/" + Model.HinhAnh)" 
+                                     alt="@Model.TieuDe" 
+                                     class="img-fluid"
+                                     style="max-height: 200px;">
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-file-image me-1"></i>
+                                @Model.HinhAnh
+                            </small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Chưa có hình ảnh. Vui lòng upload hình ảnh mới.
+                        </div>
+                    }
+
+                    <input type="file" name="hinhAnhFile" id="hinhAnhFile" class="form-control mb-2" accept="image/*">
+                    <small class="form-text text-muted">
+                        <i class="fas fa-upload me-1"></i>
+                        Chọn file ảnh mới để thay thế (800x450px khuyến nghị)
+                    </small>
+                    
+                    <div id="imagePreview" class="mt-3" style="display: none;">
+                        <label class="form-label">Xem trước hình mới:</label>
+                        <div class="text-center p-3 bg-light rounded">
+                            <img id="previewImg" src="" alt="Preview" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger mt-2" id="clearImage">
+                            <i class="fas fa-times"></i> Hủy ảnh mới
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tùy chọn -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Tùy chọn</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check">
+                        @Html.CheckBox("HienThi", Model.HienThi ?? false, new { @class = "form-check-input" })
+                        <label class="form-check-label" for="HienThi">
+                            Hiển thị tin tức này
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.Label("NguoiCapNhat", "Người cập nhật", htmlAttributes: new { @class = "form-label" })
+                        @Html.EditorFor(model => model.NguoiCapNhat, new { htmlAttributes = new { @class = "form-control" } })
+                    </div>
+                    <small class="text-muted">
+                        <i class="far fa-calendar me-1"></i>
+                        Ngày tạo: @Model.NgayTao?.ToString("dd/MM/yyyy HH:mm")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-warning btn-lg">
+            <i class="fas fa-save me-1"></i> Cập nhật tin tức
+        </button>
+        <a href="@Url.Action("TinTuc", "Admin")" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times me-1"></i> Hủy
+        </a>
+    </div>
+}
+
+@section scripts {
+<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize CKEditor
+        if (CKEDITOR) {
+            CKEDITOR.replace('editor', {
+                height: 400
+            });
+        }
+
+        // Preview image before upload
+        $('#hinhAnhFile').change(function(e) {
+            var file = e.target.files[0];
+            
+            if (file) {
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Vui lòng chọn file ảnh (PNG, JPG, JPEG, GIF)',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    $(this).val('');
+                    return;
+                }
+
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Kích thước file không được vượt quá 5MB',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    $(this).val('');
+                    return;
+                }
+
+                // Show preview
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewImg').attr('src', e.target.result);
+                    $('#imagePreview').fadeIn();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Clear image
+        $('#clearImage').click(function() {
+            $('#hinhAnhFile').val('');
+            $('#imagePreview').fadeOut();
+            $('#previewImg').attr('src', '');
+        });
+    });
+</script>
+}

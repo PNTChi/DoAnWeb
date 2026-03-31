@@ -1,0 +1,371 @@
+﻿
+@{
+    ViewBag.Title = "Tổng Quan";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    
+    var totalRevenue = ViewBag.TotalRevenue ?? 0;
+    var totalOrders = ViewBag.TotalOrders ?? 0;
+    var totalCustomers = ViewBag.TotalCustomers ?? 0;
+    var totalProducts = ViewBag.TotalProducts ?? 0;
+}
+
+<div id="dashboard" class="tab-content active">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-tachometer-alt text-primary me-2"></i>
+            Bảng điều khiển
+        </h1>
+        <div class="text-muted">
+            <i class="far fa-clock me-1"></i>
+            Cập nhật: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+        </div>
+    </div>
+    
+    <!-- Thống kê tổng quan -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card bg-gradient-primary shadow">
+                <div class="icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="info">
+                    <h3 id="totalRevenue">@String.Format("{0:N0}", totalRevenue) ₫</h3>
+                    <p>Tổng doanh thu</p>
+                    <small class="text-white-50">
+                        <i class="fas fa-chart-line me-1"></i>
+                        Đơn đã giao/hoàn thành
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card bg-gradient-success shadow">
+                <div class="icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="info">
+                    <h3 id="totalOrders">@totalOrders</h3>
+                    <p>Tổng đơn hàng</p>
+                    <small class="text-white-50">
+                        <i class="fas fa-box me-1"></i>
+                        Tất cả trạng thái
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card bg-gradient-info shadow">
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="info">
+                    <h3 id="totalCustomers">@totalCustomers</h3>
+                    <p>Tổng khách hàng</p>
+                    <small class="text-white-50">
+                        <i class="fas fa-user-check me-1"></i>
+                        Tài khoản đã đăng ký
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card bg-gradient-warning shadow">
+                <div class="icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <div class="info">
+                    <h3 id="totalProducts">@totalProducts</h3>
+                    <p>Sản phẩm trong kho</p>
+                    <small class="text-white-50">
+                        <i class="fas fa-warehouse me-1"></i>
+                        Tổng số lượng
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Biểu đồ -->
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-area me-2"></i>
+                        Doanh thu 6 tháng gần nhất
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="dashboardRevenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Top 5 sản phẩm bán chạy
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="dashboardTopProductsChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Đơn hàng gần đây -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-list me-2"></i>
+                        Đơn hàng gần đây
+                    </h6>
+                    <a href="@Url.Action("DonHang", "Admin")" class="btn btn-sm btn-outline-primary">
+                        Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.RecentOrders != null)
+                                {
+                                    foreach (var order in ViewBag.RecentOrders)
+                                    {
+                                        var statusClass = "";
+                                        var statusText = "";
+                                        switch (order.TrangThai)
+                                        {
+                                            case 1: statusClass = "warning"; statusText = "Chờ xử lý"; break;
+                                            case 2: statusClass = "info"; statusText = "Đã xác nhận"; break;
+                                            case 3: statusClass = "primary"; statusText = "Đang giao"; break;
+                                            case 4: statusClass = "success"; statusText = "Hoàn thành"; break;
+                                            case 5: statusClass = "danger"; statusText = "Đã hủy"; break;
+                                            default: statusClass = "secondary"; statusText = "Không rõ"; break;
+                                        }
+                                        
+                                        <tr>
+                                            <td>
+                                                <strong class="text-primary">@order.MaDonHang</strong>
+                                            </td>
+                                            <td>@order.TenKhachHang</td>
+                                            <td>
+                                                <strong>@String.Format("{0:N0}", order.TongTien) ₫</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@statusClass">@statusText</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @(order.NgayTao.HasValue ? order.NgayTao.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("ChiTiet", "DonHang", new { id = order.Id })" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                                            <p>Chưa có đơn hàng nào</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        border-radius: 10px;
+        color: white;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        transition: transform 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card .icon {
+        font-size: 3rem;
+        opacity: 0.8;
+        margin-right: 20px;
+    }
+    
+    .stat-card .info h3 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-card .info p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    }
+    
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+    
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+@section scripts {
+<script>
+    // Dữ liệu doanh thu 6 tháng
+    var revenueData = @Html.Raw(Json.Encode(ViewBag.RevenueByMonth ?? new List<object>()));
+    
+    // Dữ liệu sản phẩm bán chạy
+    var topProductsData = @Html.Raw(Json.Encode(ViewBag.TopProducts ?? new List<object>()));
+    
+    // Biểu đồ doanh thu
+    if (revenueData.length > 0) {
+        var revenueLabels = revenueData.map(function(item) {
+            return 'Tháng ' + item.Month + '/' + item.Year;
+        });
+        
+        var revenueValues = revenueData.map(function(item) {
+            return item.Revenue;
+        });
+        
+        var revenueCtx = document.getElementById('dashboardRevenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Doanh thu (₫)',
+                    data: revenueValues,
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Doanh thu: ' + context.parsed.y.toLocaleString('vi-VN') + ' ₫';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + ' ₫';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Biểu đồ sản phẩm bán chạy
+    if (topProductsData.length > 0) {
+        var productLabels = topProductsData.map(function(item) {
+            return item.ProductName;
+        });
+        
+        var productValues = topProductsData.map(function(item) {
+            return item.TotalQuantity;
+        });
+        
+        var productCtx = document.getElementById('dashboardTopProductsChart').getContext('2d');
+        new Chart(productCtx, {
+            type: 'doughnut',
+            data: {
+                labels: productLabels,
+                datasets: [{
+                    data: productValues,
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(132, 250, 176, 0.8)',
+                        'rgba(168, 237, 234, 0.8)',
+                        'rgba(255, 236, 210, 0.8)',
+                        'rgba(252, 182, 159, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + ' sản phẩm';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+}

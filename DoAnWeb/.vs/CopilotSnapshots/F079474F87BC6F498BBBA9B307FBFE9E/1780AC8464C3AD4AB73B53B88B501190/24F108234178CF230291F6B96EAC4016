@@ -1,0 +1,50 @@
+﻿@model DoAnWeb.tb_TaiKhoan
+@{
+    ViewBag.Title = "formSuaQTV";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm("SuaQTV", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <h3 id="formAdminTitle">Sửa admin</h3>
+    <hr>
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="mb-3">
+        @Html.Label("TenDangNhap", "Tên đăng nhập", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.TenDangNhap, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.TenDangNhap)
+    </div>
+    <div class="mb-3">
+        @Html.Label("MatKhau", "Mật khẩu", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.MatKhau, new { htmlAttributes = new { @class = "form-control", type = "password" } })
+        @Html.ValidationMessageFor(model => model.MatKhau)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HoTen", "Họ tên", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HoTen, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HoTen)
+    </div>
+    <div class="mb-3">
+        @Html.Label("Email", "Email", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.Email)
+    </div>
+    <div class="mb-3">
+        @Html.Label("SoDienThoai", "Số điện thoại", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.SoDienThoai)
+    </div>
+    <div class="mb-3">
+        @Html.Label("HoatDong", "Hoạt động", htmlAttributes: new { @class = "form-label" })
+        @Html.EditorFor(model => model.HoatDong, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.HoatDong)
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu tài khoản</button>
+        <a href="@Url.Action("QuanTriVien", "Admin")" class="btn btn-secondary">Hủy</a>
+    </div>
+}

@@ -1,0 +1,345 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Text;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+using DoAnWeb.Models;
+
+namespace DoAnWeb.Controllers
+{
+    /// <summary>
+    /// Controller x? lý ??ng nh?p, ??ng ký, ??ng xu?t, quên m?t kh?u
+    /// </summary>
+    public class AccountController : Controller
+    {
+ // Kh?i t?o DbContext
+    private WebBanHangDienTuEntities db = new WebBanHangDienTuEntities();
+
+      #region ??ng nh?p
+
+        /// <summary>
+        /// GET: Hi?n th? trang ??ng nh?p
+        /// </summary>
+        [HttpGet]
+        public ActionResult Login(string returnUrl)
+      {
+     // N?u ?ã ??ng nh?p r?i thì redirect v? trang ch?
+    if (Session["User"] != null)
+  {
+                return RedirectToAction("Index", "Home");
+            }
+
+    ViewBag.ReturnUrl = returnUrl;
+       return View();
+        }
+
+        /// <summary>
+        /// POST: X? lý ??ng nh?p
+        /// </summary>
+        [HttpPost]
+[ValidateAntiForgeryToken]
+        public ActionResult Login(LoginViewModel model, string returnUrl)
+        {
+    if (ModelState.IsValid)
+            {
+                // Tìm user trong database theo email
+                var user = db.tb_TaiKhoan
+        .FirstOrDefault(u => u.Email == model.Email && u.HoatDong == true);
+
+      if (user != null)
+   {
+            // Ki?m tra m?t kh?u (nên dùng hash, nh?ng ? ?ây demo ??n gi?n)
+             if (user.MatKhau == model.Password)
+        {
+          // L?u thông tin user vào session
+            var userSession = new UserSessionViewModel
+        {
+           Id = user.Id,
+    HoTen = user.HoTen,
+    Email = user.Email,
+     LaQuanTri = user.LaQuanTri ?? false
+      };
+
+            Session["User"] = userSession;
+             Session["UserId"] = user.Id;
+                   Session["UserName"] = user.HoTen;
+               Session["IsAdmin"] = user.LaQuanTri ?? false;
+
+    // Redirect v? trang tr??c ?ó ho?c trang ch?
+    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+{
+        return Redirect(returnUrl);
+       }
+
+     // N?u là admin thì v? trang admin, user thì v? trang ch?
+      if (user.LaQuanTri == true)
+        {
+  return RedirectToAction("TongQuan", "Admin");
+  }
+
+ return RedirectToAction("Index", "Home");
+         }
+    else
+   {
+      ModelState.AddModelError("", "M?t kh?u không ?úng");
+          }
+                }
+       else
+       {
+           ModelState.AddModelError("", "Email không t?n t?i ho?c tài kho?n ?ã b? khóa");
+     }
+            }
+
+         ViewBag.ReturnUrl = returnUrl;
+ return View(model);
+    }
+
+        #endregion
+
+        #region ??ng ký
+
+        /// <summary>
+        /// POST: X? lý ??ng ký tài kho?n m?i
+        /// </summary>
+  [HttpPost]
+    [ValidateAntiForgeryToken]
+        public ActionResult Register(RegisterViewModel model)
+        {
+      if (ModelState.IsValid)
+  {
+         // Ki?m tra email ?ã t?n t?i ch?a
+    var existingUser = db.tb_TaiKhoan.FirstOrDefault(u => u.Email == model.Email);
+     if (existingUser != null)
+    {
+     ModelState.AddModelError("Email", "Email này ?ã ???c ??ng ký");
+            return View("Login", model);
+      }
+
+      // T?o tài kho?n m?i
+         var newUser = new tb_TaiKhoan
+       {
+    HoTen = model.FullName,
+   Email = model.Email,
+          TenDangNhap = model.Email, // Dùng email làm tên ??ng nh?p
+   MatKhau = model.Password, // Nên hash m?t kh?u trong th?c t?
+ SoDienThoai = model.PhoneNumber,
+                  LaQuanTri = false, // User th??ng
+     HoatDong = true // Kích ho?t ngay
+     };
+
+        try
+       {
+         db.tb_TaiKhoan.Add(newUser);
+       db.SaveChanges();
+
+            // Thông báo thành công
+                 TempData["SuccessMessage"] = "??ng ký thành công! Vui lòng ??ng nh?p.";
+          return RedirectToAction("Login");
+                }
+         catch (Exception ex)
+ {
+               ModelState.AddModelError("", "Có l?i x?y ra: " + ex.Message);
+    }
+   }
+
+            // N?u có l?i, tr? v? view Login v?i d? li?u ?ã nh?p
+      return View("Login");
+        }
+
+        #endregion
+
+        #region Quên m?t kh?u
+
+        /// <summary>
+        /// GET: Hi?n th? trang quên m?t kh?u
+        /// </summary>
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+       return View();
+        }
+
+        /// <summary>
+        /// POST: X? lý quên m?t kh?u - G?i m?t kh?u m?i qua email
+        /// </summary>
+        [HttpPost]
+   [ValidateAntiForgeryToken]
+      public ActionResult ForgotPassword(ForgotPasswordViewModel model)
+        {
+if (ModelState.IsValid)
+         {
+       // Tìm user theo email
+  var user = db.tb_TaiKhoan.FirstOrDefault(u => u.Email == model.Email);
+
+  if (user == null)
+         {
+  ModelState.AddModelError("", "Email không t?n t?i trong h? th?ng");
+       return View(model);
+         }
+
+          // T?o m?t kh?u m?i ng?u nhiên
+   string newPassword = GenerateRandomPassword(8);
+
+    // C?p nh?t m?t kh?u m?i vào database
+      user.MatKhau = newPassword; // Nên hash n?u dùng hashing
+       db.SaveChanges();
+
+         // G?i email ch?a m?t kh?u m?i
+            try
+                {
+          SendPasswordResetEmail(user.Email, user.HoTen, newPassword);
+
+         TempData["SuccessMessage"] = "M?t kh?u m?i ?ã ???c g?i ??n email c?a b?n. Vui lòng ki?m tra h?p th?!";
+      return RedirectToAction("Login");
+       }
+            catch (Exception ex)
+       {
+   ModelState.AddModelError("", "Không th? g?i email. L?i: " + ex.Message);
+             // Rollback password n?u g?i email th?t b?i
+      user.MatKhau = user.MatKhau; // Gi? nguyên m?t kh?u c?
+         db.SaveChanges();
+        }
+            }
+
+            return View(model);
+        }
+
+     /// <summary>
+        /// T?o m?t kh?u ng?u nhiên
+        /// </summary>
+     private string GenerateRandomPassword(int length)
+        {
+      const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%";
+            StringBuilder password = new StringBuilder();
+      Random random = new Random();
+
+            for (int i = 0; i < length; i++)
+            {
+password.Append(validChars[random.Next(validChars.Length)]);
+      }
+
+            return password.ToString();
+        }
+
+        /// <summary>
+        /// G?i email ch?a m?t kh?u m?i
+     /// </summary>
+  private void SendPasswordResetEmail(string toEmail, string userName, string newPassword)
+        {
+  // C?u hình SMTP (Gmail example - b?n c?n b?t "Less secure app access")
+            // Ho?c dùng App Password n?u b?t 2FA
+        string fromEmail = "your-email@gmail.com"; // Thay b?ng email c?a b?n
+    string fromPassword = "your-app-password"; // Thay b?ng app password
+
+   MailMessage mail = new MailMessage();
+          mail.From = new MailAddress(fromEmail, "TECH SHOP");
+            mail.To.Add(toEmail);
+            mail.Subject = "Khôi ph?c m?t kh?u - TECH SHOP";
+            mail.IsBodyHtml = true;
+
+    // Email body v?i HTML ??p
+ mail.Body = $@"
+           <!DOCTYPE html>
+ <html>
+       <head>
+<style>
+       body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
+      .content {{ background: #f9f9f9; padding: 30px; }}
+      .password-box {{ background: white; border: 2px solid #667eea; padding: 15px; margin: 20px 0; text-align: center; font-size: 24px; font-weight: bold; color: #667eea; }}
+            .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
+          </style>
+       </head>
+     <body>
+ <div class='container'>
+      <div class='header'>
+   <h1>Khôi ph?c m?t kh?u</h1>
+                   </div>
+               <div class='content'>
+              <p>Xin chào <strong>{userName}</strong>,</p>
+      <p>Chúng tôi ?ã nh?n ???c yêu c?u khôi ph?c m?t kh?u cho tài kho?n c?a b?n.</p>
+      <p>M?t kh?u m?i c?a b?n là:</p>
+  <div class='password-box'>{newPassword}</div>
+   <p><strong>L?u ý quan tr?ng:</strong></p>
+          <ul>
+          <li>Vui lòng ??ng nh?p và ??i m?t kh?u m?i ngay sau khi nh?n ???c email này.</li>
+    <li>Không chia s? m?t kh?u này v?i b?t k? ai.</li>
+  <li>N?u b?n không yêu c?u khôi ph?c m?t kh?u, vui lòng liên h? v?i chúng tôi ngay.</li>
+      </ul>
+  <p>Trân tr?ng,<br><strong>TECH SHOP Team</strong></p>
+          </div>
+             <div class='footer'>
+     <p>Email này ???c g?i t? ??ng, vui lòng không reply.</p>
+   <p>&copy; 2025 TECH SHOP. All rights reserved.</p>
+     </div>
+       </div>
+                </body>
+   </html>
+            ";
+
+      // C?u hình SMTP client
+        SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
+      smtp.EnableSsl = true;
+       smtp.Credentials = new NetworkCredential(fromEmail, fromPassword);
+
+  // G?i email
+            smtp.Send(mail);
+        }
+
+        #endregion
+
+        #region ??ng xu?t
+
+        /// <summary>
+   /// ??ng xu?t - Clear session
+        /// </summary>
+        public ActionResult Logout()
+   {
+            // Xóa t?t c? session
+  Session.Clear();
+          Session.Abandon();
+
+      // Redirect v? trang ??ng nh?p
+   return RedirectToAction("Login", "Account");
+      }
+
+        #endregion
+
+        #region Helpers
+
+    /// <summary>
+        /// Ki?m tra user ?ã ??ng nh?p ch?a (dùng cho các action c?n authentication)
+      /// </summary>
+        protected bool IsAuthenticated()
+        {
+      return Session["User"] != null;
+        }
+
+        /// <summary>
+ /// L?y thông tin user hi?n t?i t? session
+        /// </summary>
+      protected UserSessionViewModel GetCurrentUser()
+        {
+            return Session["User"] as UserSessionViewModel;
+   }
+
+        #endregion
+
+        /// <summary>
+        /// Dispose DbContext
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+  {
+       db.Dispose();
+  }
+            base.Dispose(disposing);
+        }
+    }
+}

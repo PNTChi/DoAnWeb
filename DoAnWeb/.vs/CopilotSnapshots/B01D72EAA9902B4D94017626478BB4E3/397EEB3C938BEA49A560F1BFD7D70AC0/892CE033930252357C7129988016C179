@@ -1,0 +1,155 @@
+﻿@model DoAnWeb.tb_QuangCao 
+
+@{
+    ViewBag.Title = "Thêm Banner";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@section styles {
+<style>
+    .required:after {
+        content: " *";
+        color: red;
+    }
+</style>
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle"></i> Thêm Banner Mới
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("ThemBanner", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label required">Tiêu đề</label>
+                                    @Html.TextBoxFor(m => m.TieuDe, new { @class = "form-control", placeholder = "Nhập tiêu đề banner..." })
+                                    @Html.ValidationMessageFor(m => m.TieuDe, "", new { @class = "text-danger" })
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Mô tả</label>
+                                    @Html.TextAreaFor(m => m.MoTa, new { @class = "form-control", rows = 3, placeholder = "Nhập mô tả ngắn..." })
+                                    @Html.ValidationMessageFor(m => m.MoTa, "", new { @class = "text-danger" })
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Link liên kết</label>
+                                    @Html.TextBoxFor(m => m.LienKet, new { @class = "form-control", type = "url", placeholder = "https://..." })
+                                    @Html.ValidationMessageFor(m => m.LienKet, "", new { @class = "text-danger" })
+                                    <small class="text-muted">Link sẽ được mở khi click vào banner (không bắt buộc)</small>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Vị trí hiển thị</label>
+                                            @Html.DropDownListFor(m => m.ViTri, new SelectList(new List<string>
+                                            {
+                                                "Trang chủ - Banner chính",
+                                                "Trang chủ - Sidebar",
+                                                "Trang sản phẩm",
+                                                "Footer",
+                                                "Popup"
+                                            }), "-- Chọn vị trí --", new { @class = "form-select" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Thứ tự hiển thị</label>
+                                            @Html.TextBoxFor(m => m.ThuTu, new { @class = "form-control", type = "number", min = 0, max = 999 })
+                                            @Html.ValidationMessageFor(m => m.ThuTu, "", new { @class = "text-danger" })
+                                            <small class="text-muted">Số nhỏ hiển thị trước</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" id="HienThi" name="HienThi" 
+                                               class="form-check-input" value="true"
+                                               @(Model.HienThi == true ? "checked=\"checked\"" : "") />
+                                        <input type="hidden" name="HienThi" value="false" />
+                                        <label class="form-check-label" for="HienThi">
+                                            Hiển thị banner này
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">Hình ảnh Banner</label>
+                                    <input type="file" name="hinhAnhFile" id="hinhAnhFile" 
+                                           class="form-control" accept="image/*" required 
+                                           onchange="previewImage(this)">
+                                    <small class="text-muted">
+                                        Định dạng: JPG, PNG, GIF. Kích thước tối đa: 5MB<br>
+                                        Khuyến nghị: 1920x600px (tỷ lệ 16:5)
+                                    </small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Xem trước</label>
+                                    <div class="border rounded p-2 bg-light text-center" style="min-height: 200px;">
+                                        <img id="imagePreview" src="#" alt="Preview" 
+                                             style="max-width: 100%; max-height: 300px; display: none;">
+                                        <div id="noImageText" class="text-muted">
+                                            <i class="fas fa-image fa-3x mb-2 d-block"></i>
+                                            Chưa chọn ảnh
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Banner", "Admin")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu Banner
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#imagePreview').attr('src', e.target.result).show();
+                $('#noImageText').hide();
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+}

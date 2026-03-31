@@ -1,0 +1,259 @@
+﻿# 📋 Quy Trình Quản Lý Trạng Thái Đơn Hàng
+
+## 🔄 Luồng Trạng Thái Đơn Hàng
+
+```
+1 (Chờ xác nhận) 
+    ↓
+2 (Đã xác nhận) ← User xác nhận trong dialog khi đặt hàng
+    ↓ [Nút "Xác minh" trong Admin/ThanhToan]
+3 (Đang giao) ← Admin xác minh thanh toán
+    ↓
+4 (Đã giao) ← Shipper xác nhận đã giao
+    ↓
+5 (Hoàn thành) ← Hệ thống hoặc Admin đánh dấu hoàn thành
+```
+
+## ✅ Logic Hiện Tại (ĐÚNG)
+
+### File: `AdminController.cs`
+
+#### Method: `XacMinhThanhToan`
+```csharp
+[HttpPost]
+public JsonResult XacMinhThanhToan(int id)
+{
+    // Chỉ cho phép xác minh nếu đơn hàng đang ở trạng thái 2 (Đã xác nhận)
+    if (donHang.TrangThai != 2)
+    {
+        return Json(new { success = false, message = "Chỉ có thể xác minh đơn hàng ở trạng thái 'Đã xác nhận'" });
+    }
+
+    // Cập nhật trạng thái sang 3 (Đang giao) ✅ ĐÚNG
+    donHang.TrangThai = 3;
+    donHang.NgayCapNhat = DateTime.Now;
+    db.SaveChanges();
+
+    return Json(new { success = true, message = "Xác minh thanh toán thành công! Đơn hàng đang được giao." });
+}
+```
+
+**✅ Kết quả**: Trạng thái 2 → Trạng thái 3
+
+---
+
+## 🎯 Các Trạng Thái Đơn Hàng
+
+| Mã | Tên Trạng Thái | Màu Badge | Mô Tả |
+|:--:|:---------------|:---------:|:------|
+| 1 | Chờ xác nhận | ⚠️ Warning (Vàng) | Đơn hàng mới, chờ admin xử lý |
+| 2 | Đã xác nhận | ℹ️ Info (Xanh dương) | User đã confirm, chờ admin xác minh thanh toán |
+| 3 | Đang giao | 🔵 Primary (Xanh) | Admin đã xác minh, đơn đang giao |
+| 4 | Đã giao | ✅ Success (Xanh lá) | Shipper đã giao hàng thành công |
+| 5 | Hoàn thành | ⚫ Dark (Đen) | Đơn hàng hoàn tất, không thay đổi được |
+| 6 | Đã hủy | ❌ Danger (Đỏ) | Đơn hàng bị hủy bởi admin hoặc khách hàng |
+
+---
+
+## 🚀 Hành Động Theo Từng Trạng Thái
+
+### Trạng Thái 1 (Chờ xác nhận)
+- **Hiển thị**: Badge màu vàng "Chờ xác nhận"
+- **Hành động**: Admin có thể xác nhận hoặc hủy
+- **Nút**: "Xác nhận đơn" (chuyển sang trạng thái 2)
+
+### Trạng Thái 2 (Đã xác nhận) ⭐
+- **Hiển thị**: Badge màu xanh dương "Đã xác nhận"
+- **Hành động**: Admin xác minh thanh toán
+- **Nút**: **"Xác minh"** (chuyển sang trạng thái 3) ✅
+- **Logic**: `XacMinhThanhToan()` → Trạng thái = 3
+
+### Trạng Thái 3 (Đang giao)
+- **Hiển thị**: Badge màu xanh "Đang giao"
+- **Hành động**: Chờ shipper giao hàng
+- **Nút**: "Đã giao" (chuyển sang trạng thái 4)
+
+### Trạng Thái 4 (Đã giao)
+- **Hiển thị**: Badge màu xanh lá "Đã giao"
+- **Hành động**: Xác nhận hoàn thành
+- **Nút**: "Hoàn thành" (chuyển sang trạng thái 5)
+
+### Trạng Thái 5 (Hoàn thành)
+- **Hiển thị**: Badge màu xanh lá "Hoàn thành"
+- **Hành động**: Không có (kết thúc)
+- **Nút**: Disabled "Đã hoàn thành"
+
+---
+
+## 📍 View: Admin/ThanhToan.cshtml
+
+### Hiển thị Nút Theo Trạng Thái
+
+```html
+@if (item.TrangThai == 2)
+{
+    <!-- Trạng thái 2: Hiển thị nút "Xác minh" -->
+    <button class="btn btn-sm btn-info" onclick="xacMinhThanhToan(@item.Id)">
+        <i class="fas fa-check"></i> Xác minh
+    </button>
+}
+else
+{
+    <!-- Các trạng thái khác: Nút disabled -->
+    <button class="btn btn-sm btn-secondary" disabled>
+        <i class="fas fa-check"></i> Đã xử lý
+    </button>
+}
+```
+
+### JavaScript Function
+
+```javascript
+function xacMinhThanhToan(id) {
+    Swal.fire({
+        title: 'Xác nhận',
+        text: 'Bạn có chắc chắn muốn xác minh thanh toán đơn hàng này?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Xác minh',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '@Url.Action("XacMinhThanhToan", "Admin")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: response.message, // "Xác minh thanh toán thành công! Đơn hàng đang được giao."
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload(); // Reload để cập nhật UI
+                        });
+                    }
+                }
+            });
+        }
+    });
+}
+```
+
+---
+
+## 🔍 Kiểm Tra Lỗi
+
+### Nếu vẫn thấy chuyển sang trạng thái 5:
+
+1. **Kiểm tra Database**
+```sql
+-- Xem trạng thái hiện tại
+SELECT TOP 10 Id, MaDonHang, TrangThai, NgayCapNhat 
+FROM tb_DonHang 
+ORDER BY NgayCapNhat DESC
+
+-- Kiểm tra lịch sử thay đổi trạng thái
+SELECT Id, MaDonHang, TrangThai, NgayTao, NgayCapNhat
+FROM tb_DonHang
+WHERE Id = [ID_DON_HANG]
+```
+
+2. **Kiểm tra có Trigger không**
+```sql
+-- Kiểm tra trigger trên bảng tb_DonHang
+SELECT name, OBJECT_NAME(parent_id) AS TableName
+FROM sys.triggers
+WHERE OBJECT_NAME(parent_id) = 'tb_DonHang'
+```
+
+3. **Kiểm tra có Stored Procedure nào tự động cập nhật không**
+```sql
+-- Tìm SP liên quan đến DonHang
+SELECT name, create_date, modify_date
+FROM sys.procedures
+WHERE OBJECT_DEFINITION(OBJECT_ID) LIKE '%tb_DonHang%'
+  AND OBJECT_DEFINITION(OBJECT_ID) LIKE '%TrangThai%'
+```
+
+4. **Xem Debug Log**
+- Mở Visual Studio
+- Run project (F5)
+- Mở Output window (View → Output)
+- Chọn "Debug" trong dropdown
+- Click nút "Xác minh"
+- Xem log để biết trạng thái được set là bao nhiêu
+
+---
+
+## ✅ Xác Nhận Logic Đúng
+
+File: `AdminController.cs` - Line ~2300
+
+```csharp
+// Cập nhật trạng thái sang 3 (Đang giao)
+donHang.TrangThai = 3; // ✅ ĐÚNG - Chuyển sang trạng thái 3, không phải 5
+donHang.NgayCapNhat = DateTime.Now;
+db.SaveChanges();
+```
+
+**Kết luận**: Logic trong code là **ĐÚNG** - chuyển từ 2 → 3, không phải 2 → 5.
+
+---
+
+## 🐛 Nếu Vẫn Có Lỗi
+
+### Có thể là:
+
+1. **Cache browser**: Clear cache và hard reload (Ctrl + Shift + R)
+2. **Old code**: Có file DLL cũ, rebuild solution (Ctrl + Shift + B)
+3. **Database trigger**: Có trigger tự động chuyển trạng thái
+4. **Nhầm lẫn**: Đang xem sai đơn hàng hoặc sai màn hình
+
+### Debug Steps:
+
+1. **Thêm logging vào XacMinhThanhToan**:
+```csharp
+[HttpPost]
+public JsonResult XacMinhThanhToan(int id)
+{
+    System.Diagnostics.Debug.WriteLine($"=== XAC MINH THANH TOAN ===");
+    System.Diagnostics.Debug.WriteLine($"Order ID: {id}");
+    
+    var donHang = db.tb_DonHang.Find(id);
+    System.Diagnostics.Debug.WriteLine($"Current Status: {donHang.TrangThai}");
+    
+    if (donHang.TrangThai != 2)
+    {
+        System.Diagnostics.Debug.WriteLine($"ERROR: Status is not 2, cannot verify");
+        return Json(new { success = false, message = "..." });
+    }
+
+    donHang.TrangThai = 3;
+    System.Diagnostics.Debug.WriteLine($"New Status: {donHang.TrangThai}");
+    
+    db.SaveChanges();
+    System.Diagnostics.Debug.WriteLine($"=== SAVED TO DB ===");
+    
+    return Json(new { success = true, message = "..." });
+}
+```
+
+2. **Rebuild Solution**: Ctrl + Shift + B
+3. **Run và test**: F5
+4. **Xem Output window**: View → Output → Debug
+5. **Click nút "Xác minh"**
+6. **Đọc log**
+
+---
+
+## 📞 Nếu Cần Hỗ Trợ
+
+Cung cấp:
+1. ✅ Screenshot màn hình Admin/ThanhToan
+2. ✅ Screenshot trạng thái TRƯỚC và SAU khi click "Xác minh"
+3. ✅ Debug log từ Output window
+4. ✅ Query kết quả từ database:
+```sql
+SELECT TOP 1 * FROM tb_DonHang WHERE Id = [ID] 
+```

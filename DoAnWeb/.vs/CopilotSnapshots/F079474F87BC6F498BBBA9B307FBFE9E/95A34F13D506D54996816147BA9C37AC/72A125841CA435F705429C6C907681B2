@@ -1,0 +1,268 @@
+﻿@model List<DoAnWeb.tb_DonHang>
+
+@{
+    ViewBag.Title = "Đơn hàng của tôi";
+}
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+  <li class="inline-flex items-center">
+   <a href="@Url.Action("Index", "Home")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+     <i class="fas fa-home mr-2"></i>
+ Trang chủ
+   </a>
+  </li>
+        <li>
+      <div class="flex items-center">
+       <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+      <a href="@Url.Action("Index", "TaiKhoan")" class="text-sm font-medium text-gray-700 hover:text-blue-600">
+       Tài khoản
+      </a>
+     </div>
+  </li>
+     <li aria-current="page">
+   <div class="flex items-center">
+        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+      <span class="text-sm font-medium text-gray-500">Đơn hàng</span>
+       </div>
+      </li>
+</ol>
+</nav>
+
+@* Anti-Forgery Token for AJAX requests *@
+@Html.AntiForgeryToken()
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Sidebar Menu (1/4) -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
+  <h3 class="text-lg font-bold text-gray-900 mb-4 pb-3 border-b">Quản lý tài khoản</h3>
+ <nav class="space-y-2">
+    <a href="@Url.Action("Index", "TaiKhoan")" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+     <i class="fas fa-user-circle w-5 mr-3"></i>
+    Thông tin tài khoản
+  </a>
+     <a href="@Url.Action("DoiMatKhau", "TaiKhoan")" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+   <i class="fas fa-key w-5 mr-3"></i>
+      Đổi mật khẩu
+    </a>
+     <a href="@Url.Action("DonHang", "TaiKhoan")" class="flex items-center px-4 py-3 bg-blue-50 text-blue-600 rounded-lg font-semibold">
+  <i class="fas fa-shopping-bag w-5 mr-3"></i>
+     Đơn hàng của tôi
+   </a>
+   <a href="@Url.Action("Logout", "Account")" class="flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+   <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+     Đăng xuất
+ </a>
+    </nav>
+     </div>
+    </div>
+
+    <!-- Main Content (3/4) -->
+  <div class="lg:col-span-3">
+ <div class="bg-white rounded-lg shadow-md p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b flex items-center justify-between">
+ <span>
+    <i class="fas fa-list mr-3 text-blue-600"></i>
+     Đơn hàng của tôi (@ViewBag.TotalOrders đơn)
+   </span>
+     </h2>
+
+      @if (Model.Any())
+   {
+   <div class="space-y-6">
+      @foreach (var donHang in Model)
+    {
+           var statusClass = "";
+     var statusText = "";
+  var statusIcon = "";
+         
+ switch (donHang.TrangThai)
+      {
+    case 1: // Chờ xác nhận
+        statusClass = "bg-orange-100 text-orange-800";
+    statusText = "Chờ xác nhận";
+  statusIcon = "fa-clock";
+          break;
+    case 2: // Đã xác nhận
+ statusClass = "bg-blue-100 text-blue-800";
+    statusText = "Đã xác nhận";
+ statusIcon = "fa-check-circle";
+    break;
+      case 3: // Đang giao
+   statusClass = "bg-purple-100 text-purple-800";
+      statusText = "Đang giao hàng";
+     statusIcon = "fa-shipping-fast";
+    break;
+   case 4: // Đã giao
+    statusClass = "bg-green-100 text-green-800";
+   statusText = "Đã giao hàng";
+   statusIcon = "fa-check-double";
+   break;
+       case 5: // Đã hủy
+      statusClass = "bg-red-100 text-red-800";
+     statusText = "Đã hủy";
+  statusIcon = "fa-times-circle";
+     break;
+   default:
+           statusClass = "bg-gray-100 text-gray-800";
+      statusText = "Không xác định";
+     statusIcon = "fa-question-circle";
+ break;
+       }
+
+       <div class="border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+     <!-- Order Header -->
+      <div class="flex items-center justify-between mb-4 pb-4 border-b">
+ <div>
+    <h3 class="text-lg font-bold text-gray-900">
+   Đơn hàng #@donHang.MaDonHang
+     </h3>
+        <p class="text-sm text-gray-600 mt-1">
+    <i class="far fa-calendar mr-1"></i>
+     @(donHang.NgayTao?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+ </p>
+      </div>
+        <span class="@statusClass px-4 py-2 rounded-full text-sm font-semibold">
+           <i class="fas @statusIcon mr-1"></i>
+            @statusText
+ </span>
+   </div>
+
+   <!-- Order Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+         <div>
+  <p class="text-sm text-gray-600">Tổng tiền:</p>
+   <p class="text-xl font-bold text-blue-600">@String.Format("{0:0,0}", donHang.TongTien) ₫</p>
+        </div>
+   <div>
+   <p class="text-sm text-gray-600">Số lượng sản phẩm:</p>
+    <p class="text-lg font-semibold text-gray-900">@donHang.SoLuongSanPham</p>
+    </div>
+       <div>
+  <p class="text-sm text-gray-600">Phương thức thanh toán:</p>
+     <p class="text-sm font-semibold text-gray-900">
+       @switch (donHang.LoaiThanhToan)
+    {
+       case 1: <text>Thanh toán khi nhận hàng</text> break;
+      case 2: <text>Chuyển khoản ngân hàng</text> break;
+       case 3: <text>Ví điện tử MoMo</text> break;
+        case 4: <text>Ví điện tử ZaloPay</text> break;
+      case 5: <text>Thẻ tín dụng</text> break;
+    default: <text>Không xác định</text> break;
+       }
+     </p>
+  </div>
+       </div>
+
+<!-- Order Actions -->
+   <div class="flex items-center space-x-3 pt-4 border-t">
+  <a href="@Url.Action("ChiTietDonHang", "TaiKhoan", new { id = donHang.Id })" 
+       class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center">
+     <i class="fas fa-eye mr-2"></i>
+  Xem chi tiết
+     </a>
+ 
+@if (donHang.TrangThai <= 2)
+      {
+          <button onclick="huyDonHang(@donHang.Id)" 
+       class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+    <i class="fas fa-times-circle mr-2"></i>
+  Hủy đơn
+</button>
+   }
+      </div>
+   </div>
+   }
+        </div>
+
+     <!-- Pagination -->
+   if (ViewBag.TotalPages > 1)
+     {
+     <div class="flex justify-center items-center space-x-2 mt-8">
+   @if (ViewBag.CurrentPage > 1)
+      {
+    <a href="?page=@(ViewBag.CurrentPage - 1)" 
+class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-blue-50">
+  <i class="fas fa-chevron-left"></i>
+   </a>
+      }
+
+ @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+       {
+      <a href="?page=@i" 
+    class="px-4 py-2 rounded-lg @(i == ViewBag.CurrentPage ? "bg-blue-500 text-white" : "bg-white border border-gray-300 hover:bg-blue-50")">
+       @i
+     </a>
+     }
+
+@if (ViewBag.CurrentPage < ViewBag.TotalPages)
+     {
+   <a href="?page=@(ViewBag.CurrentPage + 1)" 
+ class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-blue-50">
+     <i class="fas fa-chevron-right"></i>
+   </a>
+  }
+    </div>
+    }
+    }
+   else
+    {
+     <!-- Empty State -->
+  <div class="text-center py-12">
+     <i class="fas fa-shopping-bag text-gray-300 text-6xl mb-4"></i>
+  <h3 class="text-xl font-bold text-gray-900 mb-2">Chưa có đơn hàng nào</h3>
+   <p class="text-gray-600 mb-6">Hãy mua sắm ngay để trải nghiệm dịch vụ tuyệt vời của chúng tôi</p>
+    <a href="@Url.Action("Index", "SanPham")" 
+      class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+  <i class="fas fa-shopping-cart mr-2"></i>
+   Mua sắm ngay
+ </a>
+  </div>
+   }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+  // Hủy đơn hàng
+    function huyDonHang(orderId) {
+     Swal.fire({
+     title: 'Xác nhận hủy đơn hàng?',
+            text: 'Bạn có chắc chắn muốn hủy đơn hàng này không?',
+     icon: 'warning',
+ showCancelButton: true,
+ confirmButtonColor: '#ef4444',
+   cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Hủy đơn hàng',
+ cancelButtonText: 'Không'
+        }).then((result) => {
+   if (result.isConfirmed) {
+          $.ajax({
+        url: '@Url.Action("HuyDonHang", "TaiKhoan")',
+    type: 'POST',
+     data: {
+    id: orderId,
+       __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+    },
+ success: function(response) {
+    if (response.success) {
+       Swal.fire('Thành công!', response.message, 'success')
+      .then(() => {
+       window.location.reload();
+     });
+        } else {
+  Swal.fire('Lỗi!', response.message, 'error');
+  }
+  },
+        error: function() {
+      Swal.fire('Lỗi!', 'Có lỗi xảy ra', 'error');
+    }
+        });
+      }
+ });
+    }
+</script>
+}

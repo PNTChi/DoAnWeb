@@ -1,0 +1,38 @@
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System.Threading;
+
+namespace TestDoAnWeb
+{
+    [TestClass]
+    public class KichBanTestUI
+    {
+        [TestMethod]
+        public void TestDangNhapThanhCong()
+        {
+            // 1. Mở trình duyệt Chrome
+            IWebDriver driver = new ChromeDriver();
+            driver.Manage().Window.Maximize();
+
+            // 2. Truy cập web đồ án của bạn
+            driver.Navigate().GoToUrl("https://localhost:44393/Account/Login");
+            Thread.Sleep(2000);
+
+            // 3. Tìm ô tài khoản, mật khẩu và gõ phím
+            driver.FindElement(By.Name, "Email").send_keys("an.nguyen@email.com");
+            driver.FindElement(By.Name, "Password").send_keys("an@123");
+
+            // 4. Bấm nút đăng nhập
+            driver.FindElement(By.CssSelector(".submit-btn")).Click();
+            Thread.Sleep(3000);
+
+            // 5. Kiểm tra kết quả (Test UI)
+            Assert.IsTrue(driver.Url.Contains("home"), "Lỗi: Đăng nhập thất bại!");
+
+            // Đóng trình duyệt
+            driver.Quit();
+        }
+    }
+}
